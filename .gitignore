@@ -1,7 +1,22 @@
 # Import cache
 .import/
 
+# CSV files
+*.translation
+
+# Export presets
+export_presets.cfg
+
+# Mono files (if on mono version)
+.mono/
+
 # Binaries
 bin/
 build/
 lib/
+
+# VC files
+git_api.gdns
+git_api.gdnlib
+
+
