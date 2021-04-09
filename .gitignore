@@ -19,4 +19,5 @@ lib/
 git_api.gdns
 git_api.gdnlib
 
-
+# Documents
+Documents/.~lock.*
