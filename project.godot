@@ -24,6 +24,10 @@ config/name="Simulation- Factory- Godot"
 run/main_scene="res://Scenes/Main.tscn"
 config/icon="res://icon.png"
 
+[editor_plugins]
+
+enabled=PoolStringArray( "protobuf" )
+
 [gdnative]
 
 singletons=[ "res://git_api.gdnlib" ]

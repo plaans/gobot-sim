@@ -19,14 +19,14 @@ message Command {
 message State {
 
 	//info about robots
-	//(for now only one robot assumed)
-	optional int32 robot_x = 1;
-	optional int32 robot_y = 2;
-	optional bool is_mooving = 3;
+	optional int32 nb_robots = 1;
+	repeated int32 robots_x = 2;
+	repeated int32 robots_y = 3;
+	repeated bool is_moving = 4;
 	
 	//info about packages
-	optional int32 nb_packages = 4;
-	repeated Location packages_locations = 5;  
+	optional int32 nb_packages = 5;
+	repeated Location packages_locations = 6;  
 	
 	message Location {//contains location of a package
 		enum Type {
@@ -38,7 +38,7 @@ message State {
 	}
 	
 	//info about stands
-	optional int32 nb_stands = 6;
-	repeated int32 packages_x = 7;
-	repeated int32 packages_y = 8;
+	optional int32 nb_stands = 7;
+	repeated int32 stands_x = 8;
+	repeated int32 stands_y = 9;
 }

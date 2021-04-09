@@ -1,6 +1,6 @@
 extends KinematicBody2D
 
-onready var _Package = get_node("../Package")
+onready var _Package = get_node("../../Package")
 
 export var pick_radius = 100
 
@@ -19,6 +19,9 @@ func _physics_process(delta):
 		move_time -= delta
 		if collision or move_time <= 0.0:
 			stop()
+			
+func is_moving():
+	return moving
 
 func goto(dir:float, speed:float, time:float):
 	# dir : rad
@@ -83,3 +86,4 @@ func find_closest_stand():
 			dist_min = distance
 			closest_stand = stand	
 	return [dist_min,closest_stand]
+	
