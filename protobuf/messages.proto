@@ -1,0 +1,44 @@
+syntax = "proto2";
+
+package communication_commandes;
+
+message Command {
+  enum Command_types {
+    GOTO = 0;
+    PICKUP = 1;
+  }
+  optional Command_types command = 1;
+  
+  //parameters below used only if goto command
+  optional float dir = 2;
+  optional float speed = 3;
+  optional float time =4;
+  
+}
+
+message State {
+
+	//info about robots
+	//(for now only one robot assumed)
+	optional int32 robot_x = 1;
+	optional int32 robot_y = 2;
+	optional bool is_mooving = 3;
+	
+	//info about packages
+	optional int32 nb_packages = 4;
+	repeated Location packages_locations = 5;  
+	
+	message Location {//contains location of a package
+		enum Type {
+			ROBOT = 0;
+			STAND = 1;
+		}
+		optional Type location_type = 1;
+		optional int32 location_id = 2;
+	}
+	
+	//info about stands
+	optional int32 nb_stands = 6;
+	repeated int32 packages_x = 7;
+	repeated int32 packages_y = 8;
+}
