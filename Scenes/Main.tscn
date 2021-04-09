@@ -1,9 +1,11 @@
-[gd_scene load_steps=54 format=2]
+[gd_scene load_steps=56 format=2]
 
 [ext_resource path="res://Assets/wall_texture.png" type="Texture" id=1]
 [ext_resource path="res://Assets/floor_texture.png" type="Texture" id=2]
 [ext_resource path="res://Scripts/Main.gd" type="Script" id=3]
 [ext_resource path="res://Scenes/Robot.tscn" type="PackedScene" id=4]
+[ext_resource path="res://Scenes/Package.tscn" type="PackedScene" id=5]
+[ext_resource path="res://Scenes/Stand.tscn" type="PackedScene" id=6]
 
 [sub_resource type="ConvexPolygonShape2D" id=1]
 points = PoolVector2Array( 32, 32, 0, 32, 0, 0, 32, 0 )
@@ -255,3 +257,15 @@ tile_data = PoolIntArray( 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 
 
 [node name="Robot" parent="." instance=ExtResource( 4 )]
 position = Vector2( 392, 448 )
+
+[node name="Stand" parent="." groups=[
+"stands",
+] instance=ExtResource( 6 )]
+position = Vector2( 593.688, 304.781 )
+
+[node name="Stand2" parent="." groups=[
+"stands",
+] instance=ExtResource( 6 )]
+position = Vector2( 271.446, 241.285 )
+
+[node name="Package" parent="." instance=ExtResource( 5 )]
