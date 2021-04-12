@@ -38,15 +38,7 @@ func _process(delta):
 
 	
 	if client != null and client.is_connected_to_host():
-		#first send data about state of world
-		var bytes_to_send = _encode_current_state()
-		var size_bytes = bytes_to_send.size()
-		
-		print( size_bytes)
-		
-		client.put_32(size_bytes)
-		client.put_data(bytes_to_send)
-			
+
 		
 		#then read if commands were received (read one at most)
 		if client.get_available_bytes() > 0:
@@ -70,6 +62,16 @@ func _process(delta):
 						_Robot.goto(Command.get_dir(), Command.get_speed(), Command.get_time()) 
 					elif command_type == Proto.Command.Command_types.PICKUP :
 						_Robot.pickup()
+						
+		#first send data about state of world
+		var bytes_to_send = _encode_current_state()
+		var size_bytes = bytes_to_send.size()
+		
+		print( size_bytes)
+		
+		client.put_32(size_bytes)
+		client.put_data(bytes_to_send)
+			
 
 func _encode_current_state():
 	var state = Proto.State.new()
