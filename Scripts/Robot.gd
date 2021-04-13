@@ -70,7 +70,6 @@ func find_closest_stand():
 	#if multiple stands are in pickup radius returns the closest one
 	
 	var stands = $Area2D.get_overlapping_bodies()
-	print(stands)
 	var closest_stand = null
 	var dist_min=1000000
 	for stand in stands:

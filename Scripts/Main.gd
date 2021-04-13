@@ -23,14 +23,10 @@ func _ready():
 	#values of arguments
 	
 	var arguments : Array = Array(OS.get_cmdline_args ())
-	print( arguments)
 	
 	var port = int(get_arg(arguments,"--port",10000 ))
 		
 	var pickup_radius = float(get_arg(arguments,"--pickup-radius",100 ))
-	
-	print( port)
-	print( pickup_radius)
 	
 	_Robot.get_node("Area2D/Pickup_Sphere").get_shape().set_radius(pickup_radius)
 	
@@ -81,8 +77,6 @@ func _process(delta):
 		#first send data about state of world
 		var bytes_to_send = _encode_current_state()
 		var size_bytes = bytes_to_send.size()
-		
-		print( size_bytes)
 		
 		client.put_32(size_bytes)
 		client.put_data(bytes_to_send)
