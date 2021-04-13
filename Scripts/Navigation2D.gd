@@ -19,7 +19,7 @@ func _ready():
 			used_rect.end*_WorldMap.cell_size,
 			Vector2(used_rect.end.x, used_rect.position.y)*_WorldMap.cell_size
 		])
-		outline = Geometry.offset_polygon_2d(outline, -(_WorldMap.cell_size.x+nav_margin))[0]
+		outline = Geometry.offset_polygon_2d(outline, -nav_margin)[0]
 		
 		polygon.add_outline(outline)
 		
