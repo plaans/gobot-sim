@@ -10,7 +10,6 @@ export var ROBOT_SPEED = 96 #px/s
 
 const Proto = preload("res://protobuf/proto.gd")
 var tcp_server #TCP_Server
-
 var client #StreamPeerTCP
 
 
@@ -21,10 +20,24 @@ func _ready():
 	stand.add_child(_Package)
 	_Package.set_owner(stand)
 	
+	#values of arguments
+	
+	var arguments : Array = Array(OS.get_cmdline_args ())
+	print( arguments)
+	
+	var port = int(get_arg(arguments,"--port",10000 ))
+		
 	
 	#launch TCP Server
 	tcp_server = TCP_Server.new();	
-	tcp_server.listen(10000)
+	tcp_server.listen(port)
+	
+func get_arg(args, arg_name, default):
+	var index = args.find(arg_name)
+	if index !=-1:
+		return args[index+1]
+	else:
+		return default
 	
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -43,8 +56,6 @@ func _process(delta):
 		#then read if commands were received (read one at most)
 		if client.get_available_bytes() > 0:
 			var size= client.get_u32 ()
-
-			print( "Size :" + str(size))
 			if size>0:
 				var response= client.get_data(size);
 				var error = response[0]
@@ -54,8 +65,6 @@ func _process(delta):
 				else:
 					var Command = Proto.Command.new()
 					Command.from_bytes(msg)
-					print( "Received msg: " + str(msg.hex_encode()))
-					print( "Received msg: " + str(Command.get_command()))
 					
 					var command_type = Command.get_command()
 					if command_type == Proto.Command.Command_types.GOTO:
