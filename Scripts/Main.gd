@@ -1,7 +1,19 @@
 extends Node
 
 onready var _Robot = get_node("Robots/Robot")
-onready var _Package = $Package
+export (PackedScene) var PackageScene
+export (PackedScene) var MachineScene
+#onready var _Package = $Package
+var _Package
+
+var machines_list
+#each element of the array is a Machine node
+
+var processes_list
+#each element of the array is an array of integers 
+#corresponding to the machines possible for the given process
+#example : if process no.3 can be done by machines 4 or 5, 
+#		   then the element at index 3 can be [4,5] (or [5,4])
 
 export var ROBOT_SPEED = 96 #px/s
 # Note:
@@ -13,12 +25,9 @@ var tcp_server #TCP_Server
 var client #StreamPeerTCP
 
 
-func _ready():
-	#for testing purposes we use only one package and initially place it at the first stand
-	self.remove_child(_Package)
-	var stand = get_node("Stands/Stand")
-	stand.add_child(_Package)
-	_Package.set_owner(stand)
+func _ready():	
+	#initialization
+	initialization()
 	
 	#values of arguments
 	
@@ -42,6 +51,25 @@ func get_arg(args, arg_name, default):
 		return args[index+1]
 	else:
 		return default
+		
+func initialization():
+	machines_list = []
+	for k in range(3):
+		var machine = MachineScene.instance()
+		add_child(machine)
+		machine.position = Vector2(150*k +300, 150*k+100)
+		machines_list.append(machine)
+	
+	processes_list=[]
+	processes_list.append([0,2])
+	processes_list.append([0,1])
+	#for example the machines 0 or 2 can be used for the process 0 
+	
+	#for testing purposes we use only one package and initially place it at the first stand
+	_Package = PackageScene.instance()
+	var stand = get_node("Stands/Stand")
+	stand.add_child(_Package)
+	_Package.set_processes([[0,3],[1,7]])
 	
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):

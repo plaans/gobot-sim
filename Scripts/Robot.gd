@@ -9,6 +9,7 @@ var velocity: Vector2 = Vector2.ZERO
 var carried_package
 
 func _physics_process(delta):
+	print(delta)
 	if moving:
 		var collision = move_and_collide(velocity*delta)
 		#if carried_package!=null:

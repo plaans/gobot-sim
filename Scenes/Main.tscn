@@ -1,4 +1,4 @@
-[gd_scene load_steps=56 format=2]
+[gd_scene load_steps=57 format=2]
 
 [ext_resource path="res://Assets/wall_texture.png" type="Texture" id=1]
 [ext_resource path="res://Assets/floor_texture.png" type="Texture" id=2]
@@ -6,6 +6,7 @@
 [ext_resource path="res://Scenes/Robot.tscn" type="PackedScene" id=4]
 [ext_resource path="res://Scenes/Package.tscn" type="PackedScene" id=5]
 [ext_resource path="res://Scenes/Stand.tscn" type="PackedScene" id=6]
+[ext_resource path="res://Scenes/Machine.tscn" type="PackedScene" id=7]
 
 [sub_resource type="ConvexPolygonShape2D" id=1]
 points = PoolVector2Array( 32, 32, 0, 32, 0, 0, 32, 0 )
@@ -246,6 +247,8 @@ polygons = [ PoolIntArray( 0, 1, 2, 3, 4, 5, 6, 7 ) ]
 
 [node name="Main" type="Node"]
 script = ExtResource( 3 )
+PackageScene = ExtResource( 5 )
+MachineScene = ExtResource( 7 )
 
 [node name="Navigation2D" type="Navigation2D" parent="."]
 
@@ -267,9 +270,9 @@ position = Vector2( 461.593, 417.497 )
 [node name="Stand" parent="Stands" groups=[
 "stands",
 ] instance=ExtResource( 6 )]
-position = Vector2( 593.688, 304.781 )
+position = Vector2( 73.4031, 477.615 )
 
 [node name="Stand2" parent="Stands" groups=[
 "stands",
 ] instance=ExtResource( 6 )]
-position = Vector2( 271.446, 241.285 )
+position = Vector2( 848.748, 95.1776 )
