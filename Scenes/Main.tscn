@@ -260,7 +260,7 @@ tile_data = PoolIntArray( 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 
 [node name="Robots" type="Node" parent="."]
 
 [node name="Robot" parent="Robots" instance=ExtResource( 4 )]
-position = Vector2( 461.593, 421.061 )
+position = Vector2( 461.593, 417.497 )
 
 [node name="Stands" type="Node" parent="."]
 

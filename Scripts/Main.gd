@@ -27,6 +27,12 @@ func _ready():
 	
 	var port = int(get_arg(arguments,"--port",10000 ))
 		
+	var pickup_radius = float(get_arg(arguments,"--pickup-radius",100 ))
+	
+	print( port)
+	print( pickup_radius)
+	
+	_Robot.get_node("Area2D/Pickup_Sphere").get_shape().set_radius(pickup_radius)
 	
 	#launch TCP Server
 	tcp_server = TCP_Server.new();	

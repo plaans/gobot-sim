@@ -19,7 +19,7 @@ def goto_stand(direction_x,direction_y):
 	#given robot position and position of stand to go to computes and sends instructions to move it to objective
 	#then issue goto command
 	Command = messages_pb2.Command()
-	Command.command = messages_pb2.Command.Command_types.GOTO
+	Command.command = messages_pb2.Command.Command_types.Value('GOTO')
 	
 	if direction_y==0:
 		angle = 0
@@ -77,7 +77,7 @@ try:
 				#send a command only if robot not already moving
 				
 				package = state.packages_locations[0]
-				if package.location_type == messages_pb2.State.Location.Type.STAND:
+				if package.location_type == messages_pb2.State.Location.Type.Value('STAND'):
 					
 					#case where the package is on a stand so needs to be picked up if not destination_stand
 					if package.location_id != destination_stand:
@@ -96,7 +96,7 @@ try:
 						else:
 							#already close enough so send pickup command
 							Command = messages_pb2.Command()
-							Command.command = messages_pb2.Command.Command_types.PICKUP
+							Command.command = messages_pb2.Command.Command_types.Value('PICKUP')
 							#pas besoin de specifier d'autres parametres pour une commande de type pickup
 							message = Command.SerializeToString()
 
@@ -120,7 +120,7 @@ try:
 					else:
 						#already close enough so send pickup command (this time it will have the effect to drop and not pick up)
 						Command = messages_pb2.Command()
-						Command.command = messages_pb2.Command.Command_types.PICKUP
+						Command.command = messages_pb2.Command.Command_types.Value('PICKUP')
 						#pas besoin de specifier d'autres parametres pour une commande de type pickup
 						message = Command.SerializeToString()
 

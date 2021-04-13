@@ -2,8 +2,6 @@ extends KinematicBody2D
 
 onready var _Package = get_node("../../Package")
 
-export var pick_radius = 100
-
 var moving: bool = false
 var move_time: float = 0.0
 var velocity: Vector2 = Vector2.ZERO
@@ -43,12 +41,10 @@ func pickup():
 		#no package carried so pick up function
 		
 		#first find the closest stand
-		var response = find_closest_stand()
-		var dist_min = response[0]
-		var closest_stand = response[1]
+		var closest_stand = find_closest_stand()
 		
-		#then check if close enough and if stand contains package
-		if dist_min < pick_radius and closest_stand !=null:
+		#then check if a close enough stand was found
+		if closest_stand !=null:
 			var stand_package = closest_stand.get_node("Package")
 			if stand_package!=null:
 				carried_package=stand_package
@@ -58,26 +54,23 @@ func pickup():
 	else:
 		#already carrying a package so drop off function
 		
-		var response = find_closest_stand()
-		var dist_min = response[0]
-		var closest_stand = response[1]
+		var closest_stand = find_closest_stand()
 		
-		#then check if close enough and stand is empty
-		if dist_min < pick_radius and closest_stand !=null:
+		#then check if a close enough stand was found
+		if closest_stand !=null:
 			var stand_package = closest_stand.get_node("Package")
 			if stand_package==null:
 				self.remove_child(carried_package)
 				closest_stand.add_child(carried_package)
 				carried_package.set_owner(closest_stand)
 				carried_package=null
-				
-				
-		#carried_package.position = Vector2(200,50)
-		#carried_package.get_child(1).disabled = false
-		#carried_package=null
 	
 func find_closest_stand():
-	var stands = get_tree().get_nodes_in_group("stands")
+	#if no stands in pickup radius returns null
+	#if multiple stands are in pickup radius returns the closest one
+	
+	var stands = $Area2D.get_overlapping_bodies()
+	print(stands)
 	var closest_stand = null
 	var dist_min=1000000
 	for stand in stands:
@@ -85,5 +78,5 @@ func find_closest_stand():
 		if distance <= dist_min:
 			dist_min = distance
 			closest_stand = stand	
-	return [dist_min,closest_stand]
+	return closest_stand
 	

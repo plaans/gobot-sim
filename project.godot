@@ -32,6 +32,10 @@ enabled=PoolStringArray( "protobuf" )
 
 singletons=[ "res://git_api.gdnlib" ]
 
+[layer_names]
+
+2d_physics/layer_2="Stand detection for pickup"
+
 [rendering]
 
 environment/default_environment="res://default_env.tres"
