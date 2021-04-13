@@ -113,7 +113,7 @@ func _encode_current_state():
 
 func _unhandled_input(event):
 	# From GDQuest - Navigation 2D and Tilemaps
-	if Input.is_action_pressed("ui_accept"):
+	if event.is_action_pressed("ui_accept"):
 		_Robot.pickup()
 		
 	if not event is InputEventMouseButton:

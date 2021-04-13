@@ -50,8 +50,8 @@ func pickup():
 				carried_package=stand_package
 				closest_stand.remove_child(carried_package)
 				self.add_child(carried_package)
-				carried_package.set_owner(self)
-	else:
+				#carried_package.set_owner(self)
+	else: 
 		#already carrying a package so drop off function
 		
 		var closest_stand = find_closest_stand()
@@ -62,7 +62,7 @@ func pickup():
 			if stand_package==null:
 				self.remove_child(carried_package)
 				closest_stand.add_child(carried_package)
-				carried_package.set_owner(closest_stand)
+				#carried_package.set_owner(closest_stand)
 				carried_package=null
 	
 func find_closest_stand():
