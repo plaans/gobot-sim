@@ -49,6 +49,8 @@ func pickup():
 		
 		if closest_stand !=null:
 			var machine = closest_stand.get_parent() #get machine corresponding to this output stand
+			#machine can actually also be a Delivery_Zone or Arrival_Zone but it will still have the functions needed
+				
 			if machine.is_output_available():
 				carried_package = machine.take()
 				add_child(carried_package)
@@ -64,7 +66,7 @@ func pickup():
 			if machine.can_accept_package(carried_package):
 				remove_child(carried_package)
 				machine.add_package(carried_package)
-				carried_package = null
+				carried_package = null 
 	
 func find_closest_stand(group : String):
 	#if no stands in pickup radius returns null
