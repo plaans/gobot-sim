@@ -37,6 +37,11 @@ func _ready():
 				tile_poly = tile_transform.xform(tile_poly)
 				tile_poly = Geometry.offset_polygon_2d(tile_poly, nav_margin)[0]
 				
+				# TODO: Fix (MOSCOW)
+				# S - narrow paths when nav_margin > cellsize/2 breaking whole polygon
+				# S - tiles in a diagonal C placement don't include the top tile
+				# W - closed shapes don't have a navigation shape in the inside
+				
 				if is_cell_on_edges(tile, used_rect.size):
 					is_on_edge = true
 					
