@@ -20,8 +20,12 @@ texture = ExtResource( 2 )
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
 shape = SubResource( 1 )
 
-[node name="Input_Belt" parent="." instance=ExtResource( 3 )]
-position = Vector2( 62, 0 )
-
-[node name="Output_Belt" parent="." instance=ExtResource( 3 )]
+[node name="Input_Belt" parent="." groups=[
+"input",
+] instance=ExtResource( 3 )]
 position = Vector2( -62, 0 )
+
+[node name="Output_Belt" parent="." groups=[
+"output",
+] instance=ExtResource( 3 )]
+position = Vector2( 62, 0 )

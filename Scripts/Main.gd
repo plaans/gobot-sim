@@ -65,10 +65,15 @@ func initialization():
 	processes_list.append([0,1])
 	#for example the machines 0 or 2 can be used for the process 0 
 	
+	machines_list[0].set_possible_processes([0,1])  # the machine 0 can do processes 0 or 1
+	machines_list[1].set_possible_processes([1])
+	machines_list[2].set_possible_processes([0])
+	
 	#for testing purposes we use only one package and initially place it at the first stand
 	_Package = PackageScene.instance()
-	var stand = get_node("Stands/Stand")
-	stand.add_child(_Package)
+	#var stand = get_node("Stands/Stand")
+	 #remove_child(_Package)
+	_Robot.add_package(_Package)
 	_Package.set_processes([[0,3],[1,7]])
 	
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -105,14 +110,14 @@ func _process(delta):
 						_Robot.pickup()
 						
 		#first send data about state of world
-		var bytes_to_send = _encode_current_state()
+		var bytes_to_send = encode_current_state()
 		var size_bytes = bytes_to_send.size()
 		
 		client.put_32(size_bytes)
 		client.put_data(bytes_to_send)
 			
 
-func _encode_current_state():
+func encode_current_state():
 	var state = Proto.State.new()
 		
 	#data about robots (only one for now)
