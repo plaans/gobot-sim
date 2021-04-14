@@ -5,8 +5,8 @@ extends Node
 var possible_processes : Array
 #ids of all processes that can be done by this machine (initialized from Main node)
 
-export var input_size = 3
-export var output_size = 2
+export var input_size = 1
+export var output_size = 1
 var input_buffer : Array
 #input_buffer will be an array of packages
 
@@ -27,6 +27,24 @@ var taskDuration #duration of current task
 func _ready():
 	input_buffer=[]
 	output_buffer=[]
+	taskInProgress=false
+	
+func set_buffer_sizes(input, output):
+	input_size = input
+	output_size = output
+	
+	var input_sprite = get_node("Input_Belt/Sprite")
+	var output_sprite = get_node("Output_Belt/Sprite")
+	var stand_length = input_sprite.texture.get_size().x * input_sprite.scale.x
+	
+	#for scale changes we do it to the childs of the stand and not the stand directly 
+	#so that when a package becomes child of the stand it gets the right position but keeps its original scale
+	input_sprite.scale.x *= input_size
+	get_node("Input_Belt/CollisionShape2D").scale.x *= input_size
+	output_sprite.scale.x *= output_size
+	get_node("Output_Belt/CollisionShape2D").scale.x *= output_size
+	$Input_Belt.position.x -= stand_length * (input_size-1)/2
+	$Output_Belt.position.x += stand_length * (output_size-1)/2
 	
 func set_possible_processes(list_of_processes):
 	possible_processes = list_of_processes
@@ -44,6 +62,43 @@ func add_package(package : Node):
 		if input_buffer.size()<input_size:
 			input_buffer.append(package)
 			$Input_Belt.add_child(package)
+			
+			adjust_positions(true)
+			
+			
+			
+func adjust_positions(for_input : bool):
+	#adjust the positions of all packages based on their position in the Array
+	#this will be done for the input belt if for_input=true and for the output belt if for_input=false
+	
+	var buffer : Array
+	var size : int
+	var multiplicator : int #will be 1 for the input and -1 for the output, used to adjust the direction to translate
+	var sprite
+	
+	if for_input:
+		buffer = input_buffer
+		size = input_size
+		multiplicator = 1
+		sprite = get_node("Input_Belt/Sprite")
+	else:
+		buffer = output_buffer
+		size = output_size
+		multiplicator = -1
+		sprite = get_node("Output_Belt/Sprite")
+		
+	var belt_length = sprite.texture.get_size().x * sprite.scale.x
+	var spacing_length = belt_length/(size+1) #space between 2 consecutives packages depending on the size of the belt			
+	
+	for k in range(buffer.size()):
+		var package = buffer[k]
+		package.position.x = 0
+		#put package to the end of the belt
+		package.position.x += multiplicator * spacing_length * (size-1)/2
+			
+		#then moves to the left based no number of packages already on belt
+		package.position.x -= multiplicator * k * spacing_length
+		
 
 func process_to_be_done(package : Node):
 	#for a given package determines the next task to be done and its duration
@@ -64,6 +119,7 @@ func take():
 	if output_buffer.size()>0:
 		var package = output_buffer.pop_front()
 		$Output_Belt.remove_child(package)
+		package.position.x=0
 		return package
 		
 
@@ -84,6 +140,7 @@ func _process(delta):
 				output_buffer.push_back(current_package)
 				remove_child(current_package)
 				$Output_Belt.add_child(current_package)
+				adjust_positions(false)
 		
 	else:
 		#case where no task currently processed, so check if package waiting in input_buffer
@@ -91,6 +148,8 @@ func _process(delta):
 			current_package = input_buffer.pop_front()
 			$Input_Belt.remove_child(current_package)
 			add_child(current_package)
+			current_package.position.x = 0 #to remove the relative position used while on the belt
+			adjust_positions(true)
 			
 			var process = process_to_be_done(current_package)#we know process will not be null since we checked when putting in input_buffer
 			current_process_id = process[0]

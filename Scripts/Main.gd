@@ -66,15 +66,15 @@ func initialization():
 	#for example the machines 0 or 2 can be used for the process 0 
 	
 	machines_list[0].set_possible_processes([0,1])  # the machine 0 can do processes 0 or 1
+	machines_list[0].set_buffer_sizes(5,2)
 	machines_list[1].set_possible_processes([1])
 	machines_list[2].set_possible_processes([0])
 	
 	#for testing purposes we use only one package and initially place it at the first stand
 	_Package = PackageScene.instance()
-	#var stand = get_node("Stands/Stand")
-	 #remove_child(_Package)
 	_Robot.add_package(_Package)
 	_Package.set_processes([[0,3],[1,7]])
+	
 	
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -150,6 +150,12 @@ func _unhandled_input(event):
 	# From GDQuest - Navigation 2D and Tilemaps
 	if event.is_action_pressed("ui_accept"):
 		_Robot.pickup()
+		
+	if event.is_action_pressed("ui_down"):
+		#to simply generate a package (carried by the robot) with a simple key press for testing purposes
+		_Package = PackageScene.instance()
+		_Robot.add_package(_Package)
+		_Package.set_processes([[0,3],[1,7]])
 		
 	if not event is InputEventMouseButton:
 		return
