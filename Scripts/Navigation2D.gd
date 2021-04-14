@@ -21,16 +21,13 @@ func _ready():
 		])
 		outline = Geometry.offset_polygon_2d(outline, -nav_margin)[0]
 		
-		polygon.add_outline(outline)
-		
 		var ids = PoolIntArray()
 		for tile_name in solid_tiles:
 			ids.append(_WorldMap.tile_set.find_tile_by_name(tile_name))
 		var tiles_packs = get_connected_cells(ids, _WorldMap)
-
-		print(tiles_packs.size())
 		
 		for tiles in tiles_packs:
+			var is_on_edge = false
 			var new_poly = PoolVector2Array()
 			for tile in tiles:
 				var id = _WorldMap.get_cellv(tile)
@@ -39,16 +36,23 @@ func _ready():
 				var tile_poly = _WorldMap.tile_set.tile_get_shape(id, 0).get_points()
 				tile_poly = tile_transform.xform(tile_poly)
 				tile_poly = Geometry.offset_polygon_2d(tile_poly, nav_margin)[0]
+				
+				if is_cell_on_edges(tile, used_rect.size):
+					is_on_edge = true
+					
 				new_poly = Geometry.merge_polygons_2d(new_poly, tile_poly)[0]
 			
 			#new_poly = Geometry.offset_polygon_2d(new_poly, nav_margin)[0]
-			polygon.add_outline(new_poly)
+			if is_on_edge:
+				outline = Geometry.clip_polygons_2d(outline, new_poly)[0]
+			else:
+				polygon.add_outline(new_poly)
 
 			# get each tile's shape then inflate the poly
 			#
 			# https://www.youtube.com/watch?v=uzqRjEoBcTI
 			# https://github.com/godotengine/godot/issues/1887#issuecomment-495317178
-
+		polygon.add_outline(outline)
 		polygon.make_polygons_from_outlines()
 		_NavPolyInstance.navpoly = polygon
 
@@ -68,9 +72,10 @@ func get_connected_cells(ids: PoolIntArray, tilemap: TileMap):
 			if world[i][j] in ids:
 				cell_blocks.append(fill(world, Vector2(i,j), ids))
 	
-	print(world)
-	
 	return cell_blocks
+
+func is_cell_on_edges(pos: Vector2, size:Vector2):
+	return (pos.x == 0 or pos.x == size.x-1 or pos.y == 0 or pos.y == size.y-1)
 
 func is_cell_valid(world: Array,  pos: Vector2, size: Vector2, ids: PoolIntArray)-> bool :
 	return !(0 > pos.x or pos.x >= size.x or 0 > pos.y or pos.y >= size.y or !world[pos.x][pos.y] in ids)
