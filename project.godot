@@ -24,9 +24,17 @@ config/name="Simulation- Factory- Godot"
 run/main_scene="res://Scenes/Main.tscn"
 config/icon="res://icon.png"
 
+[editor_plugins]
+
+enabled=PoolStringArray( "protobuf" )
+
 [gdnative]
 
 singletons=[ "res://git_api.gdnlib" ]
+
+[layer_names]
+
+2d_physics/layer_2="Stand detection for pickup"
 
 [rendering]
 

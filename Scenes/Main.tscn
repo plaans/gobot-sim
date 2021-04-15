@@ -23,17 +23,21 @@ nav_margin = 20.0
 
 [node name="NavigationPolygonInstance" type="NavigationPolygonInstance" parent="Navigation2D"]
 
-[node name="Robot" parent="." instance=ExtResource( 4 )]
-position = Vector2( 392, 448 )
+[node name="Package" parent="." instance=ExtResource( 5 )]
 
-[node name="Stand" parent="." groups=[
+[node name="Robots" type="Node" parent="."]
+
+[node name="Robot" parent="Robots" instance=ExtResource( 4 )]
+position = Vector2( 461.593, 417.497 )
+
+[node name="Stands" type="Node" parent="."]
+
+[node name="Stand" parent="Stands" groups=[
 "stands",
 ] instance=ExtResource( 6 )]
 position = Vector2( 464, 144 )
 
-[node name="Stand2" parent="." groups=[
+[node name="Stand2" parent="Stands" groups=[
 "stands",
 ] instance=ExtResource( 6 )]
-position = Vector2( 272, 144 )
-
-[node name="Package" parent="." instance=ExtResource( 5 )]
+position = Vector2( 271.446, 241.285 )
