@@ -81,8 +81,9 @@ func update_battery_display():
 	if not(taskInProgress):
 		bar.scale.x= 0
 	else:
-		bar.scale.x= bar_original_scale * timeSinceStart / taskDuration
-		bar.position.x = - bar_original_size * (1 - timeSinceStart / taskDuration)/2			
+		var ratio = min(timeSinceStart / taskDuration, 1)
+		bar.scale.x= bar_original_scale * ratio
+		bar.position.x = - bar_original_size * (1 - ratio)/2			
 			
 func adjust_positions(for_input : bool):
 	#adjust the positions of all packages based on their position in the Array
