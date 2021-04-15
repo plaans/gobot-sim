@@ -2,6 +2,7 @@ extends Node
 
 onready var _Robot = get_node("Robots/Robot")
 onready var _Package = $Package
+onready var _Navigation = $Navigation2D
 
 export var ROBOT_SPEED = 96 #px/s
 # Note:
@@ -16,6 +17,23 @@ var client #StreamPeerTCP
 func _ready():
 	#for testing purposes we use only one package and initially place it at the first stand
 	self.remove_child(_Package)
+
+	$Stand.add_child(_Package)
+	_Package.set_owner($Stand)
+	
+	for node in get_tree().get_nodes_in_group("stands"):
+		var shape_transform: Transform2D = node.get_node("CollisionShape2D").get_global_transform()
+		var shape: RectangleShape2D = node.get_node("CollisionShape2D").shape
+		var shape_poly := PoolVector2Array([
+			Vector2(-shape.extents.x, -shape.extents.y),
+			Vector2(-shape.extents.x, shape.extents.y),
+			Vector2(shape.extents.x, shape.extents.y),
+			Vector2(shape.extents.x, -shape.extents.y)
+		])
+		shape_poly = Geometry.offset_polygon_2d(shape_poly, _Navigation.nav_margin)[0]
+		
+		_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.cut_poly(shape_transform.xform(shape_poly), true)
+
 	var stand = get_node("Stands/Stand")
 	stand.add_child(_Package)
 	_Package.set_owner(stand)
@@ -113,20 +131,20 @@ func _encode_current_state():
 		
 	return state.to_bytes()
 
+
 func _unhandled_input(event):
 	# From GDQuest - Navigation 2D and Tilemaps
 	if event.is_action_pressed("ui_accept"):
 		_Robot.pickup()
 		
-	if not event is InputEventMouseButton:
-		return
-		
-	if event.button_index != BUTTON_LEFT or not event.pressed:
-		return
-	# -> then, has to be a click from the RMB
-	
-	var dir_vec: Vector2 = (event.position - _Robot.position)
-	var speed = ROBOT_SPEED
-	var time = dir_vec.length()/speed
-	_Robot.goto(dir_vec.angle(), speed, time)
-	
+	if event is InputEventMouseButton and event.pressed:
+		match event.button_index:
+			BUTTON_LEFT:
+				_Robot.goto_path(event.position)
+			BUTTON_RIGHT:
+				var temp_shape = PoolVector2Array([Vector2(-32,-32),Vector2(-32,32),Vector2(32,32),Vector2(32,-32)])
+				var temp_transform = Transform2D(0, event.position)
+				
+				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.cut_poly(temp_transform.xform(temp_shape))
+			BUTTON_MIDDLE:
+				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.static_poly
