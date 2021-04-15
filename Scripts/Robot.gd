@@ -54,7 +54,7 @@ func goto(dir:float, speed:float, time:float):
 func goto_path(point: Vector2):
 	stop()
 	stop_path()
-	var _nav: Navigation2D = get_node("../Navigation2D")
+	var _nav: Navigation2D = get_node("../../Navigation2D")
 	if _nav:
 		path = _nav.get_simple_path(position, point, true)
 		var new_path_line = Line2D.new()
