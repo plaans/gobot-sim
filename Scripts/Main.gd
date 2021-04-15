@@ -27,8 +27,8 @@ func _unhandled_input(event):
 		return
 	# -> then, has to be a click from the RMB
 	
-	var dir_vec: Vector2 = (event.position - _Robot.position)
-	var speed = ROBOT_SPEED
-	var time = dir_vec.length()/speed
-	_Robot.goto(dir_vec.angle(), speed, time)
+#	var dir_vec: Vector2 = (event.position - _Robot.position)
+#	var speed = ROBOT_SPEED
+#	var time = dir_vec.length()/speed
+	_Robot.goto_path(event.position)
 	

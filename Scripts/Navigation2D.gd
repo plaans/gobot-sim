@@ -6,6 +6,8 @@ export var nav_margin : float = 10
 onready var _NavPolyInstance : NavigationPolygonInstance = $NavigationPolygonInstance
 onready var _WorldMap : TileMap = get_node(_WorldMapPath)
 
+var static_poly: NavigationPolygon
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	if _WorldMap:
@@ -57,8 +59,10 @@ func _ready():
 			#
 			# https://www.youtube.com/watch?v=uzqRjEoBcTI
 			# https://github.com/godotengine/godot/issues/1887#issuecomment-495317178
+			
 		polygon.add_outline(outline)
 		polygon.make_polygons_from_outlines()
+		static_poly = polygon
 		_NavPolyInstance.navpoly = polygon
 
 func get_connected_cells(ids: PoolIntArray, tilemap: TileMap):
@@ -114,4 +118,17 @@ func fill(world: Array, start: Vector2, ids: PoolIntArray, fill_id = -10)->PoolV
 	
 	return return_array
 	
+	
+func cut_poly(poly: PoolVector2Array)->NavigationPolygon:
+	var outlines: Array
+	for i in range(static_poly.get_outline_count()):
+		outlines.append(static_poly.get_outline(i))
+	
+	outlines.insert(0, poly)
+	var new_poly = NavigationPolygon.new()
+	for i in range(outlines.size()):
+		new_poly.add_outline(outlines[i])
+	new_poly.make_polygons_from_outlines()
+	
+	return new_poly
 	
