@@ -4,6 +4,8 @@ extends Node2D
 # Declare member variables here. Examples:
 var possible_processes : Array
 #ids of all processes that can be done by this machine (initialized from Main node)
+var machine_id : int
+#id to uniquely identify this machine (also attributed from Main node)
 
 export var input_size = 1
 export var output_size = 1
@@ -48,6 +50,12 @@ func set_buffer_sizes(input, output):
 	
 func set_possible_processes(list_of_processes):
 	possible_processes = list_of_processes
+	
+func set_id(id : int):
+	machine_id = id
+	
+func get_id() -> int:
+	return machine_id
 
 func can_accept_package(package : Node):
 	#returns true if both there is space in the input_buffer and the machine can accept the package

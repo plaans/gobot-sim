@@ -6,17 +6,43 @@ var moving: bool = false
 var move_time: float = 0.0
 var velocity: Vector2 = Vector2.ZERO
 
-#var carried_package
+export var current_battery : float = 10.0
+export var max_battery : float = 10.0
+export var battery_drain_rate : float = 0.4
+export var battery_charge_rate : float = 0.4
+onready var battery_original_scale : float = $Battery_Display.scale.y #for display
+
+var in_station : bool
 
 func _physics_process(delta):
 	if moving:
-		var collision = move_and_collide(velocity*delta)
-		#if carried_package!=null:
-			#carried_package.position = position
-		
-		move_time -= delta
-		if collision or move_time <= 0.0:
+		if current_battery == 0:
 			stop()
+		else:
+			var collision = move_and_collide(velocity*delta)
+			#if carried_package!=null:
+				#carried_package.position = position
+			
+			move_time -= delta
+			if collision or move_time <= 0.0:
+				stop()
+
+func _process(delta):
+	if not(in_station):
+		current_battery = max(0, current_battery - battery_drain_rate*delta)
+	else:
+		current_battery = min(max_battery, current_battery + battery_charge_rate*delta)
+	update_battery_display()
+	
+func set_in_station(state : bool):
+	in_station = state
+	
+func get_in_station() -> bool:
+	return in_station
+			
+func update_battery_display():
+	var display = $Battery_Display
+	display.scale.y= battery_original_scale * current_battery / max_battery
 			
 func is_moving():
 	return moving

@@ -6,14 +6,20 @@ export (PackedScene) var MachineScene
 #onready var _Package = $Package
 var _Package
 
+var packages_list
+
 var machines_list
 #each element of the array is a Machine node
+
+var robots_list
 
 var processes_list
 #each element of the array is an array of integers 
 #corresponding to the machines possible for the given process
 #example : if process no.3 can be done by machines 4 or 5, 
 #		   then the element at index 3 can be [4,5] (or [5,4])
+
+var possible_tasks
 
 export var ROBOT_SPEED = 96 #px/s
 # Note:
@@ -33,12 +39,13 @@ func _ready():
 	
 	var arguments : Array = Array(OS.get_cmdline_args ())
 
-	
 	var port = int(get_arg(arguments,"--port",10000 ))
 		
 	var pickup_radius = float(get_arg(arguments,"--pickup-radius",100 ))
-	
 	_Robot.get_node("Area2D/Pickup_Sphere").get_shape().set_radius(pickup_radius)
+	
+	var rng_seed = int(get_arg(arguments,"--seed",0 ))
+	seed(rng_seed)
 
 	
 	#launch TCP Server
@@ -52,13 +59,22 @@ func get_arg(args, arg_name, default):
 	else:
 		return default
 		
+func add_package(package : Node):
+	packages_list.append(package)
+	
+func remove_package(package : Node):
+	packages_list.remove(packages_list.find(package))
+		
 func initialization():
+	packages_list = []
 	machines_list = []
 	for k in range(3):
 		var machine = MachineScene.instance()
 		add_child(machine)
 		machine.position = Vector2(150*k +300, 150*k+100)
+		machine.set_id(k)
 		machines_list.append(machine)
+		
 	
 	processes_list=[]
 	processes_list.append([0,2])
@@ -74,7 +90,9 @@ func initialization():
 	_Package = PackageScene.instance()
 	_Robot.add_package(_Package)
 	_Package.set_processes([[0,3],[1,7]])
+	packages_list.append(_Package)
 	
+	possible_tasks = [[[0,3],[1,7]]]
 	
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -88,7 +106,6 @@ func _process(delta):
 
 	
 	if client != null and client.is_connected_to_host():
-
 		
 		#then read if commands were received (read one at most)
 		if client.get_available_bytes() > 0:
@@ -119,15 +136,15 @@ func _process(delta):
 
 func encode_current_state():
 	var state = Proto.State.new()
-		
-	#data about robots (only one for now)
-	state.set_nb_robots(1)
-	state.add_robots_x(_Robot.position.x)
-	state.add_robots_y(_Robot.position.y)
-	state.add_is_moving(_Robot.is_moving())
 	
-	#data about packages (only one for now)
-	state.set_nb_packages(1)
+	#data about robots 
+	for robot in robots_list:
+		var state_robot = state.add_robots()
+		state_robot.set_x(_Robot.position.x)
+		state_robot.set_y(_Robot.position.y)
+		state_robot.set_is_moving(_Robot.is_moving())
+		
+	#data about packages 
 	var package_location = state.add_packages_locations()
 	if _Package.get_parent() is KinematicBody2D:
 		package_location.set_location_type(Proto.State.Location.Type.ROBOT)
@@ -169,3 +186,13 @@ func _unhandled_input(event):
 	var time = dir_vec.length()/speed
 	_Robot.goto(dir_vec.angle(), speed, time)
 	
+
+
+func _on_Parking_Area_body_entered(body):
+	#body is necessarily a robot since only moving body
+	body.set_in_station(true)
+
+
+func _on_Parking_Area_body_exited(body):
+	#body is necessarily a robot since only moving body
+	body.set_in_station(false)

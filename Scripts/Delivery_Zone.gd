@@ -32,6 +32,7 @@ func add_package(package : Node):
 		print( delivery_time)
 		
 		#delete the package
+		get_parent().remove_package(package) #remove package from the list kept in Main node
 		package.queue_free()
 		
 			
