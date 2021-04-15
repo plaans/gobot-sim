@@ -18,8 +18,8 @@ func _ready():
 	#for testing purposes we use only one package and initially place it at the first stand
 	self.remove_child(_Package)
 
-	$Stand.add_child(_Package)
-	_Package.set_owner($Stand)
+	$Stands/Stand.add_child(_Package)
+	_Package.set_owner($Stands/Stand)
 	
 	for node in get_tree().get_nodes_in_group("stands"):
 		var shape_transform: Transform2D = node.get_node("CollisionShape2D").get_global_transform()
