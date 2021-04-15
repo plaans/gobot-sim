@@ -6,6 +6,9 @@ extends Node2D
 var processes_list : Array
 #Array of 2-elements arrays [process_id, process_duration]
 
+var delivery_limit : float 
+#deadline for delivering the package
+
 var location #node currently carrying the package
 
 func set_processes(processes : Array):

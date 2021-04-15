@@ -23,6 +23,8 @@ var taskInProgress #true if there is currently a task being processed
 var timeSinceStart #will be reset when a new task begins 
 var taskDuration #duration of current task
 
+onready var bar_original_scale : float = $Progress_Bar.scale.x #for display
+onready var bar_original_size : float = $Progress_Bar.texture.get_size().x * $Progress_Bar.scale.x #for display
 
 
 # Called when the node enters the scene tree for the first time.
@@ -73,7 +75,14 @@ func add_package(package : Node):
 			
 			adjust_positions(true)
 			
-			
+func update_battery_display():
+	
+	var bar = $Progress_Bar
+	if not(taskInProgress):
+		bar.scale.x= 0
+	else:
+		bar.scale.x= bar_original_scale * timeSinceStart / taskDuration
+		bar.position.x = - bar_original_size * (1 - timeSinceStart / taskDuration)/2			
 			
 func adjust_positions(for_input : bool):
 	#adjust the positions of all packages based on their position in the Array
@@ -165,6 +174,6 @@ func _process(delta):
 			
 			timeSinceStart = 0.0
 			taskInProgress = true
-			
-		
+	update_battery_display()		
+	
  

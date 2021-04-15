@@ -47,6 +47,8 @@ func _ready():
 	var rng_seed = int(get_arg(arguments,"--seed",0 ))
 	seed(rng_seed)
 
+	var log_name = get_arg(arguments,"--log", "")
+	$Delivery_Zone.set_log_name(log_name)
 	
 	#launch TCP Server
 	tcp_server = TCP_Server.new();	
@@ -66,6 +68,11 @@ func remove_package(package : Node):
 	packages_list.remove(packages_list.find(package))
 		
 func initialization():
+	var file = File.new()
+	file.open("res://environment.txt", File.READ)
+	var content = file.get_as_text()
+	file.close()
+	
 	packages_list = []
 	machines_list = []
 	for k in range(3):

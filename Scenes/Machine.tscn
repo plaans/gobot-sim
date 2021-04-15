@@ -29,3 +29,15 @@ position = Vector2( -62, 0 )
 "output",
 ] instance=ExtResource( 3 )]
 position = Vector2( 62, 0 )
+
+[node name="Bar_Background" type="Sprite" parent="."]
+self_modulate = Color( 0.933333, 0.705882, 0.384314, 1 )
+position = Vector2( 0, -34 )
+scale = Vector2( 0.072, 0.01 )
+texture = ExtResource( 2 )
+
+[node name="Progress_Bar" type="Sprite" parent="."]
+self_modulate = Color( 0.27451, 0.482353, 0.0431373, 1 )
+position = Vector2( 0, -34 )
+scale = Vector2( 0.072, 0.01 )
+texture = ExtResource( 2 )

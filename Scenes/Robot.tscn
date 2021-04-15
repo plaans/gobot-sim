@@ -14,7 +14,7 @@ radius = 32.8201
 script = ExtResource( 2 )
 
 [node name="Sprite" type="Sprite" parent="."]
-self_modulate = Color( 0, 1, 1, 1 )
+self_modulate = Color( 0, 0.788235, 1, 1 )
 position = Vector2( 6.19888e-06, 0 )
 scale = Vector2( 0.03125, 0.03125 )
 texture = ExtResource( 1 )
