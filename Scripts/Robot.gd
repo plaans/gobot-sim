@@ -1,17 +1,27 @@
 extends KinematicBody2D
 
-onready var _Package = get_node("../../Package")
+var carried_package;
 
 var moving: bool = false
 var move_time: float = 0.0
 var velocity: Vector2 = Vector2.ZERO
+
 
 var path: PoolVector2Array
 var path_line: Line2D
 var following: bool = false
 var current_path_point: int = 0
 
-var carried_package
+
+export var current_battery : float = 10.0
+export var max_battery : float = 10.0
+export var battery_drain_rate : float = 0.4
+export var battery_charge_rate : float = 0.8
+onready var battery_original_scale : float = $Battery_Display.scale.y #for display
+onready var battery_original_size : float = $Battery_Display.texture.get_size().y * $Battery_Display.scale.y #for display
+
+var in_station : bool
+
 
 func _physics_process(delta):
 	if !moving && following:
@@ -27,17 +37,41 @@ func _physics_process(delta):
 			goto(dir_vec.angle(), speed, time)
 		
 	if moving:
-		var collision = move_and_collide(velocity*delta)
-		#if carried_package!=null:
-			#carried_package.position = position
-		
-		move_time -= delta
-		if collision:
+		if current_battery == 0:
 			stop()
 			stop_path()
-			# Send "collision"
-		elif move_time <= 0.0:
-			stop()
+		else:
+			var collision = move_and_collide(velocity*delta)
+			#if carried_package!=null:
+				#carried_package.position = position
+			
+			move_time -= delta
+			if collision:
+				stop()
+				stop_path()
+				# Send "collision"
+			elif move_time <= 0.0:
+				stop()
+
+func _process(delta):
+	if not(in_station):
+		current_battery = max(0, current_battery - battery_drain_rate*delta)
+	else:
+		current_battery = min(max_battery, current_battery + battery_charge_rate*delta)
+	update_battery_display()
+	
+func set_in_station(state : bool):
+	in_station = state
+	
+func get_in_station() -> bool:
+	return in_station
+			
+func update_battery_display():
+	var display = $Battery_Display
+	display.scale.y= battery_original_scale * current_battery / max_battery
+	
+	
+	display.position.y = battery_original_size * (1 - current_battery / max_battery)/2
 			
 func is_moving():
 	return moving
@@ -46,6 +80,7 @@ func goto(dir:float, speed:float, time:float):
 	# dir : rad
 	# speed : px/s
 	# time : s
+	get_parent().log_text("goto:"+str(dir)+";"+str(speed)+";"+str(time))
 	move_time = time
 	velocity = speed * Vector2.RIGHT.rotated(dir) # already normalized
 	moving = true
@@ -54,7 +89,7 @@ func goto(dir:float, speed:float, time:float):
 func goto_path(point: Vector2):
 	stop()
 	stop_path()
-	var _nav: Navigation2D = get_node("../../Navigation2D")
+	var _nav: Navigation2D = get_node("../Navigation2D")
 	if _nav:
 		path = _nav.get_simple_path(position, point, true)
 		var new_path_line = Line2D.new()
@@ -73,41 +108,47 @@ func stop():
 	moving = false
 	# Send "stopped"
 	
+
 func stop_path():
 	following = false
 	if path_line:
 		path_line.free()
+
+func add_package(Package : Node):
+	carried_package = Package
+	add_child(carried_package)
+
 	
 func pickup():
+	get_parent().log_text("pickup:")
 	if carried_package==null:
 		#no package carried so pick up function
 		
-		#first find the closest stand
-		var closest_stand = find_closest_stand()
+		#first find the closest output stand
+		var closest_stand = find_closest_stand("output")
 		
-		#then check if a close enough stand was found
 		if closest_stand !=null:
-			var stand_package = closest_stand.get_node("Package")
-			if stand_package!=null:
-				carried_package=stand_package
-				closest_stand.remove_child(carried_package)
-				self.add_child(carried_package)
-				#carried_package.set_owner(self)
+			var machine = closest_stand.get_parent() #get machine corresponding to this output stand
+			#machine can actually also be a Delivery_Zone or Arrival_Zone but it will still have the functions needed
+				
+			if machine.is_output_available():
+				carried_package = machine.take()
+				add_child(carried_package)
+				
 	else: 
 		#already carrying a package so drop off function
 		
-		var closest_stand = find_closest_stand()
+		#first find the closest input stand
+		var closest_stand = find_closest_stand("input")
 		
-		#then check if a close enough stand was found
 		if closest_stand !=null:
-			var stand_package = closest_stand.get_node("Package")
-			if stand_package==null:
-				self.remove_child(carried_package)
-				closest_stand.add_child(carried_package)
-				#carried_package.set_owner(closest_stand)
-				carried_package=null
+			var machine = closest_stand.get_parent() #get machine corresponding to this input stand
+			if machine.can_accept_package(carried_package):
+				remove_child(carried_package)
+				machine.add_package(carried_package)
+				carried_package = null 
 	
-func find_closest_stand():
+func find_closest_stand(group : String):
 	#if no stands in pickup radius returns null
 	#if multiple stands are in pickup radius returns the closest one
 	
@@ -115,9 +156,10 @@ func find_closest_stand():
 	var closest_stand = null
 	var dist_min=1000000
 	for stand in stands:
-		var distance = self.position.distance_to(stand.position)
-		if distance <= dist_min:
-			dist_min = distance
-			closest_stand = stand	
+		if stand.is_in_group(group):
+			var distance = self.position.distance_to(stand.position)
+			if distance <= dist_min:
+				dist_min = distance
+				closest_stand = stand	
 	return closest_stand
 	

@@ -1,8 +1,28 @@
 extends Node
 
-onready var _Robot = get_node("Robots/Robot")
+
 onready var _Package = $Package
 onready var _Navigation = $Navigation2D
+
+onready var _Robot = get_node("Robot")
+export (PackedScene) var PackageScene
+export (PackedScene) var MachineScene
+
+
+var packages_list
+
+var machines_list
+#each element of the array is a Machine node
+
+var robots_list
+
+var processes_list
+#each element of the array is an array of integers 
+#corresponding to the machines possible for the given process
+#example : if process no.3 can be done by machines 4 or 5, 
+#		   then the element at index 3 can be [4,5] (or [5,4])
+
+var possible_tasks
 
 export var ROBOT_SPEED = 96 #px/s
 # Note:
@@ -13,14 +33,13 @@ const Proto = preload("res://protobuf/proto.gd")
 var tcp_server #TCP_Server
 var client #StreamPeerTCP
 
+var log_name #location to save logs to
 
-func _ready():
-	#for testing purposes we use only one package and initially place it at the first stand
-	self.remove_child(_Package)
 
-	$Stands/Stand.add_child(_Package)
-	_Package.set_owner($Stands/Stand)
-	
+func _ready():	
+	#initialization
+	initialization()
+
 	for node in get_tree().get_nodes_in_group("stands"):
 		var shape_transform: Transform2D = node.get_node("CollisionShape2D").get_global_transform()
 		var shape: RectangleShape2D = node.get_node("CollisionShape2D").shape
@@ -34,21 +53,21 @@ func _ready():
 		
 		_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.cut_poly(shape_transform.xform(shape_poly), true)
 
-	var stand = get_node("Stands/Stand")
-	stand.add_child(_Package)
-	_Package.set_owner(stand)
 	
 	#values of arguments
 	
 	var arguments : Array = Array(OS.get_cmdline_args ())
 
-	
 	var port = int(get_arg(arguments,"--port",10000 ))
 		
 	var pickup_radius = float(get_arg(arguments,"--pickup-radius",100 ))
-	
 	_Robot.get_node("Area2D/Pickup_Sphere").get_shape().set_radius(pickup_radius)
+	
+	var rng_seed = int(get_arg(arguments,"--seed",0 ))
+	seed(rng_seed)
 
+	var default_log_name = "res://logs/log"+str(OS.get_system_time_msecs())+".txt"
+	log_name = get_arg(arguments,"--log", default_log_name)
 	
 	#launch TCP Server
 	tcp_server = TCP_Server.new();	
@@ -60,6 +79,52 @@ func get_arg(args, arg_name, default):
 		return args[index+1]
 	else:
 		return default
+		
+func log_text(text : String):
+	var file = File.new()
+	if file.file_exists(log_name):
+		file.open(log_name, File.READ_WRITE) #to open while keeping existing content
+	else:
+		file.open(log_name, File.WRITE) 
+	file.seek_end()
+	file.store_line(text)
+	file.close()
+		
+func add_package(package : Node):
+	packages_list.append(package)
+	
+func remove_package(package : Node):
+	packages_list.remove(packages_list.find(package))
+		
+func initialization():
+	
+	packages_list = []
+	machines_list = []
+	for k in range(3):
+		var machine = MachineScene.instance()
+		add_child(machine)
+		machine.position = Vector2(700, 450 - 150*k)
+		machine.set_id(k)
+		machines_list.append(machine)
+		
+	
+	processes_list=[]
+	processes_list.append([0,2])
+	processes_list.append([0,1])
+	#for example the machines 0 or 2 can be used for the process 0 
+	
+	machines_list[0].set_possible_processes([0,1])  # the machine 0 can do processes 0 or 1
+	machines_list[0].set_buffer_sizes(5,2)
+	machines_list[1].set_possible_processes([1])
+	machines_list[2].set_possible_processes([0])
+	
+	#for testing purposes we use only one package and initially place it at the first stand
+	_Package = PackageScene.instance()
+	_Robot.add_package(_Package)
+	_Package.set_processes([[0,3],[1,7]])
+	packages_list.append(processes_list)
+	
+	possible_tasks = [[[0,3],[1,7]]]
 	
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -73,7 +138,6 @@ func _process(delta):
 
 	
 	if client != null and client.is_connected_to_host():
-
 		
 		#then read if commands were received (read one at most)
 		if client.get_available_bytes() > 0:
@@ -95,24 +159,30 @@ func _process(delta):
 						_Robot.pickup()
 						
 		#first send data about state of world
-		var bytes_to_send = _encode_current_state()
+		var bytes_to_send = encode_current_state()
 		var size_bytes = bytes_to_send.size()
 		
 		client.put_32(size_bytes)
 		client.put_data(bytes_to_send)
 			
 
-func _encode_current_state():
-	var state = Proto.State.new()
-		
-	#data about robots (only one for now)
-	state.set_nb_robots(1)
-	state.add_robots_x(_Robot.position.x)
-	state.add_robots_y(_Robot.position.y)
-	state.add_is_moving(_Robot.is_moving())
+func encode_current_state():
+	#creates and serializes a protocol buffer containing the data about the current state of the simulation
 	
-	#data about packages (only one for now)
-	state.set_nb_packages(1)
+	var state = Proto.State.new()
+	
+	#data about robots 
+	for robot in robots_list:
+		var new_robot = state.add_robots()
+		new_robot.set_x(robot.position.x)
+		new_robot.set_y(robot.position.y)
+		new_robot.set_is_moving(robot.is_moving())
+		
+	#data about packages 
+	for package in packages_list:
+		var new_package = state.add_packages()
+		
+	
 	var package_location = state.add_packages_locations()
 	if _Package.get_parent() is KinematicBody2D:
 		package_location.set_location_type(Proto.State.Location.Type.ROBOT)
@@ -137,6 +207,7 @@ func _unhandled_input(event):
 	if event.is_action_pressed("ui_accept"):
 		_Robot.pickup()
 		
+
 	if event is InputEventMouseButton and event.pressed:
 		match event.button_index:
 			BUTTON_LEFT:
@@ -148,3 +219,21 @@ func _unhandled_input(event):
 				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.cut_poly(temp_transform.xform(temp_shape))
 			BUTTON_MIDDLE:
 				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.static_poly
+
+	if event.is_action_pressed("ui_down"):
+		#to simply generate a package (carried by the robot) with a simple key press for testing purposes
+		_Package = PackageScene.instance()
+		_Robot.add_package(_Package)
+		_Package.set_processes([[0,3],[1,7]])
+
+
+
+func _on_Parking_Area_body_entered(body):
+	#body is necessarily a robot since only moving body
+	body.set_in_station(true)
+
+
+func _on_Parking_Area_body_exited(body):
+	#body is necessarily a robot since only moving body
+	body.set_in_station(false)
+
