@@ -1,6 +1,6 @@
 extends Node
 
-onready var _Robot = get_node("Robots/Robot")
+onready var _Robot = get_node("Robot")
 export (PackedScene) var PackageScene
 export (PackedScene) var MachineScene
 #onready var _Package = $Package
@@ -30,6 +30,7 @@ const Proto = preload("res://protobuf/proto.gd")
 var tcp_server #TCP_Server
 var client #StreamPeerTCP
 
+var log_name #location to save logs to
 
 func _ready():	
 	#initialization
@@ -47,8 +48,8 @@ func _ready():
 	var rng_seed = int(get_arg(arguments,"--seed",0 ))
 	seed(rng_seed)
 
-	var log_name = get_arg(arguments,"--log", "")
-	$Delivery_Zone.set_log_name(log_name)
+	var default_log_name = "res://logs/log"+str(OS.get_system_time_msecs())+".txt"
+	log_name = get_arg(arguments,"--log", default_log_name)
 	
 	#launch TCP Server
 	tcp_server = TCP_Server.new();	
@@ -61,6 +62,16 @@ func get_arg(args, arg_name, default):
 	else:
 		return default
 		
+func log_text(text : String):
+	var file = File.new()
+	if file.file_exists(log_name):
+		file.open(log_name, File.READ_WRITE) #to open while keeping existing content
+	else:
+		file.open(log_name, File.WRITE) 
+	file.seek_end()
+	file.store_line(text)
+	file.close()
+		
 func add_package(package : Node):
 	packages_list.append(package)
 	
@@ -68,10 +79,6 @@ func remove_package(package : Node):
 	packages_list.remove(packages_list.find(package))
 		
 func initialization():
-	var file = File.new()
-	file.open("res://environment.txt", File.READ)
-	var content = file.get_as_text()
-	file.close()
 	
 	packages_list = []
 	machines_list = []
@@ -97,7 +104,7 @@ func initialization():
 	_Package = PackageScene.instance()
 	_Robot.add_package(_Package)
 	_Package.set_processes([[0,3],[1,7]])
-	packages_list.append(_Package)
+	packages_list.append(processes_list)
 	
 	possible_tasks = [[[0,3],[1,7]]]
 	
@@ -142,16 +149,22 @@ func _process(delta):
 			
 
 func encode_current_state():
+	#creates and serializes a protocol buffer containing the data about the current state of the simulation
+	
 	var state = Proto.State.new()
 	
 	#data about robots 
 	for robot in robots_list:
-		var state_robot = state.add_robots()
-		state_robot.set_x(_Robot.position.x)
-		state_robot.set_y(_Robot.position.y)
-		state_robot.set_is_moving(_Robot.is_moving())
+		var new_robot = state.add_robots()
+		new_robot.set_x(robot.position.x)
+		new_robot.set_y(robot.position.y)
+		new_robot.set_is_moving(robot.is_moving())
 		
 	#data about packages 
+	for package in packages_list:
+		var new_package = state.add_packages()
+		
+	
 	var package_location = state.add_packages_locations()
 	if _Package.get_parent() is KinematicBody2D:
 		package_location.set_location_type(Proto.State.Location.Type.ROBOT)

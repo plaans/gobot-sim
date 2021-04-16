@@ -263,10 +263,10 @@ tile_data = PoolIntArray( 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 5, 0, 0, 
 [node name="Parking_Area" parent="." instance=ExtResource( 9 )]
 position = Vector2( 251.984, 495.149 )
 
-[node name="Robots" type="Node" parent="."]
-
-[node name="Robot" parent="Robots" instance=ExtResource( 4 )]
+[node name="Robot" parent="." instance=ExtResource( 4 )]
 position = Vector2( 461.593, 417.497 )
+
+[node name="Robots" type="Node" parent="."]
 
 [node name="Delivery_Zone" parent="." instance=ExtResource( 8 )]
 position = Vector2( 947.461, 307.421 )

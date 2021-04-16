@@ -9,7 +9,7 @@ var velocity: Vector2 = Vector2.ZERO
 export var current_battery : float = 10.0
 export var max_battery : float = 10.0
 export var battery_drain_rate : float = 0.4
-export var battery_charge_rate : float = 0.4
+export var battery_charge_rate : float = 0.8
 onready var battery_original_scale : float = $Battery_Display.scale.y #for display
 onready var battery_original_size : float = $Battery_Display.texture.get_size().y * $Battery_Display.scale.y #for display
 
@@ -55,6 +55,7 @@ func goto(dir:float, speed:float, time:float):
 	# dir : rad
 	# speed : px/s
 	# time : s
+	get_parent().log_text("goto:"+str(dir)+";"+str(speed)+";"+str(time))
 	move_time = time
 	velocity = speed * Vector2.RIGHT.rotated(dir) # already normalized
 	moving = true
@@ -71,6 +72,7 @@ func add_package(Package : Node):
 	add_child(carried_package)
 	
 func pickup():
+	get_parent().log_text("pickup:")
 	if carried_package==null:
 		#no package carried so pick up function
 		
