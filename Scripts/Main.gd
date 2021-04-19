@@ -49,9 +49,10 @@ func _ready():
 			Vector2(shape.extents.x, shape.extents.y),
 			Vector2(shape.extents.x, -shape.extents.y)
 		])
+		shape_poly = shape_transform.xform(shape_poly);
 		shape_poly = Geometry.offset_polygon_2d(shape_poly, _Navigation.nav_margin)[0]
 		
-		_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.cut_poly(shape_transform.xform(shape_poly), true)
+		_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.cut_poly(shape_poly, true)
 
 	
 	#values of arguments
@@ -211,7 +212,7 @@ func _unhandled_input(event):
 	if event is InputEventMouseButton and event.pressed:
 		match event.button_index:
 			BUTTON_LEFT:
-				_Robot.goto_path(event.position)
+				_Robot.navigate_to(event.position)
 			BUTTON_RIGHT:
 				var temp_shape = PoolVector2Array([Vector2(-32,-32),Vector2(-32,32),Vector2(32,32),Vector2(32,-32)])
 				var temp_transform = Transform2D(0, event.position)

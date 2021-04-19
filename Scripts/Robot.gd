@@ -86,7 +86,7 @@ func goto(dir:float, speed:float, time:float):
 	moving = true
 	# Send "started"
 
-func goto_path(point: Vector2):
+func navigate_to(point: Vector2):
 	stop()
 	stop_path()
 	var _nav: Navigation2D = get_node("../Navigation2D")
