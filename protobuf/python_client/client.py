@@ -14,33 +14,20 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_address = ('localhost', 10000)
 print('connecting to {} port {}'.format(*server_address))
 sock.connect(server_address)
-
-def goto_stand(direction_x,direction_y):
+	
+def goto_path_stand(stand_x,stand_y):
 	#given robot position and position of stand to go to computes and sends instructions to move it to objective
 	#then issue goto command
 	Command = messages_pb2.Command()
-	Command.command = messages_pb2.Command.Command_types.Value('GOTO')
+	Command.command_name = messages_pb2.Command.Command_types.Value('GOTO_PATH')
+	Command.goto_path_parameters.destination_x = stand_x
+	Command.goto_path_parameters.destination_y = stand_y
 	
-	if direction_y==0:
-		angle = 0
-	else :
-		angle = math.acos( direction_x / math.sqrt(distance) ) 
-		if direction_y<0 and direction_x!=0:
-			angle -= math.pi/2 * direction_x/abs(direction_x)
-		
-	speed = 50.
-	time = (math.sqrt(distance)-90)/speed
-	
-	Command.dir = angle
-	Command.speed = speed
-	Command.time = time
-
 	message = Command.SerializeToString()
-	print('envoi commande goto avec parametres {} {} {}'.format(angle,speed,time))
 	length = len(message).to_bytes(4,'little') #4bytes because sending as int32 
 	sock.sendall(length + message)
 	
-	return
+	return	
 	
 
 try:
@@ -56,7 +43,7 @@ try:
 			size = int.from_bytes(data,'little')
 			data = sock.recv(size)
 			environment.ParseFromString(data)
-			print(state) 
+			print(environment) 
 			
 			liste_machines = environment.machines
 			
@@ -73,35 +60,76 @@ try:
 			state.ParseFromString(data)
 			#print(state) 
 			
-			if destination_stand == None:
-				#then we will fix the destination_stand to the farthest stand 
-				stands_x = state.stands_x
-				stands_y = state.stands_y
-				dist_max=0
-				pos_x = state.robots_x[0]
-				pos_y = state.robots_y[0]
-				for k in range(len(stands_x)):
-					x = stands_x[k]
-					y = stands_y[k]
-					dist = (x-pos_x)**2 + (y-pos_y)**2
-					if dist >= dist_max:
-						dist_max = dist
-						destination_stand = k #index of corresponding stand
+			# if destination_stand == None:
+				# #then we will fix the destination_stand to the farthest stand 
+				# stands_x = state.stands_x
+				# stands_y = state.stands_y
+				# dist_max=0
+				# pos_x = state.robots_x[0]
+				# pos_y = state.robots_y[0]
+				# for k in range(len(stands_x)):
+					# x = stands_x[k]
+					# y = stands_y[k]
+					# dist = (x-pos_x)**2 + (y-pos_y)**2
+					# if dist >= dist_max:
+						# dist_max = dist
+						# destination_stand = k #index of corresponding stand
 						
-						
-			if not(state.is_moving[0]):
-				#send a command only if robot not already moving
-				
-				
-				package = state.packages_locations[0]
-				if package.location_type == messages_pb2.State.Location.Location_Type.Value('OUT_STAND'):
+			for k in range(2):
+			#for now we will try a program making each robot take care of a corresponding package
+				package = state.packages[k]
+				robot = state.robots[k]					
+							
+				if not(robot.is_moving):
+					#send a command only if robot not already moving
 					
-					#case where the package is on a stand so needs to be picked up if not destination_stand
-					if package.location_id != destination_stand:
+					possible_types = messages_pb2.State.Location.Location_Type
+					
+					if package.location.location_type == possible_types.Value('ARRIVAL') or package.location.location_type == possible_types.Value('MACHINE_OUTPUT'):
+						
+						#case where the package is on an output stand so needs to be picked up
+						if package.location_id != destination_stand:
+							pos_x = robot.x
+							pos_y = robot.y
+							
+							#then need to get coordinates of stand where package is located, will depend on if arrival zone or machine output
+							stand_x = 0
+							stand_y = 0
+							if package.location.location_type == possible_types.Value('ARRIVAL'):
+								area = environment.arrival_area
+								stand_x = area.x
+								stand_y = area.y
+							else:
+								machine_id = package.location.parent_id
+								machine = environment.machines[machine_id]
+								area = machine.output_area
+								stand_x = area.x
+								stand_y = area.y
+							
+							
+							distance = (stand_x-pos_x)**2 + (stand_y-pos_y)**2
+							print(distance)
+							
+							if distance > 100**2: #compare to pickup radius, will need to take the right value later
+
+								goto_path_stand(stand_x,stand_y)
+								
+							else:
+								#already close enough so send pickup command
+								Command = messages_pb2.Command()
+								Command.command = messages_pb2.Command.Command_types.Value('PICKUP')
+								#pas besoin de specifier d'autres parametres pour une commande de type pickup
+								message = Command.SerializeToString()
+
+								length = len(message).to_bytes(4,'little') #4bytes because sending as int32 
+								sock.sendall(length + message)
+		
+					elif package.location.location_type == possible_types.Value('ROBOT'):
+						#case where the robot already picked up the package so needs to deliver it to the objective
 						pos_x = state.robots_x[0]
 						pos_y = state.robots_y[0]
-						stand_x = state.stands_x[package.location_id]
-						stand_y = state.stands_y[package.location_id]
+						stand_x = state.stands_x[destination_stand]
+						stand_y = state.stands_y[destination_stand]
 						distance = (stand_x-pos_x)**2 + (stand_y-pos_y)**2
 						
 						if distance > 100**2: #compare to pickup radius, will need to take the right value later
@@ -111,38 +139,14 @@ try:
 							goto_stand(direction_x,direction_y)
 							
 						else:
-							#already close enough so send pickup command
+							#already close enough so send pickup command (this time it will have the effect to drop and not pick up)
 							Command = messages_pb2.Command()
 							Command.command = messages_pb2.Command.Command_types.Value('PICKUP')
 							#pas besoin de specifier d'autres parametres pour une commande de type pickup
 							message = Command.SerializeToString()
 
-							length = len(message).to_bytes(4,'little') #4bytes because sending as int32 
+							length = len(message).to_bytes(4,'little') #4bytes because sending as int32	 
 							sock.sendall(length + message)
-	
-				else:
-					#case where the robot already picked up the package so needs to deliver it to the objective
-					pos_x = state.robots_x[0]
-					pos_y = state.robots_y[0]
-					stand_x = state.stands_x[destination_stand]
-					stand_y = state.stands_y[destination_stand]
-					distance = (stand_x-pos_x)**2 + (stand_y-pos_y)**2
-					
-					if distance > 100**2: #compare to pickup radius, will need to take the right value later
-							
-						direction_x = stand_x - pos_x
-						direction_y = stand_y - pos_y
-						goto_stand(direction_x,direction_y)
-						
-					else:
-						#already close enough so send pickup command (this time it will have the effect to drop and not pick up)
-						Command = messages_pb2.Command()
-						Command.command = messages_pb2.Command.Command_types.Value('PICKUP')
-						#pas besoin de specifier d'autres parametres pour une commande de type pickup
-						message = Command.SerializeToString()
-
-						length = len(message).to_bytes(4,'little') #4bytes because sending as int32	 
-						sock.sendall(length + message)
 
 finally:
 	print('closing socket')

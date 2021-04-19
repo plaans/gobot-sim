@@ -50,14 +50,21 @@ func set_buffer_sizes(input, output):
 	$Input_Belt.position.x -= stand_length * (input_size-1)/2
 	$Output_Belt.position.x += stand_length * (output_size-1)/2
 	
+func get_buffer_sizes():
+	return [input_size, output_size]
+	
 func set_possible_processes(list_of_processes):
 	possible_processes = list_of_processes
+	
+func get_possible_processes():
+	return possible_processes
 	
 func set_id(id : int):
 	machine_id = id
 	
 func get_id() -> int:
 	return machine_id
+	
 
 func can_accept_package(package : Node):
 	#returns true if both there is space in the input_buffer and the machine can accept the package

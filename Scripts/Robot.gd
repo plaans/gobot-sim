@@ -73,6 +73,9 @@ func set_id(id : int):
 	
 func get_id() -> int:
 	return robot_id
+	
+func get_battery_proportion():
+	return current_battery / max_battery
 			
 func update_battery_display():
 	var display = $Battery_Display

@@ -871,9 +871,10 @@ class State:
 			service.func_ref = funcref(self, "new_location")
 			data[_location.tag] = service
 			
-			_processes_list = PBField.new("processes_list", PB_DATA_TYPE.INT32, PB_RULE.REPEATED, 2, false, [])
+			_processes_list = PBField.new("processes_list", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 2, false, [])
 			service = PBServiceField.new()
 			service.field = _processes_list
+			service.func_ref = funcref(self, "add_processes_list")
 			data[_processes_list.tag] = service
 			
 			_delivery_time = PBField.new("delivery_time", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 3, false, DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT])
@@ -896,9 +897,11 @@ class State:
 		func get_processes_list() -> Array:
 			return _processes_list.value
 		func clear_processes_list() -> void:
-			_processes_list.value = DEFAULT_VALUES_2[PB_DATA_TYPE.INT32]
-		func add_processes_list(value : int) -> void:
-			_processes_list.value.append(value)
+			_processes_list.value = DEFAULT_VALUES_2[PB_DATA_TYPE.MESSAGE]
+		func add_processes_list() -> State.Process:
+			var element = State.Process.new()
+			_processes_list.value.append(element)
+			return element
 		
 		var _delivery_time: PBField
 		func get_delivery_time() -> float:
@@ -938,12 +941,7 @@ class State:
 			service.field = _location_type
 			data[_location_type.tag] = service
 			
-			_parent_type = PBField.new("parent_type", PB_DATA_TYPE.ENUM, PB_RULE.OPTIONAL, 2, false, DEFAULT_VALUES_2[PB_DATA_TYPE.ENUM])
-			service = PBServiceField.new()
-			service.field = _parent_type
-			data[_parent_type.tag] = service
-			
-			_parent_id = PBField.new("parent_id", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 3, false, DEFAULT_VALUES_2[PB_DATA_TYPE.INT32])
+			_parent_id = PBField.new("parent_id", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 2, false, DEFAULT_VALUES_2[PB_DATA_TYPE.INT32])
 			service = PBServiceField.new()
 			service.field = _parent_id
 			data[_parent_id.tag] = service
@@ -958,14 +956,6 @@ class State:
 		func set_location_type(value) -> void:
 			_location_type.value = value
 		
-		var _parent_type: PBField
-		func get_parent_type():
-			return _parent_type.value
-		func clear_parent_type() -> void:
-			_parent_type.value = DEFAULT_VALUES_2[PB_DATA_TYPE.ENUM]
-		func set_parent_type(value) -> void:
-			_parent_type.value = value
-		
 		var _parent_id: PBField
 		func get_parent_id() -> int:
 			return _parent_id.value
@@ -975,17 +965,65 @@ class State:
 			_parent_id.value = value
 		
 		enum Location_Type {
-			CARRIED = 0,
-			IN_STAND = 1,
-			OUT_STAND = 2
+			ROBOT = 0,
+			ARRIVAL = 1,
+			MACHINE_INPUT = 2,
+			MACHINE_INSIDE = 3,
+			MACHINE_OUTPUT = 4
 		}
 		
-		enum Parent_Type {
-			ROBOT = 0,
-			MACHINE = 1,
-			ARRIVAL = 2,
-			DELIVERY = 3
-		}
+		func to_string() -> String:
+			return PBPacker.message_to_string(data)
+			
+		func to_bytes() -> PoolByteArray:
+			return PBPacker.pack_message(data)
+			
+		func from_bytes(bytes : PoolByteArray, offset : int = 0, limit : int = -1) -> int:
+			var cur_limit = bytes.size()
+			if limit != -1:
+				cur_limit = limit
+			var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+			if result == cur_limit:
+				if PBPacker.check_required(data):
+					if limit == -1:
+						return PB_ERR.NO_ERRORS
+				else:
+					return PB_ERR.REQUIRED_FIELDS
+			elif limit == -1 && result > 0:
+				return PB_ERR.PARSE_INCOMPLETE
+			return result
+		
+	class Process:
+		func _init():
+			var service
+			
+			_process_id = PBField.new("process_id", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 1, false, DEFAULT_VALUES_2[PB_DATA_TYPE.INT32])
+			service = PBServiceField.new()
+			service.field = _process_id
+			data[_process_id.tag] = service
+			
+			_process_duration = PBField.new("process_duration", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 2, false, DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT])
+			service = PBServiceField.new()
+			service.field = _process_duration
+			data[_process_duration.tag] = service
+			
+		var data = {}
+		
+		var _process_id: PBField
+		func get_process_id() -> int:
+			return _process_id.value
+		func clear_process_id() -> void:
+			_process_id.value = DEFAULT_VALUES_2[PB_DATA_TYPE.INT32]
+		func set_process_id(value : int) -> void:
+			_process_id.value = value
+		
+		var _process_duration: PBField
+		func get_process_duration() -> float:
+			return _process_duration.value
+		func clear_process_duration() -> void:
+			_process_duration.value = DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT]
+		func set_process_duration(value : float) -> void:
+			_process_duration.value = value
 		
 		func to_string() -> String:
 			return PBPacker.message_to_string(data)
@@ -1107,7 +1145,7 @@ class Environment_Description:
 			service.field = _output_size
 			data[_output_size.tag] = service
 			
-			_processes_list = PBField.new("processes_list", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 5, false, DEFAULT_VALUES_2[PB_DATA_TYPE.INT32])
+			_processes_list = PBField.new("processes_list", PB_DATA_TYPE.INT32, PB_RULE.REPEATED, 5, false, [])
 			service = PBServiceField.new()
 			service.field = _processes_list
 			data[_processes_list.tag] = service
@@ -1149,12 +1187,12 @@ class Environment_Description:
 			_output_size.value = value
 		
 		var _processes_list: PBField
-		func get_processes_list() -> int:
+		func get_processes_list() -> Array:
 			return _processes_list.value
 		func clear_processes_list() -> void:
 			_processes_list.value = DEFAULT_VALUES_2[PB_DATA_TYPE.INT32]
-		func set_processes_list(value : int) -> void:
-			_processes_list.value = value
+		func add_processes_list(value : int) -> void:
+			_processes_list.value.append(value)
 		
 		func to_string() -> String:
 			return PBPacker.message_to_string(data)

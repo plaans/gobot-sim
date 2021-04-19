@@ -6,14 +6,33 @@ message Command {
   enum Command_types {
     GOTO = 0;
     PICKUP = 1;
+	GOTO_PATH = 2;
+	DROP = 3;
   }
-  optional Command_types command = 1;
   
-  //parameters below used only if goto command
-  optional float dir = 2;
-  optional float speed = 3;
-  optional float time =4;
+  optional Command_types command_name = 1;
   
+  optional int32 robot_id = 5;
+  
+  oneof parameters{
+	Pickup_Drop_Parameters pickup_drop_parameters = 2;
+	Goto_Parameters goto_parameters = 3;
+	Goto_Path_Parameters goto_path_parameters = 4;
+  }
+  
+  message Pickup_Drop_Parameters{
+	optional int32 stand_id = 1;
+  }
+  
+  message Goto_Parameters{
+	  optional float dir = 1;
+	  optional float speed = 2;
+	  optional float time =3;
+  }
+  message Goto_Path_Parameters{
+	optional float destination_x = 1;
+	optional float destination_y = 2;
+  }
 }
 
 message State {
@@ -34,29 +53,26 @@ message State {
 	
 	message Package {
 		optional Location location = 1;
-		repeated int32 processes_list = 2;
+		repeated Process processes_list = 2;
 		optional float delivery_time = 3;
 	}
 	
 	message Location {//contains location of a package
 		enum Location_Type {
-			CARRIED = 0;
-			IN_STAND = 1;
-			OUT_STAND = 2;
-		}		
-		enum Parent_Type {
 			ROBOT = 0;
-			MACHINE = 1;
-			ARRIVAL = 2;
-			DELIVERY = 3;
-		}
+			ARRIVAL = 1;
+			MACHINE_INPUT = 2;
+			MACHINE_INSIDE = 3;
+			MACHINE_OUTPUT = 4;
+		}		
 		optional Location_Type location_type = 1;
-		optional Parent_Type parent_type = 2;
-		optional int32 parent_id = 3;
+		optional int32 parent_id = 2; //id of the machine of robot in the corresponding cases
 	}
-
-	//info about machines
-	//repeated Machine machines = 3;
+	
+	message Process{
+		optional int32 process_id = 1;
+		optional float process_duration = 2;
+	}
 	
 }
 
@@ -66,13 +82,12 @@ message Environment_Description {
  //to be sent at the start of the simulation to give information about the disposition of the world
 	repeated Machine machines = 1;
 	
-		
 	message Machine {
 		optional Area_Description input_area = 1;
 		optional Area_Description output_area = 2;
 		optional int32 input_size = 3;
 		optional int32 output_size = 4;
-		optional int32 processes_list = 5;
+		repeated int32 processes_list = 5;
 	}
 	
 	

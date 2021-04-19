@@ -12,6 +12,7 @@
 
 [node name="Main" type="Node"]
 script = ExtResource( 3 )
+RobotScene = ExtResource( 4 )
 PackageScene = ExtResource( 5 )
 MachineScene = ExtResource( 7 )
 
@@ -31,11 +32,6 @@ nav_margin = 20.0
 
 [node name="Parking_Area" parent="." instance=ExtResource( 9 )]
 position = Vector2( 251.984, 495.149 )
-
-[node name="Robot" parent="." instance=ExtResource( 4 )]
-position = Vector2( 417.496, 432.616 )
-
-[node name="Robots" type="Node" parent="."]
 
 [node name="Delivery_Zone" parent="." instance=ExtResource( 8 )]
 position = Vector2( 976.439, 303.641 )
