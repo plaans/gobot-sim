@@ -107,6 +107,7 @@ func initialization():
 		machine.set_id(k)
 		machines_list.append(machine)
 		
+		
 	
 	processes_list=[]
 	processes_list.append([0,2])
@@ -118,11 +119,18 @@ func initialization():
 	machines_list[1].set_possible_processes([1])
 	machines_list[2].set_possible_processes([0])
 	
-	#for testing purposes we use only one package and initially place it at the first stand
+	for machine in machines_list:
+		print( machine.get_node("Input_Belt").get_area_rectangle())
+	
+	#for testing purposes we use only one package and initially place it in the robot
 	_Package = PackageScene.instance()
 	_Robot.add_package(_Package)
 	_Package.set_processes([[0,3],[1,7]])
 	packages_list.append(processes_list)
+	
+	_Robot.set_id(0)
+	
+	encode_environment_description()
 	
 	possible_tasks = [[[0,3],[1,7]]]
 	
@@ -165,8 +173,37 @@ func _process(delta):
 		client.put_32(size_bytes)
 		client.put_data(bytes_to_send)
 			
+func encode_environment_description() -> PoolByteArray:
+	#creates and serializes a protocol buffer containing the description of the environment of the simulation
+	
+	var env = Proto.Environment_Description.new()
+	
+	for machine in machines_list:
+		var new_machine = env.add_machines()
+		
+		var rectangle_input=machine.get_node("Input_Belt").get_area_rectangle()
+		var position_input=rectangle_input[0]
+		var size_input=rectangle_input[1]
+		
+		var input_area = new_machine.new_input_area()
+		input_area.set_x(position_input.x)
+		input_area.set_y(position_input.y)
+		input_area.set_width(size_input.x)
+		input_area.set_height(size_input.x)
+		
+		var rectangle_output=machine.get_node("Output_Belt").get_area_rectangle()
+		var position_output=rectangle_input[0]
+		var size_output=rectangle_input[1]
+		
+		var output_area = new_machine.new_output_area()
+		output_area.set_x(position_output.x)
+		output_area.set_y(position_output.y)
+		output_area.set_width(size_output.x)
+		output_area.set_height(size_output.x)
+	
+	return env.to_bytes()
 
-func encode_current_state():
+func encode_current_state() -> PoolByteArray:
 	#creates and serializes a protocol buffer containing the data about the current state of the simulation
 	
 	var state = Proto.State.new()
@@ -178,26 +215,33 @@ func encode_current_state():
 		new_robot.set_y(robot.position.y)
 		new_robot.set_is_moving(robot.is_moving())
 		
+		
 	#data about packages 
 	for package in packages_list:
 		var new_package = state.add_packages()
 		
-	
-	var package_location = state.add_packages_locations()
-	if _Package.get_parent() is KinematicBody2D:
-		package_location.set_location_type(Proto.State.Location.Type.ROBOT)
-	else:
-		package_location.set_location_type(Proto.State.Location.Type.STAND)
-	package_location.set_location_id(_Package.get_parent().get_index())
+		var package_parent = package.get_parent()
+		
+		var package_location = state.add_packages_locations()
+		if package_parent is KinematicBody2D:
+			package_location.set_location_type(Proto.State.Location.Location_Type.ROBOT)
+			package_location.set_parent_type(Proto.State.Location.Parent_Type.ROBOT)
+			package_location.set_parent_id(package_parent.get_id())
+		else:
+			package_location.set_location_type(Proto.State.Location.Type.STAND)
+		package_location.set_location_id(_Package.get_parent().get_index())
 
-	
-	
+	#data bout machines
+	for machine in machines_list:
+		var new_machine = state.add_machines()
+		
+		
 	#data about stands
-	var list_stands=$Stands.get_children()
-	state.set_nb_stands(list_stands.size())
-	for stand in list_stands:		
-		state.add_stands_x(stand.position.x)
-		state.add_stands_y(stand.position.y)
+#	var list_stands=$Stands.get_children()
+#	state.set_nb_stands(list_stands.size())
+#	for stand in list_stands:		
+#		state.add_stands_x(stand.position.x)
+#		state.add_stands_y(stand.position.y)
 		
 	return state.to_bytes()
 

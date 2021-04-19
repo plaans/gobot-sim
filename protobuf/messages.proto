@@ -19,26 +19,74 @@ message Command {
 message State {
 
 	//info about robots
-	optional int32 nb_robots = 1;
-	repeated int32 robots_x = 2;
-	repeated int32 robots_y = 3;
-	repeated bool is_moving = 4;
+	repeated Robot robots = 1;
 	
-	//info about packages
-	optional int32 nb_packages = 5;
-	repeated Location packages_locations = 6;  
+	message Robot {
+		optional float x = 1;
+		optional float y = 2;
+		optional float battery = 3;
+		optional bool is_moving = 4;
 	
-	message Location {//contains location of a package
-		enum Type {
-			ROBOT = 0;
-			STAND = 1;
-		}
-		optional Type location_type = 1;
-		optional int32 location_id = 2;
 	}
 	
-	//info about stands
-	optional int32 nb_stands = 7;
-	repeated int32 stands_x = 8;
-	repeated int32 stands_y = 9;
+	//info about packages
+	repeated Package packages = 2;  
+	
+	message Package {
+		optional Location location = 1;
+		repeated int32 processes_list = 2;
+		optional float delivery_time = 3;
+	}
+	
+	message Location {//contains location of a package
+		enum Location_Type {
+			CARRIED = 0;
+			IN_STAND = 1;
+			OUT_STAND = 2;
+		}		
+		enum Parent_Type {
+			ROBOT = 0;
+			MACHINE = 1;
+			ARRIVAL = 2;
+			DELIVERY = 3;
+		}
+		optional Location_Type location_type = 1;
+		optional Parent_Type parent_type = 2;
+		optional int32 parent_id = 3;
+	}
+
+	//info about machines
+	//repeated Machine machines = 3;
+	
 }
+
+
+
+message Environment_Description {
+ //to be sent at the start of the simulation to give information about the disposition of the world
+	repeated Machine machines = 1;
+	
+		
+	message Machine {
+		optional Area_Description input_area = 1;
+		optional Area_Description output_area = 2;
+		optional int32 input_size = 3;
+		optional int32 output_size = 4;
+		optional int32 processes_list = 5;
+	}
+	
+	
+	optional Area_Description arrival_area = 2;
+	
+	optional Area_Description delivery_area = 3;
+	
+	message Area_Description {//used to describe where are physically located the various belts the robot can int32eract with
+	optional float x = 1;
+	optional float y = 2;
+	optional float width = 3;
+	optional float height = 4;
+}
+}
+
+
+

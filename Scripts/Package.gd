@@ -3,7 +3,8 @@ extends Node2D
 
 # Declare member variables here. Examples:
 
-
+var package_id : int
+#id to uniquely identify this package (also attributed from Main node)
 
 var processes_list : Array
 #Array of 2-elements arrays [process_id, process_duration]
@@ -13,6 +14,11 @@ var delivery_limit : float
 
 var location #node currently carrying the package
 
+func set_id(id : int):
+	package_id = id
+	
+func get_id() -> int:
+	return package_id
 
 func set_processes(processes : Array):
 	processes_list = processes

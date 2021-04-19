@@ -45,6 +45,22 @@ def goto_stand(direction_x,direction_y):
 
 try:
 
+	#first save environment
+	
+	environment = messages_pb2.Environment_Description()
+	length = 0
+	while length == 0:
+		data = sock.recv(4)#because int32
+		length = len(data)
+		if len(data)>0:
+			size = int.from_bytes(data,'little')
+			data = sock.recv(size)
+			environment.ParseFromString(data)
+			print(state) 
+			
+			liste_machines = environment.machines
+			
+	
 	
 	destination_stand = None
 
@@ -76,8 +92,9 @@ try:
 			if not(state.is_moving[0]):
 				#send a command only if robot not already moving
 				
+				
 				package = state.packages_locations[0]
-				if package.location_type == messages_pb2.State.Location.Type.Value('STAND'):
+				if package.location_type == messages_pb2.State.Location.Location_Type.Value('OUT_STAND'):
 					
 					#case where the package is on a stand so needs to be picked up if not destination_stand
 					if package.location_id != destination_stand:

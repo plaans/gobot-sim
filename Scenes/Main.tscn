@@ -4,16 +4,16 @@
 [ext_resource path="res://Scripts/Navigation2D.gd" type="Script" id=2]
 [ext_resource path="res://Scripts/Main.gd" type="Script" id=3]
 [ext_resource path="res://Scenes/Robot.tscn" type="PackedScene" id=4]
-[ext_resource path="res://Scenes/Machine.tscn" type="PackedScene" id=5]
+[ext_resource path="res://Scenes/Package.tscn" type="PackedScene" id=5]
 [ext_resource path="res://Scenes/Arrival_Zone.tscn" type="PackedScene" id=6]
-[ext_resource path="res://Scenes/Package.tscn" type="PackedScene" id=7]
+[ext_resource path="res://Scenes/Machine.tscn" type="PackedScene" id=7]
 [ext_resource path="res://Scenes/Delivery_Zone.tscn" type="PackedScene" id=8]
 [ext_resource path="res://Scenes/Parking_Area.tscn" type="PackedScene" id=9]
 
 [node name="Main" type="Node"]
 script = ExtResource( 3 )
-PackageScene = ExtResource( 7 )
-MachineScene = ExtResource( 5 )
+PackageScene = ExtResource( 5 )
+MachineScene = ExtResource( 7 )
 
 [node name="WorldMap" type="TileMap" parent="."]
 tile_set = ExtResource( 1 )

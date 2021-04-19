@@ -748,128 +748,187 @@ class State:
 	func _init():
 		var service
 		
-		_nb_robots = PBField.new("nb_robots", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 1, false, DEFAULT_VALUES_2[PB_DATA_TYPE.INT32])
+		_robots = PBField.new("robots", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 1, false, [])
 		service = PBServiceField.new()
-		service.field = _nb_robots
-		data[_nb_robots.tag] = service
+		service.field = _robots
+		service.func_ref = funcref(self, "add_robots")
+		data[_robots.tag] = service
 		
-		_robots_x = PBField.new("robots_x", PB_DATA_TYPE.INT32, PB_RULE.REPEATED, 2, false, [])
+		_packages = PBField.new("packages", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 2, false, [])
 		service = PBServiceField.new()
-		service.field = _robots_x
-		data[_robots_x.tag] = service
-		
-		_robots_y = PBField.new("robots_y", PB_DATA_TYPE.INT32, PB_RULE.REPEATED, 3, false, [])
-		service = PBServiceField.new()
-		service.field = _robots_y
-		data[_robots_y.tag] = service
-		
-		_is_moving = PBField.new("is_moving", PB_DATA_TYPE.BOOL, PB_RULE.REPEATED, 4, false, [])
-		service = PBServiceField.new()
-		service.field = _is_moving
-		data[_is_moving.tag] = service
-		
-		_nb_packages = PBField.new("nb_packages", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 5, false, DEFAULT_VALUES_2[PB_DATA_TYPE.INT32])
-		service = PBServiceField.new()
-		service.field = _nb_packages
-		data[_nb_packages.tag] = service
-		
-		_packages_locations = PBField.new("packages_locations", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 6, false, [])
-		service = PBServiceField.new()
-		service.field = _packages_locations
-		service.func_ref = funcref(self, "add_packages_locations")
-		data[_packages_locations.tag] = service
-		
-		_nb_stands = PBField.new("nb_stands", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 7, false, DEFAULT_VALUES_2[PB_DATA_TYPE.INT32])
-		service = PBServiceField.new()
-		service.field = _nb_stands
-		data[_nb_stands.tag] = service
-		
-		_stands_x = PBField.new("stands_x", PB_DATA_TYPE.INT32, PB_RULE.REPEATED, 8, false, [])
-		service = PBServiceField.new()
-		service.field = _stands_x
-		data[_stands_x.tag] = service
-		
-		_stands_y = PBField.new("stands_y", PB_DATA_TYPE.INT32, PB_RULE.REPEATED, 9, false, [])
-		service = PBServiceField.new()
-		service.field = _stands_y
-		data[_stands_y.tag] = service
+		service.field = _packages
+		service.func_ref = funcref(self, "add_packages")
+		data[_packages.tag] = service
 		
 	var data = {}
 	
-	var _nb_robots: PBField
-	func get_nb_robots() -> int:
-		return _nb_robots.value
-	func clear_nb_robots() -> void:
-		_nb_robots.value = DEFAULT_VALUES_2[PB_DATA_TYPE.INT32]
-	func set_nb_robots(value : int) -> void:
-		_nb_robots.value = value
-	
-	var _robots_x: PBField
-	func get_robots_x() -> Array:
-		return _robots_x.value
-	func clear_robots_x() -> void:
-		_robots_x.value = DEFAULT_VALUES_2[PB_DATA_TYPE.INT32]
-	func add_robots_x(value : int) -> void:
-		_robots_x.value.append(value)
-	
-	var _robots_y: PBField
-	func get_robots_y() -> Array:
-		return _robots_y.value
-	func clear_robots_y() -> void:
-		_robots_y.value = DEFAULT_VALUES_2[PB_DATA_TYPE.INT32]
-	func add_robots_y(value : int) -> void:
-		_robots_y.value.append(value)
-	
-	var _is_moving: PBField
-	func get_is_moving() -> Array:
-		return _is_moving.value
-	func clear_is_moving() -> void:
-		_is_moving.value = DEFAULT_VALUES_2[PB_DATA_TYPE.BOOL]
-	func add_is_moving(value : bool) -> void:
-		_is_moving.value.append(value)
-	
-	var _nb_packages: PBField
-	func get_nb_packages() -> int:
-		return _nb_packages.value
-	func clear_nb_packages() -> void:
-		_nb_packages.value = DEFAULT_VALUES_2[PB_DATA_TYPE.INT32]
-	func set_nb_packages(value : int) -> void:
-		_nb_packages.value = value
-	
-	var _packages_locations: PBField
-	func get_packages_locations() -> Array:
-		return _packages_locations.value
-	func clear_packages_locations() -> void:
-		_packages_locations.value = DEFAULT_VALUES_2[PB_DATA_TYPE.MESSAGE]
-	func add_packages_locations() -> State.Location:
-		var element = State.Location.new()
-		_packages_locations.value.append(element)
+	var _robots: PBField
+	func get_robots() -> Array:
+		return _robots.value
+	func clear_robots() -> void:
+		_robots.value = DEFAULT_VALUES_2[PB_DATA_TYPE.MESSAGE]
+	func add_robots() -> State.Robot:
+		var element = State.Robot.new()
+		_robots.value.append(element)
 		return element
 	
-	var _nb_stands: PBField
-	func get_nb_stands() -> int:
-		return _nb_stands.value
-	func clear_nb_stands() -> void:
-		_nb_stands.value = DEFAULT_VALUES_2[PB_DATA_TYPE.INT32]
-	func set_nb_stands(value : int) -> void:
-		_nb_stands.value = value
+	var _packages: PBField
+	func get_packages() -> Array:
+		return _packages.value
+	func clear_packages() -> void:
+		_packages.value = DEFAULT_VALUES_2[PB_DATA_TYPE.MESSAGE]
+	func add_packages() -> State.Package:
+		var element = State.Package.new()
+		_packages.value.append(element)
+		return element
 	
-	var _stands_x: PBField
-	func get_stands_x() -> Array:
-		return _stands_x.value
-	func clear_stands_x() -> void:
-		_stands_x.value = DEFAULT_VALUES_2[PB_DATA_TYPE.INT32]
-	func add_stands_x(value : int) -> void:
-		_stands_x.value.append(value)
-	
-	var _stands_y: PBField
-	func get_stands_y() -> Array:
-		return _stands_y.value
-	func clear_stands_y() -> void:
-		_stands_y.value = DEFAULT_VALUES_2[PB_DATA_TYPE.INT32]
-	func add_stands_y(value : int) -> void:
-		_stands_y.value.append(value)
-	
+	class Robot:
+		func _init():
+			var service
+			
+			_x = PBField.new("x", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 1, false, DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT])
+			service = PBServiceField.new()
+			service.field = _x
+			data[_x.tag] = service
+			
+			_y = PBField.new("y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 2, false, DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT])
+			service = PBServiceField.new()
+			service.field = _y
+			data[_y.tag] = service
+			
+			_battery = PBField.new("battery", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 3, false, DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT])
+			service = PBServiceField.new()
+			service.field = _battery
+			data[_battery.tag] = service
+			
+			_is_moving = PBField.new("is_moving", PB_DATA_TYPE.BOOL, PB_RULE.OPTIONAL, 4, false, DEFAULT_VALUES_2[PB_DATA_TYPE.BOOL])
+			service = PBServiceField.new()
+			service.field = _is_moving
+			data[_is_moving.tag] = service
+			
+		var data = {}
+		
+		var _x: PBField
+		func get_x() -> float:
+			return _x.value
+		func clear_x() -> void:
+			_x.value = DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT]
+		func set_x(value : float) -> void:
+			_x.value = value
+		
+		var _y: PBField
+		func get_y() -> float:
+			return _y.value
+		func clear_y() -> void:
+			_y.value = DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT]
+		func set_y(value : float) -> void:
+			_y.value = value
+		
+		var _battery: PBField
+		func get_battery() -> float:
+			return _battery.value
+		func clear_battery() -> void:
+			_battery.value = DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT]
+		func set_battery(value : float) -> void:
+			_battery.value = value
+		
+		var _is_moving: PBField
+		func get_is_moving() -> bool:
+			return _is_moving.value
+		func clear_is_moving() -> void:
+			_is_moving.value = DEFAULT_VALUES_2[PB_DATA_TYPE.BOOL]
+		func set_is_moving(value : bool) -> void:
+			_is_moving.value = value
+		
+		func to_string() -> String:
+			return PBPacker.message_to_string(data)
+			
+		func to_bytes() -> PoolByteArray:
+			return PBPacker.pack_message(data)
+			
+		func from_bytes(bytes : PoolByteArray, offset : int = 0, limit : int = -1) -> int:
+			var cur_limit = bytes.size()
+			if limit != -1:
+				cur_limit = limit
+			var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+			if result == cur_limit:
+				if PBPacker.check_required(data):
+					if limit == -1:
+						return PB_ERR.NO_ERRORS
+				else:
+					return PB_ERR.REQUIRED_FIELDS
+			elif limit == -1 && result > 0:
+				return PB_ERR.PARSE_INCOMPLETE
+			return result
+		
+	class Package:
+		func _init():
+			var service
+			
+			_location = PBField.new("location", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 1, false, DEFAULT_VALUES_2[PB_DATA_TYPE.MESSAGE])
+			service = PBServiceField.new()
+			service.field = _location
+			service.func_ref = funcref(self, "new_location")
+			data[_location.tag] = service
+			
+			_processes_list = PBField.new("processes_list", PB_DATA_TYPE.INT32, PB_RULE.REPEATED, 2, false, [])
+			service = PBServiceField.new()
+			service.field = _processes_list
+			data[_processes_list.tag] = service
+			
+			_delivery_time = PBField.new("delivery_time", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 3, false, DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT])
+			service = PBServiceField.new()
+			service.field = _delivery_time
+			data[_delivery_time.tag] = service
+			
+		var data = {}
+		
+		var _location: PBField
+		func get_location() -> State.Location:
+			return _location.value
+		func clear_location() -> void:
+			_location.value = DEFAULT_VALUES_2[PB_DATA_TYPE.MESSAGE]
+		func new_location() -> State.Location:
+			_location.value = State.Location.new()
+			return _location.value
+		
+		var _processes_list: PBField
+		func get_processes_list() -> Array:
+			return _processes_list.value
+		func clear_processes_list() -> void:
+			_processes_list.value = DEFAULT_VALUES_2[PB_DATA_TYPE.INT32]
+		func add_processes_list(value : int) -> void:
+			_processes_list.value.append(value)
+		
+		var _delivery_time: PBField
+		func get_delivery_time() -> float:
+			return _delivery_time.value
+		func clear_delivery_time() -> void:
+			_delivery_time.value = DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT]
+		func set_delivery_time(value : float) -> void:
+			_delivery_time.value = value
+		
+		func to_string() -> String:
+			return PBPacker.message_to_string(data)
+			
+		func to_bytes() -> PoolByteArray:
+			return PBPacker.pack_message(data)
+			
+		func from_bytes(bytes : PoolByteArray, offset : int = 0, limit : int = -1) -> int:
+			var cur_limit = bytes.size()
+			if limit != -1:
+				cur_limit = limit
+			var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+			if result == cur_limit:
+				if PBPacker.check_required(data):
+					if limit == -1:
+						return PB_ERR.NO_ERRORS
+				else:
+					return PB_ERR.REQUIRED_FIELDS
+			elif limit == -1 && result > 0:
+				return PB_ERR.PARSE_INCOMPLETE
+			return result
+		
 	class Location:
 		func _init():
 			var service
@@ -879,10 +938,15 @@ class State:
 			service.field = _location_type
 			data[_location_type.tag] = service
 			
-			_location_id = PBField.new("location_id", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 2, false, DEFAULT_VALUES_2[PB_DATA_TYPE.INT32])
+			_parent_type = PBField.new("parent_type", PB_DATA_TYPE.ENUM, PB_RULE.OPTIONAL, 2, false, DEFAULT_VALUES_2[PB_DATA_TYPE.ENUM])
 			service = PBServiceField.new()
-			service.field = _location_id
-			data[_location_id.tag] = service
+			service.field = _parent_type
+			data[_parent_type.tag] = service
+			
+			_parent_id = PBField.new("parent_id", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 3, false, DEFAULT_VALUES_2[PB_DATA_TYPE.INT32])
+			service = PBServiceField.new()
+			service.field = _parent_id
+			data[_parent_id.tag] = service
 			
 		var data = {}
 		
@@ -894,18 +958,282 @@ class State:
 		func set_location_type(value) -> void:
 			_location_type.value = value
 		
-		var _location_id: PBField
-		func get_location_id() -> int:
-			return _location_id.value
-		func clear_location_id() -> void:
-			_location_id.value = DEFAULT_VALUES_2[PB_DATA_TYPE.INT32]
-		func set_location_id(value : int) -> void:
-			_location_id.value = value
+		var _parent_type: PBField
+		func get_parent_type():
+			return _parent_type.value
+		func clear_parent_type() -> void:
+			_parent_type.value = DEFAULT_VALUES_2[PB_DATA_TYPE.ENUM]
+		func set_parent_type(value) -> void:
+			_parent_type.value = value
 		
-		enum Type {
-			ROBOT = 0,
-			STAND = 1
+		var _parent_id: PBField
+		func get_parent_id() -> int:
+			return _parent_id.value
+		func clear_parent_id() -> void:
+			_parent_id.value = DEFAULT_VALUES_2[PB_DATA_TYPE.INT32]
+		func set_parent_id(value : int) -> void:
+			_parent_id.value = value
+		
+		enum Location_Type {
+			CARRIED = 0,
+			IN_STAND = 1,
+			OUT_STAND = 2
 		}
+		
+		enum Parent_Type {
+			ROBOT = 0,
+			MACHINE = 1,
+			ARRIVAL = 2,
+			DELIVERY = 3
+		}
+		
+		func to_string() -> String:
+			return PBPacker.message_to_string(data)
+			
+		func to_bytes() -> PoolByteArray:
+			return PBPacker.pack_message(data)
+			
+		func from_bytes(bytes : PoolByteArray, offset : int = 0, limit : int = -1) -> int:
+			var cur_limit = bytes.size()
+			if limit != -1:
+				cur_limit = limit
+			var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+			if result == cur_limit:
+				if PBPacker.check_required(data):
+					if limit == -1:
+						return PB_ERR.NO_ERRORS
+				else:
+					return PB_ERR.REQUIRED_FIELDS
+			elif limit == -1 && result > 0:
+				return PB_ERR.PARSE_INCOMPLETE
+			return result
+		
+	func to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PoolByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PoolByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
+class Environment_Description:
+	func _init():
+		var service
+		
+		_machines = PBField.new("machines", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 1, false, [])
+		service = PBServiceField.new()
+		service.field = _machines
+		service.func_ref = funcref(self, "add_machines")
+		data[_machines.tag] = service
+		
+		_arrival_area = PBField.new("arrival_area", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 2, false, DEFAULT_VALUES_2[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = _arrival_area
+		service.func_ref = funcref(self, "new_arrival_area")
+		data[_arrival_area.tag] = service
+		
+		_delivery_area = PBField.new("delivery_area", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 3, false, DEFAULT_VALUES_2[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = _delivery_area
+		service.func_ref = funcref(self, "new_delivery_area")
+		data[_delivery_area.tag] = service
+		
+	var data = {}
+	
+	var _machines: PBField
+	func get_machines() -> Array:
+		return _machines.value
+	func clear_machines() -> void:
+		_machines.value = DEFAULT_VALUES_2[PB_DATA_TYPE.MESSAGE]
+	func add_machines() -> Environment_Description.Machine:
+		var element = Environment_Description.Machine.new()
+		_machines.value.append(element)
+		return element
+	
+	var _arrival_area: PBField
+	func get_arrival_area() -> Environment_Description.Area_Description:
+		return _arrival_area.value
+	func clear_arrival_area() -> void:
+		_arrival_area.value = DEFAULT_VALUES_2[PB_DATA_TYPE.MESSAGE]
+	func new_arrival_area() -> Environment_Description.Area_Description:
+		_arrival_area.value = Environment_Description.Area_Description.new()
+		return _arrival_area.value
+	
+	var _delivery_area: PBField
+	func get_delivery_area() -> Environment_Description.Area_Description:
+		return _delivery_area.value
+	func clear_delivery_area() -> void:
+		_delivery_area.value = DEFAULT_VALUES_2[PB_DATA_TYPE.MESSAGE]
+	func new_delivery_area() -> Environment_Description.Area_Description:
+		_delivery_area.value = Environment_Description.Area_Description.new()
+		return _delivery_area.value
+	
+	class Machine:
+		func _init():
+			var service
+			
+			_input_area = PBField.new("input_area", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 1, false, DEFAULT_VALUES_2[PB_DATA_TYPE.MESSAGE])
+			service = PBServiceField.new()
+			service.field = _input_area
+			service.func_ref = funcref(self, "new_input_area")
+			data[_input_area.tag] = service
+			
+			_output_area = PBField.new("output_area", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 2, false, DEFAULT_VALUES_2[PB_DATA_TYPE.MESSAGE])
+			service = PBServiceField.new()
+			service.field = _output_area
+			service.func_ref = funcref(self, "new_output_area")
+			data[_output_area.tag] = service
+			
+			_input_size = PBField.new("input_size", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 3, false, DEFAULT_VALUES_2[PB_DATA_TYPE.INT32])
+			service = PBServiceField.new()
+			service.field = _input_size
+			data[_input_size.tag] = service
+			
+			_output_size = PBField.new("output_size", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 4, false, DEFAULT_VALUES_2[PB_DATA_TYPE.INT32])
+			service = PBServiceField.new()
+			service.field = _output_size
+			data[_output_size.tag] = service
+			
+			_processes_list = PBField.new("processes_list", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 5, false, DEFAULT_VALUES_2[PB_DATA_TYPE.INT32])
+			service = PBServiceField.new()
+			service.field = _processes_list
+			data[_processes_list.tag] = service
+			
+		var data = {}
+		
+		var _input_area: PBField
+		func get_input_area() -> Environment_Description.Area_Description:
+			return _input_area.value
+		func clear_input_area() -> void:
+			_input_area.value = DEFAULT_VALUES_2[PB_DATA_TYPE.MESSAGE]
+		func new_input_area() -> Environment_Description.Area_Description:
+			_input_area.value = Environment_Description.Area_Description.new()
+			return _input_area.value
+		
+		var _output_area: PBField
+		func get_output_area() -> Environment_Description.Area_Description:
+			return _output_area.value
+		func clear_output_area() -> void:
+			_output_area.value = DEFAULT_VALUES_2[PB_DATA_TYPE.MESSAGE]
+		func new_output_area() -> Environment_Description.Area_Description:
+			_output_area.value = Environment_Description.Area_Description.new()
+			return _output_area.value
+		
+		var _input_size: PBField
+		func get_input_size() -> int:
+			return _input_size.value
+		func clear_input_size() -> void:
+			_input_size.value = DEFAULT_VALUES_2[PB_DATA_TYPE.INT32]
+		func set_input_size(value : int) -> void:
+			_input_size.value = value
+		
+		var _output_size: PBField
+		func get_output_size() -> int:
+			return _output_size.value
+		func clear_output_size() -> void:
+			_output_size.value = DEFAULT_VALUES_2[PB_DATA_TYPE.INT32]
+		func set_output_size(value : int) -> void:
+			_output_size.value = value
+		
+		var _processes_list: PBField
+		func get_processes_list() -> int:
+			return _processes_list.value
+		func clear_processes_list() -> void:
+			_processes_list.value = DEFAULT_VALUES_2[PB_DATA_TYPE.INT32]
+		func set_processes_list(value : int) -> void:
+			_processes_list.value = value
+		
+		func to_string() -> String:
+			return PBPacker.message_to_string(data)
+			
+		func to_bytes() -> PoolByteArray:
+			return PBPacker.pack_message(data)
+			
+		func from_bytes(bytes : PoolByteArray, offset : int = 0, limit : int = -1) -> int:
+			var cur_limit = bytes.size()
+			if limit != -1:
+				cur_limit = limit
+			var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+			if result == cur_limit:
+				if PBPacker.check_required(data):
+					if limit == -1:
+						return PB_ERR.NO_ERRORS
+				else:
+					return PB_ERR.REQUIRED_FIELDS
+			elif limit == -1 && result > 0:
+				return PB_ERR.PARSE_INCOMPLETE
+			return result
+		
+	class Area_Description:
+		func _init():
+			var service
+			
+			_x = PBField.new("x", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 1, false, DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT])
+			service = PBServiceField.new()
+			service.field = _x
+			data[_x.tag] = service
+			
+			_y = PBField.new("y", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 2, false, DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT])
+			service = PBServiceField.new()
+			service.field = _y
+			data[_y.tag] = service
+			
+			_width = PBField.new("width", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 3, false, DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT])
+			service = PBServiceField.new()
+			service.field = _width
+			data[_width.tag] = service
+			
+			_height = PBField.new("height", PB_DATA_TYPE.FLOAT, PB_RULE.OPTIONAL, 4, false, DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT])
+			service = PBServiceField.new()
+			service.field = _height
+			data[_height.tag] = service
+			
+		var data = {}
+		
+		var _x: PBField
+		func get_x() -> float:
+			return _x.value
+		func clear_x() -> void:
+			_x.value = DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT]
+		func set_x(value : float) -> void:
+			_x.value = value
+		
+		var _y: PBField
+		func get_y() -> float:
+			return _y.value
+		func clear_y() -> void:
+			_y.value = DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT]
+		func set_y(value : float) -> void:
+			_y.value = value
+		
+		var _width: PBField
+		func get_width() -> float:
+			return _width.value
+		func clear_width() -> void:
+			_width.value = DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT]
+		func set_width(value : float) -> void:
+			_width.value = value
+		
+		var _height: PBField
+		func get_height() -> float:
+			return _height.value
+		func clear_height() -> void:
+			_height.value = DEFAULT_VALUES_2[PB_DATA_TYPE.FLOAT]
+		func set_height(value : float) -> void:
+			_height.value = value
 		
 		func to_string() -> String:
 			return PBPacker.message_to_string(data)
