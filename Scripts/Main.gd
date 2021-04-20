@@ -56,7 +56,12 @@ func _ready():
 	seed(rng_seed)
 
 	var default_log_name = "res://logs/log"+str(OS.get_system_time_msecs())+".txt"
-	log_name = get_arg(arguments,"--log", default_log_name)
+	log_name = get_arg(arguments,"--log", "")
+	if log_name == "":
+		log_name = default_log_name
+		var dir = Directory.new()
+		if not(dir.dir_exists("logs")):
+			dir.make_dir("logs")
 	
 	
 	#initialization
@@ -97,7 +102,19 @@ func log_text(text : String):
 #	file.seek_end()
 #	file.store_line(text)
 #	file.close()
-	text_to_log += text
+	text_to_log += text 
+	text_to_log += "\n"
+	
+func _notification(what):
+	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST:
+		var file = File.new()
+		if file.file_exists(log_name):
+			file.open(log_name, File.READ_WRITE) #to open while keeping existing content
+		else:
+			file.open(log_name, File.WRITE) 
+		file.seek_end()
+		file.store_line(text_to_log)
+		file.close()
 		
 func add_package(package : Node):
 	packages_list.append(package)
@@ -242,9 +259,9 @@ func encode_environment_description() -> PoolByteArray:
 		new_machine.set_input_size(buffer_sizes[0])
 		new_machine.set_output_size(buffer_sizes[1])
 		
-		var processes_list = machine.get_possible_processes()
+		var list = machine.get_possible_processes()
 		 
-		for process_id in processes_list:
+		for process_id in list:
 			new_machine.add_processes_list(process_id)
 	
 	return env.to_bytes()
