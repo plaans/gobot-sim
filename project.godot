@@ -13,9 +13,27 @@ _global_script_classes=[ {
 "class": "GitAPI",
 "language": "NativeScript",
 "path": "res://git_api.gdns"
+}, {
+"base": "Reference",
+"class": "PolyHelper",
+"language": "GDScript",
+"path": "res://Scripts/PolyHelper.gd"
+}, {
+"base": "Reference",
+"class": "TileManager",
+"language": "GDScript",
+"path": "res://Scripts/TileManager.gd"
+}, {
+"base": "Reference",
+"class": "TileWorld",
+"language": "GDScript",
+"path": "res://Scripts/TileWorld.gd"
 } ]
 _global_script_class_icons={
-"GitAPI": ""
+"GitAPI": "",
+"PolyHelper": "",
+"TileManager": "res://Assets/icons/TileManager.svg",
+"TileWorld": ""
 }
 
 [application]
