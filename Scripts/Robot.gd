@@ -80,7 +80,7 @@ func goto(dir:float, speed:float, time:float):
 	# dir : rad
 	# speed : px/s
 	# time : s
-	get_parent().log_text("goto:"+str(dir)+";"+str(speed)+";"+str(time))
+	Logger.log_info("%-12s %8.3f;%8.3f;%8.3f" % ["goto", dir, speed, time])
 	move_time = time
 	velocity = speed * Vector2.RIGHT.rotated(dir) # already normalized
 	moving = true
@@ -120,7 +120,7 @@ func add_package(Package : Node):
 
 	
 func pickup():
-	get_parent().log_text("pickup:")
+	Logger.log_info("%-12s" % "pickup")
 	if carried_package==null:
 		#no package carried so pick up function
 		

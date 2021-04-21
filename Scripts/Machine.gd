@@ -160,7 +160,7 @@ func _process(delta):
 				$Output_Belt.add_child(current_package)
 				adjust_positions(false)
 				
-				get_parent().log_text("processed:"+str(current_process_id)+";"+str(taskDuration))
+				Logger.log_info("%-12s %8s %8s %8s" % ["processed", machine_id, current_process_id, taskDuration])
 		
 	else:
 		#case where no task currently processed, so check if package waiting in input_buffer
