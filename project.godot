@@ -24,6 +24,10 @@ config/name="Simulation- Factory- Godot"
 run/main_scene="res://Scenes/Main.tscn"
 config/icon="res://icon.png"
 
+[autoload]
+
+Logger="*res://Scripts/Logger.gd"
+
 [editor_plugins]
 
 enabled=PoolStringArray( "protobuf" )
