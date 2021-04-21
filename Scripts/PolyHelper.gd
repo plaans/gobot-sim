@@ -8,6 +8,8 @@ static func grow_polys(polys: Array, delta: float)->Array:
 	
 	return new_polys
 
+# Given an array of polygons as PoolVector2Arrays, returns a new array of polygons
+# where overlapping ones have been merged
 static func merge_polys(polys: Array)->Array:
 	var new_polys = []
 	var old_polys = polys.duplicate()
@@ -18,8 +20,9 @@ static func merge_polys(polys: Array)->Array:
 		
 		var i: int = 0
 		while i < old_polys.size():
-			if Geometry.intersect_polygons_2d(current_poly, old_polys[i]).size() > 0:
-				current_poly = Geometry.merge_polygons_2d(current_poly, old_polys[i])[0]
+			var test_poly = Geometry.merge_polygons_2d(current_poly, old_polys[i])
+			if test_poly.size() > 0:
+				current_poly = test_poly[0]
 				old_polys.remove(i)
 				i = 0
 			else:
@@ -28,7 +31,7 @@ static func merge_polys(polys: Array)->Array:
 	
 	return new_polys
 
-# Careful: polys is passed by reference
+# Note: polys is passed by reference
 static func outline_exclude_polys(polys: Array, outline: PoolVector2Array)->PoolVector2Array:
 	var new_outline: PoolVector2Array = outline
 	
@@ -43,11 +46,11 @@ static func outline_exclude_polys(polys: Array, outline: PoolVector2Array)->Pool
 	
 	return new_outline
 
-#given an array of polygons, returns an array of CollisionPoly2D
+#given an array of polygons, returns an array of CollisionPoly2Ds
 static func make_collision_polys(polys: Array)->Array:
 	var collision_polys = []
 	
-	for poly in merge_polys(polys):
+	for poly in polys:
 		var new_collision_poly: CollisionPolygon2D = CollisionPolygon2D.new()
 		new_collision_poly.polygon = poly
 		collision_polys.append(new_collision_poly)
