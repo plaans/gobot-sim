@@ -6,6 +6,11 @@ var moving: bool = false
 var move_time: float = 0.0
 var velocity: Vector2 = Vector2.ZERO
 
+export var max_rotation_speed : int = 500
+var target_angle : float #set when doing a rotation
+var rotation_speed
+var rotate_time: float = 0.0
+var rotating : bool
 
 var path: PoolVector2Array
 var path_line: Line2D
@@ -52,6 +57,18 @@ func _physics_process(delta):
 				# Send "collision"
 			elif move_time <= 0.0:
 				stop()
+	
+	if rotating:
+		if current_battery == 0:
+			stop_rotation()
+		else:
+			rotate_time -= delta
+			if rotate_time <= 0 :
+				self.rotation = target_angle
+				stop_rotation()
+			else:
+				var new_rotation = self.rotation + rotation_speed * delta
+				self.rotation = new_rotation
 
 func _process(delta):
 	if not(in_station):
@@ -117,7 +134,28 @@ func stop_path():
 func add_package(Package : Node):
 	carried_package = Package
 	add_child(carried_package)
-
+	
+func do_rotation(angle:float, speed:float = -1):
+	# angle : rad
+	#if speed negative or not specified take max_speed value
+	
+	if current_battery>0:
+		if speed <=0:
+			rotation_speed = max_rotation_speed
+		else:
+			rotation_speed = speed
+		
+		if angle <0:
+			rotation_speed *= -1
+		
+		rotate_time = angle / rotation_speed
+		target_angle = self.rotation + angle
+		rotating = true 
+		
+func stop_rotation():
+	rotating = false 
+	rotation_speed = 0
+	rotate_time = 0.0
 	
 func pickup():
 	get_parent().log_text("pickup:")

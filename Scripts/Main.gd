@@ -165,6 +165,9 @@ func _process(delta):
 		
 		client.put_32(size_bytes)
 		client.put_data(bytes_to_send)
+		
+	
+
 			
 
 func encode_current_state():
@@ -208,6 +211,10 @@ func _unhandled_input(event):
 	if event.is_action_pressed("ui_accept"):
 		_Robot.pickup()
 		
+	if event.is_action_pressed("ui_left"):
+		_Robot.do_rotation(-1,0.5)
+	if event.is_action_pressed("ui_right"):
+		_Robot.do_rotation(1)
 
 	if event is InputEventMouseButton and event.pressed:
 		match event.button_index:
