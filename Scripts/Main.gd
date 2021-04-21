@@ -214,7 +214,7 @@ func _unhandled_input(event):
 	if event.is_action_pressed("ui_left"):
 		_Robot.do_rotation(-1,0.5)
 	if event.is_action_pressed("ui_right"):
-		_Robot.do_rotation(1)
+		_Robot.do_rotation(1,1.5)
 
 	if event is InputEventMouseButton and event.pressed:
 		match event.button_index:

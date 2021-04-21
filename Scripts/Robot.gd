@@ -27,6 +27,12 @@ onready var battery_original_size : float = $Battery_Display.texture.get_size().
 
 var in_station : bool
 
+onready var raycast : RayCast2D = RayCast2D.new()
+
+func _ready():
+	add_child(raycast)
+	raycast.set_enabled(true)
+	raycast.set_cast_to(Vector2( 1500,0 ))
 
 func _physics_process(delta):
 	if !moving && following:
@@ -71,6 +77,7 @@ func _physics_process(delta):
 				self.rotation = new_rotation
 
 func _process(delta):
+	#is_facing(get_node("../Machine/Input_Belt"))
 	if not(in_station):
 		current_battery = max(0, current_battery - battery_drain_rate*delta)
 	else:
@@ -165,7 +172,7 @@ func pickup():
 		#first find the closest output stand
 		var closest_stand = find_closest_stand("output")
 		
-		if closest_stand !=null:
+		if closest_stand !=null and is_facing(closest_stand):
 			var machine = closest_stand.get_parent() #get machine corresponding to this output stand
 			#machine can actually also be a Delivery_Zone or Arrival_Zone but it will still have the functions needed
 				
@@ -179,12 +186,17 @@ func pickup():
 		#first find the closest input stand
 		var closest_stand = find_closest_stand("input")
 		
-		if closest_stand !=null:
+		if closest_stand !=null and is_facing(closest_stand):
 			var machine = closest_stand.get_parent() #get machine corresponding to this input stand
 			if machine.can_accept_package(carried_package):
 				remove_child(carried_package)
 				machine.add_package(carried_package)
 				carried_package = null 
+				
+func is_facing(body : Node) -> bool:
+	
+	var collider = raycast.get_collider()
+	return collider == body
 	
 func find_closest_stand(group : String):
 	#if no stands in pickup radius returns null
