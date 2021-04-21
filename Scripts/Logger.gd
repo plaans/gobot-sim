@@ -52,5 +52,15 @@ func set_log_location(location : String):
 
 func log_info(text : String):
 	mutex.lock()
-	log_data += "info " + str(OS.get_ticks_msec()/1000.0) + " " + text + "\n"
+	log_data += "[INF] %8.3f %s \n" % [OS.get_ticks_msec()/1000.0, text] 
+	mutex.unlock()
+
+func log_error(text : String):
+	mutex.lock()
+	log_data += "[INF] %8.3f %s \n" % [OS.get_ticks_msec()/1000.0, text] 
+	mutex.unlock()
+	
+func warning(text : String):
+	mutex.lock()
+	log_data += "[INF] %8.3f %s \n" % [OS.get_ticks_msec()/1000.0, text] 
 	mutex.unlock()

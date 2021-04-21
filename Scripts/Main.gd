@@ -67,7 +67,7 @@ func _ready():
 	var rng_seed = int(get_arg(arguments,"--seed",0 ))
 	seed(rng_seed)
 
-	var default_log_name = "res://logs/log"+str(OS.get_system_time_msecs())+".txt"
+	var default_log_name = "res://logs/log"+str(OS.get_system_time_msecs())+".log"
 	var log_name = get_arg(arguments,"--log", default_log_name)
 	Logger.set_log_location(log_name)
 	
