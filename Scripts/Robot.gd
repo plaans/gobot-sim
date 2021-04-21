@@ -22,8 +22,7 @@ export var current_battery : float = 10.0
 export var max_battery : float = 10.0
 export var battery_drain_rate : float = 0.4
 export var battery_charge_rate : float = 0.8
-onready var battery_original_scale : float = $Battery_Display.scale.y #for display
-onready var battery_original_size : float = $Battery_Display.texture.get_size().y * $Battery_Display.scale.y #for display
+var current_battery_frame : int = 9
 
 var in_station : bool
 
@@ -91,11 +90,11 @@ func get_in_station() -> bool:
 	return in_station
 			
 func update_battery_display():
-	var display = $Battery_Display
-	display.scale.y= battery_original_scale * current_battery / max_battery
-	
-	
-	display.position.y = battery_original_size * (1 - current_battery / max_battery)/2
+	var display = $Battery
+	var new_frame = int(((current_battery+1) / max_battery) * 8)
+	if new_frame != current_battery_frame:
+		current_battery_frame = new_frame
+		display.texture.set_current_frame(current_battery_frame)
 			
 func is_moving():
 	return moving
