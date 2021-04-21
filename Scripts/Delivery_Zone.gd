@@ -29,7 +29,7 @@ func add_package(package : Node):
 		#if necessary do a treatment to log the delivery time
 		var delivery_time = get_elapsed_time()
 		
-		get_parent().log_text("delivery:"+str(delivery_time)+";"+str(package.get_delivery_limit()))
+		Logger.log_info("%-12s %8.3f" % ["delivery", delivery_time])
 		
 		#delete the package
 		get_parent().remove_package(package) #remove package from the list kept in Main node

@@ -33,7 +33,7 @@ const Proto = preload("res://protobuf/proto.gd")
 var tcp_server #TCP_Server
 var client #StreamPeerTCP
 
-var log_name #location to save logs to
+
 
 
 func _ready():	
@@ -67,8 +67,9 @@ func _ready():
 	var rng_seed = int(get_arg(arguments,"--seed",0 ))
 	seed(rng_seed)
 
-	var default_log_name = "res://logs/log"+str(OS.get_system_time_msecs())+".txt"
-	log_name = get_arg(arguments,"--log", default_log_name)
+	var default_log_name = "res://logs/log"+str(OS.get_system_time_msecs())+".log"
+	var log_name = get_arg(arguments,"--log", default_log_name)
+	Logger.set_log_location(log_name)
 	
 	#launch TCP Server
 	tcp_server = TCP_Server.new();	
@@ -80,22 +81,14 @@ func get_arg(args, arg_name, default):
 		return args[index+1]
 	else:
 		return default
-		
-func log_text(text : String):
-	var file = File.new()
-	if file.file_exists(log_name):
-		file.open(log_name, File.READ_WRITE) #to open while keeping existing content
-	else:
-		file.open(log_name, File.WRITE) 
-	file.seek_end()
-	file.store_line(text)
-	file.close()
-		
+	
 func add_package(package : Node):
 	packages_list.append(package)
 	
 func remove_package(package : Node):
-	packages_list.remove(packages_list.find(package))
+	var package_index = packages_list.find(package)
+	if package_index >= 0 :
+		packages_list.remove(package_index)
 		
 func initialization():
 	
@@ -165,6 +158,9 @@ func _process(delta):
 		
 		client.put_32(size_bytes)
 		client.put_data(bytes_to_send)
+		
+	
+
 			
 
 func encode_current_state():
@@ -208,6 +204,10 @@ func _unhandled_input(event):
 	if event.is_action_pressed("ui_accept"):
 		_Robot.pickup()
 		
+	if event.is_action_pressed("ui_left"):
+		_Robot.do_rotation(-1,0.5)
+	if event.is_action_pressed("ui_right"):
+		_Robot.do_rotation(1,1.5)
 
 	if event is InputEventMouseButton and event.pressed:
 		match event.button_index:
