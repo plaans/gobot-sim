@@ -46,6 +46,13 @@ func get_outline(world: TileWorld)->PoolVector2Array:
 # given an array of cell positions, returns an array of polygons matching the cells, merged if intersecting.
 func cells_to_polys(cells: PoolVector2Array)->Array:
 	var cells_polys = []
+	var replacement_shape = PoolVector2Array([
+		tilemap.cell_size,
+		Vector2(0, tilemap.cell_size.y),
+		Vector2.ZERO,
+		Vector2(tilemap.cell_size.x,0)
+	])
+	
 	for cell in cells:
 		# get each tile's shape then merge them
 		#
@@ -54,7 +61,12 @@ func cells_to_polys(cells: PoolVector2Array)->Array:
 		var id = tilemap.get_cellv(cell)
 		var tilemap_offset = tilemap.map_to_world(cell)
 		var tile_transform = tilemap.tile_set.tile_get_shape_transform(id, 0).translated(tilemap_offset)
-		var tile_poly = tilemap.tile_set.tile_get_shape(id, 0).get_points()
+		var tile_shape = tilemap.tile_set.tile_get_shape(id, 0)
+		var tile_poly
+		if tile_shape:
+			tile_poly = tile_shape.get_points()
+		else:
+			tile_poly = replacement_shape
 		tile_poly = tile_transform.xform(tile_poly)
 		
 		cells_polys.append(tile_poly)
