@@ -36,33 +36,10 @@ const Proto = preload("res://protobuf/proto.gd")
 var tcp_server #TCP_Server
 var client #StreamPeerTCP
 
+
 var env_sent : bool
 
-var log_name #location to save logs to
-var text_to_log : String
-
-func _ready():	
-	
-	
-	#values of arguments
-	
-	var arguments : Array = Array(OS.get_cmdline_args ())
-
-	var port = int(get_arg(arguments,"--port",10000 ))
-		
-	pickup_radius = float(get_arg(arguments,"--pickup-radius",100 ))
-	
-	var rng_seed = int(get_arg(arguments,"--seed",0 ))
-	seed(rng_seed)
-
-	var default_log_name = "res://logs/log"+str(OS.get_system_time_msecs())+".txt"
-	log_name = get_arg(arguments,"--log", "")
-	if log_name == "":
-		log_name = default_log_name
-		var dir = Directory.new()
-		if not(dir.dir_exists("logs")):
-			dir.make_dir("logs")
-	
+func _ready():		
 	
 	#initialization
 	initialization()
@@ -76,11 +53,32 @@ func _ready():
 			Vector2(shape.extents.x, shape.extents.y),
 			Vector2(shape.extents.x, -shape.extents.y)
 		])
+		shape_poly = shape_transform.xform(shape_poly);
 		shape_poly = Geometry.offset_polygon_2d(shape_poly, _Navigation.nav_margin)[0]
 		
-		_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.cut_poly(shape_transform.xform(shape_poly), true)
+		_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.cut_poly(shape_poly, true)
 
 	
+
+	#values of arguments
+	
+	var arguments : Array = Array(OS.get_cmdline_args ())
+
+	var port = int(get_arg(arguments,"--port",10000 ))
+	
+	var rng_seed = int(get_arg(arguments,"--seed",0 ))
+	seed(rng_seed)
+
+	var default_log_name = "res://logs/log"+str(OS.get_system_time_msecs())+".log"
+	var log_name = get_arg(arguments,"--log", "")
+	log_name = get_arg(arguments,"--log", "")
+	if log_name == "":
+		log_name = default_log_name
+		var dir = Directory.new()
+		if not(dir.dir_exists("logs")):
+			dir.make_dir("logs")
+	Logger.set_log_location(log_name)
+
 	
 	#launch TCP Server
 	tcp_server = TCP_Server.new();	
@@ -92,35 +90,14 @@ func get_arg(args, arg_name, default):
 		return args[index+1]
 	else:
 		return default
-		
-func log_text(text : String):
-#	var file = File.new()
-#	if file.file_exists(log_name):
-#		file.open(log_name, File.READ_WRITE) #to open while keeping existing content
-#	else:
-#		file.open(log_name, File.WRITE) 
-#	file.seek_end()
-#	file.store_line(text)
-#	file.close()
-	text_to_log += text 
-	text_to_log += "\n"
-	
-func _notification(what):
-	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST:
-		var file = File.new()
-		if file.file_exists(log_name):
-			file.open(log_name, File.READ_WRITE) #to open while keeping existing content
-		else:
-			file.open(log_name, File.WRITE) 
-		file.seek_end()
-		file.store_line(text_to_log)
-		file.close()
-		
+
 func add_package(package : Node):
 	packages_list.append(package)
 	
 func remove_package(package : Node):
-	packages_list.remove(packages_list.find(package))
+	var package_index = packages_list.find(package)
+	if package_index >= 0 :
+		packages_list.remove(package_index)
 		
 func initialization():
 	
@@ -150,7 +127,6 @@ func initialization():
 		add_child(robot)
 		robot.position = Vector2(100*k+200, 500)
 		robot.set_id(k)
-		robot.get_node("Area2D/Pickup_Sphere").get_shape().set_radius(pickup_radius)
 		
 		robots_list.append(robot)
 		
@@ -209,19 +185,24 @@ func _process(delta):
 					else:
 						var Command = Proto.Command.new()
 						Command.from_bytes(msg)
-						
-						var command_type = Command.get_command()
-						if command_type == Proto.Command.Command_types.GOTO:
-							_Robot.goto(Command.get_dir(), Command.get_speed(), Command.get_time()) 
-						elif command_type == Proto.Command.Command_types.PICKUP :
-							_Robot.pickup()
-							
-			#first send data about state of world
-			var bytes_to_send = encode_current_state()
-			var size_bytes = bytes_to_send.size()
-			
-			client.put_32(size_bytes)
-			client.put_data(bytes_to_send)
+
+#						var command_type = Command.get_command()
+#						if command_type == Proto.Command.Command_types.GOTO:
+#							_Robot.goto(Command.get_dir(), Command.get_speed(), Command.get_time()) 
+#						elif command_type == Proto.Command.Command_types.PICKUP :
+#							_Robot.pickup()
+#
+#			#first send data about state of world
+#			var bytes_to_send = encode_current_state()
+#			var size_bytes = bytes_to_send.size()
+
+		#first send data about state of world
+		var bytes_to_send = encode_current_state()
+		var size_bytes = bytes_to_send.size()
+		
+		client.put_32(size_bytes)
+		client.put_data(bytes_to_send)
+		
 			
 func set_area_parameters(area, stand : Node):
 	#used in the encode_environment_description  to set the area parameters to the area correspondign to the stand Node
@@ -324,13 +305,17 @@ func _unhandled_input(event):
 	if event.is_action_pressed("ui_accept"):
 		_Robot.pickup()
 		
+	if event.is_action_pressed("ui_left"):
+		_Robot.do_rotation(-1,0.5)
+	if event.is_action_pressed("ui_right"):
+		_Robot.do_rotation(1,1.5)
 
 	if event is InputEventMouseButton and event.pressed:
 		match event.button_index:
 			BUTTON_LEFT:
-				robots_list[0].goto_path(event.position)
+				robots_list[0].navigate_to(event.position)
 			BUTTON_RIGHT:
-				robots_list[1].goto_path(event.position)	
+				robots_list[1].navigate_to(event.position)	
 				
 #			BUTTON_RIGHT:
 #				var temp_shape = PoolVector2Array([Vector2(-32,-32),Vector2(-32,32),Vector2(32,32),Vector2(32,-32)])
