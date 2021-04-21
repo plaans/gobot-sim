@@ -31,6 +31,7 @@ shape = SubResource( 2 )
 [node name="texture" type="Sprite" parent="."]
 scale = Vector2( 0.9, 0.9 )
 texture = ExtResource( 1 )
+
 [node name="Battery_Background" type="Sprite" parent="."]
 self_modulate = Color( 0, 0, 0, 1 )
 position = Vector2( -10, 9.53674e-07 )
