@@ -41,6 +41,10 @@ frame_8/delay_sec = 0.0
 
 [node name="Robot" type="KinematicBody2D"]
 script = ExtResource( 2 )
+current_battery = null
+max_battery = null
+battery_drain_rate = null
+battery_charge_rate = null
 
 [node name="Sprite" type="Sprite" parent="."]
 self_modulate = Color( 0, 0.788235, 1, 1 )
