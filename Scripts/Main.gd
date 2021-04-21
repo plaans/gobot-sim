@@ -84,6 +84,9 @@ func _ready():
 	tcp_server = TCP_Server.new();	
 	tcp_server.listen(port)
 	
+	#for tests
+	print( encode_environment_description())
+	
 func get_arg(args, arg_name, default):
 	var index = args.find(arg_name)
 	if index !=-1:
@@ -164,27 +167,37 @@ func _process(delta):
 	
 	if client != null and client.is_connected_to_host():
 		
-		if not(env_sent):
-			#if info about the environment not yet sent to client first sent this before other transmissions
-			var bytes_to_send = encode_environment_description()
-			var size_bytes = bytes_to_send.size()
+#		if not(env_sent):
+#			#if info about the environment not yet sent to client first sent this before other transmissions
+#			var bytes_to_send = encode_environment_description()
+#			var size_bytes = bytes_to_send.size()
+#
+#			client.put_32(size_bytes)
+#			client.put_data(bytes_to_send)
+#			env_sent = true
+#		else:
+		#then read if commands were received (read one at most)
+		if client.get_available_bytes() > 0:
+#			var size= client.get_u32 ()
+#			if size>0:
+			var response= client.get_string(-1);
+			var json = JSON.parse(response)
+			var content = json.get_result()
+			print( content)
 			
-			client.put_32(size_bytes)
-			client.put_data(bytes_to_send)
-			env_sent = true
-		else:
-			#then read if commands were received (read one at most)
-			if client.get_available_bytes() > 0:
-				var size= client.get_u32 ()
-				if size>0:
-					var response= client.get_data(size);
-					var error = response[0]
-					var msg = response[1]
-					if error != 0:
-						print( "Error : %s" % error)
+			if content.has("robot_command"):
+				var command_info = content["robot_command"]
+				if command_info[0] == "pickup":
+					if command_info.size() != 2:
+						Logger.log_error("Wrong number of arguments for Pickup Command, expected 1 and got %s" % (command_info.size() -1))
 					else:
-						var Command = Proto.Command.new()
-						Command.from_bytes(msg)
+						var robot_id = command_info[1]
+						_Robot.pickup()
+			
+			#response with a message containing description of the enviroment for test
+			var env_message = encode_environment_description()
+			client.put_string(env_message)
+			
 
 #						var command_type = Command.get_command()
 #						if command_type == Proto.Command.Command_types.GOTO:
@@ -196,12 +209,12 @@ func _process(delta):
 #			var bytes_to_send = encode_current_state()
 #			var size_bytes = bytes_to_send.size()
 
-		#first send data about state of world
-		var bytes_to_send = encode_current_state()
-		var size_bytes = bytes_to_send.size()
-		
-		client.put_32(size_bytes)
-		client.put_data(bytes_to_send)
+#		#first send data about state of world
+#		var bytes_to_send = encode_current_state()
+#		var size_bytes = bytes_to_send.size()
+#
+#		client.put_32(size_bytes)
+#		client.put_data(bytes_to_send)
 		
 			
 func set_area_parameters(area, stand : Node):
@@ -209,43 +222,45 @@ func set_area_parameters(area, stand : Node):
 	var rectangle = stand.get_area_rectangle()
 	var position=rectangle[0]
 	var size=rectangle[1]
-	area.set_x(position.x)
-	area.set_y(position.y)
-	area.set_width(size.x)
-	area.set_height(size.y)
+	area.x = position.x
+	area.y = position.y
+	area.width = size.x
+	area.height = size.y
 			
-func encode_environment_description() -> PoolByteArray:
+func encode_environment_description() -> String:
 	#creates and serializes a protocol buffer containing the description of the environment of the simulation
 	
-	var env = Proto.Environment_Description.new()
+	var env = {}
 	
 	#info about arrival and delivery areas
-	var arrival_area = env.new_arrival_area()
-	set_area_parameters(arrival_area, $Arrival_Zone/Output_Belt)
 	
-	var delivery_area = env.new_delivery_area()
-	set_area_parameters(delivery_area, $Delivery_Zone/Input_Belt)
+	env.arrival_area = {}
 	
-	#info about machines
-	for machine in machines_list:
-		var new_machine = env.add_machines()
-		
-		var input_area = new_machine.new_input_area()
-		set_area_parameters(input_area, machine.get_node("Input_Belt"))
-		
-		var output_area = new_machine.new_output_area()
-		set_area_parameters(output_area, machine.get_node("Output_Belt"))
-		
-		var buffer_sizes = machine.get_buffer_sizes()
-		new_machine.set_input_size(buffer_sizes[0])
-		new_machine.set_output_size(buffer_sizes[1])
-		
-		var list = machine.get_possible_processes()
-		 
-		for process_id in list:
-			new_machine.add_processes_list(process_id)
+	set_area_parameters(env.arrival_area, $Arrival_Zone/Output_Belt)
+
+#	var delivery_area = env.new_delivery_area()
+#	set_area_parameters(delivery_area, $Delivery_Zone/Input_Belt)
+#
+#	#info about machines
+#	for machine in machines_list:
+#		var new_machine = env.add_machines()
+#
+#		var input_area = new_machine.new_input_area()
+#		set_area_parameters(input_area, machine.get_node("Input_Belt"))
+#
+#		var output_area = new_machine.new_output_area()
+#		set_area_parameters(output_area, machine.get_node("Output_Belt"))
+#
+#		var buffer_sizes = machine.get_buffer_sizes()
+#		new_machine.set_input_size(buffer_sizes[0])
+#		new_machine.set_output_size(buffer_sizes[1])
+#
+#		var list = machine.get_possible_processes()
+#
+#		for process_id in list:
+#			new_machine.add_processes_list(process_id)
 	
-	return env.to_bytes()
+	return JSON.print(env)
 
 func encode_current_state() -> PoolByteArray:
 	#creates and serializes a protocol buffer containing the data about the current state of the simulation

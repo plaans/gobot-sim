@@ -57,10 +57,10 @@ func log_info(text : String):
 
 func log_error(text : String):
 	mutex.lock()
-	log_data += "[INF] %8.3f %s \n" % [OS.get_ticks_msec()/1000.0, text] 
+	log_data += "[ERR] %8.3f %s \n" % [OS.get_ticks_msec()/1000.0, text] 
 	mutex.unlock()
 	
 func warning(text : String):
 	mutex.lock()
-	log_data += "[INF] %8.3f %s \n" % [OS.get_ticks_msec()/1000.0, text] 
+	log_data += "[WAR] %8.3f %s \n" % [OS.get_ticks_msec()/1000.0, text] 
 	mutex.unlock()
