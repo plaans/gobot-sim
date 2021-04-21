@@ -159,7 +159,8 @@ nav_margin = 20.0
 [node name="NavigationPolygonInstance" type="NavigationPolygonInstance" parent="Navigation2D"]
 
 [node name="Parking_Area" parent="." instance=ExtResource( 9 )]
-position = Vector2( 251.984, 495.149 )
+position = Vector2( 224.228, 540.99 )
+scale = Vector2( 1.3, 0.45 )
 
 [node name="Delivery_Zone" parent="." instance=ExtResource( 8 )]
 position = Vector2( 976.439, 303.641 )
@@ -169,5 +170,9 @@ position = Vector2( 47.877, 303.641 )
 
 [node name="Robot" parent="." instance=ExtResource( 4 )]
 position = Vector2( 340.79, 384.793 )
+current_battery = 10.0
+max_battery = 10.0
+battery_drain_rate = 0.4
+battery_charge_rate = 0.8
 [connection signal="body_entered" from="Parking_Area" to="." method="_on_Parking_Area_body_entered"]
 [connection signal="body_exited" from="Parking_Area" to="." method="_on_Parking_Area_body_exited"]
