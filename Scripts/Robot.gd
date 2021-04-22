@@ -140,6 +140,7 @@ func stop_path():
 func add_package(Package : Node):
 	carried_package = Package
 	add_child(carried_package)
+	carried_package.position.x=7
 	
 func do_rotation(angle:float, speed:float = -1):
 	# angle : rad
@@ -176,8 +177,7 @@ func pickup():
 			#machine can actually also be a Delivery_Zone or Arrival_Zone but it will still have the functions needed
 				
 			if machine.is_output_available():
-				carried_package = machine.take()
-				add_child(carried_package)
+				add_package(machine.take())
 				
 	else: 
 		#already carrying a package so drop off function
@@ -189,6 +189,7 @@ func pickup():
 			var machine = closest_stand.get_parent() #get machine corresponding to this input stand
 			if machine.can_accept_package(carried_package):
 				remove_child(carried_package)
+				carried_package.position.x=0
 				machine.add_package(carried_package)
 				carried_package = null 
 				
