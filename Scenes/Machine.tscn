@@ -1,11 +1,28 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://Scripts/Machine.gd" type="Script" id=1]
-[ext_resource path="res://Assets/white_square.png" type="Texture" id=2]
+[ext_resource path="res://Assets/machine/Machine-2.png.png" type="Texture" id=2]
 [ext_resource path="res://Scenes/Stand.tscn" type="PackedScene" id=3]
+[ext_resource path="res://Assets/machine/Machine-8.png.png" type="Texture" id=4]
+[ext_resource path="res://Assets/machine/Machine-10.png.png" type="Texture" id=5]
+[ext_resource path="res://Assets/machine/Machine-1.png.png" type="Texture" id=6]
+[ext_resource path="res://Assets/machine/Machine-6.png.png" type="Texture" id=7]
+[ext_resource path="res://Assets/machine/Machine-3.png.png" type="Texture" id=8]
+[ext_resource path="res://Assets/machine/Machine-5.png.png" type="Texture" id=9]
+[ext_resource path="res://Assets/machine/Machine-7.png.png" type="Texture" id=10]
+[ext_resource path="res://Assets/machine/Machine-4.png.png" type="Texture" id=11]
+[ext_resource path="res://Assets/machine/Machine-9.png.png" type="Texture" id=12]
 
-[sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 46.4726, 46.0175 )
+[sub_resource type="RectangleShape2D" id=2]
+extents = Vector2( 31.9771, 31.9668 )
+
+[sub_resource type="SpriteFrames" id=3]
+animations = [ {
+"frames": [ ExtResource( 6 ), ExtResource( 2 ), ExtResource( 8 ), ExtResource( 11 ), ExtResource( 9 ), ExtResource( 7 ), ExtResource( 10 ), ExtResource( 4 ), ExtResource( 12 ), ExtResource( 5 ) ],
+"loop": true,
+"name": "default",
+"speed": 0.0
+} ]
 
 [node name="Machine" type="Node2D"]
 script = ExtResource( 1 )
@@ -14,32 +31,19 @@ script = ExtResource( 1 )
 "stands",
 ]]
 
-[node name="Sprite" type="Sprite" parent="StaticBody2D"]
-self_modulate = Color( 0.0588235, 0.0470588, 0.0470588, 1 )
-scale = Vector2( 0.09, 0.09 )
-texture = ExtResource( 2 )
-
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
-shape = SubResource( 1 )
+visible = false
+shape = SubResource( 2 )
+
+[node name="AnimatedSprite" type="AnimatedSprite" parent="StaticBody2D"]
+frames = SubResource( 3 )
 
 [node name="Input_Belt" parent="." groups=[
 "input",
 ] instance=ExtResource( 3 )]
-position = Vector2( -62, 0 )
+position = Vector2( -48, 0 )
 
 [node name="Output_Belt" parent="." groups=[
 "output",
 ] instance=ExtResource( 3 )]
-position = Vector2( 62, 0 )
-
-[node name="Bar_Background" type="Sprite" parent="."]
-self_modulate = Color( 0.933333, 0.705882, 0.384314, 1 )
-position = Vector2( 0, -34 )
-scale = Vector2( 0.072, 0.01 )
-texture = ExtResource( 2 )
-
-[node name="Progress_Bar" type="Sprite" parent="."]
-self_modulate = Color( 0.27451, 0.482353, 0.0431373, 1 )
-position = Vector2( 0, -34 )
-scale = Vector2( 0.072, 0.01 )
-texture = ExtResource( 2 )
+position = Vector2( 48, 0 )

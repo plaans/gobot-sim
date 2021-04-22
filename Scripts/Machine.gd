@@ -19,12 +19,11 @@ var current_process_id : int
 var output_buffer : Array
 #output_buffer will be an array of packages
 
-var taskInProgress #true if there is currently a task being processed
+var taskInProgress : bool = false #true if there is currently a task being processed
 var timeSinceStart #will be reset when a new task begins 
 var taskDuration #duration of current task
 
-onready var bar_original_scale : float = $Progress_Bar.scale.x #for display
-onready var bar_original_size : float = $Progress_Bar.texture.get_size().x * $Progress_Bar.scale.x #for display
+var current_battery_frame : int = 0
 
 
 # Called when the node enters the scene tree for the first time.
@@ -77,13 +76,19 @@ func add_package(package : Node):
 			
 func update_battery_display():
 	
-	var bar = $Progress_Bar
+		
+	var display = $StaticBody2D/AnimatedSprite
+	var new_frame 
 	if not(taskInProgress):
-		bar.scale.x= 0
+		new_frame = 0
 	else:
 		var ratio = min(timeSinceStart / taskDuration, 1)
-		bar.scale.x= bar_original_scale * ratio
-		bar.position.x = - bar_original_size * (1 - ratio)/2			
+		new_frame = int(ratio  * 9)
+		
+	
+	if new_frame != current_battery_frame:
+		current_battery_frame = new_frame
+		display.set_frame(current_battery_frame)	
 			
 func adjust_positions(for_input : bool):
 	#adjust the positions of all packages based on their position in the Array

@@ -170,9 +170,5 @@ position = Vector2( 47.877, 303.641 )
 
 [node name="Robot" parent="." instance=ExtResource( 4 )]
 position = Vector2( 340.79, 384.793 )
-current_battery = 10.0
-max_battery = 10.0
-battery_drain_rate = 0.4
-battery_charge_rate = 0.8
 [connection signal="body_entered" from="Parking_Area" to="." method="_on_Parking_Area_body_entered"]
 [connection signal="body_exited" from="Parking_Area" to="." method="_on_Parking_Area_body_exited"]
