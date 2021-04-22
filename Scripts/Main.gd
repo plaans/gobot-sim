@@ -166,38 +166,37 @@ func _process(delta):
 		
 	
 	if client != null and client.is_connected_to_host():
-		
-#		if not(env_sent):
-#			#if info about the environment not yet sent to client first sent this before other transmissions
-#			var bytes_to_send = encode_environment_description()
-#			var size_bytes = bytes_to_send.size()
-#
-#			client.put_32(size_bytes)
-#			client.put_data(bytes_to_send)
-#			env_sent = true
-#		else:
-		#then read if commands were received (read one at most)
-		if client.get_available_bytes() > 0:
-#			var size= client.get_u32 ()
-#			if size>0:
-			var response= client.get_string(-1);
-			var json = JSON.parse(response)
-			var content = json.get_result()
-			print( content)
-			
-			if content.has("robot_command"):
-				var command_info = content["robot_command"]
-				if command_info[0] == "pickup":
-					if command_info.size() != 2:
-						Logger.log_error("Wrong number of arguments for Pickup Command, expected 1 and got %s" % (command_info.size() -1))
-					else:
-						var robot_id = command_info[1]
-						_Robot.pickup()
-			
+
+		if not(env_sent):
+			#if info about the environment not yet sent to client first sent this before other transmissions
 			#response with a message containing description of the enviroment for test
 			var env_message = encode_environment_description()
-			client.put_string(env_message)
 			
+			client.put_string(env_message)
+			env_sent = true
+		else:
+			#then read if commands were received (read one at most)
+			if client.get_available_bytes() > 0:
+	#			var size= client.get_u32 ()
+	#			if size>0:
+				var response= client.get_string(-1);
+				var json = JSON.parse(response)
+				var content = json.get_result()
+				print( content)
+				
+				if content.has("robot_command"):
+					var command_info = content["robot_command"]
+					if command_info[0] == "pickup":
+						if command_info.size() != 2:
+							Logger.log_error("Wrong number of arguments for Pickup Command, expected 1 and got %s" % (command_info.size() -1))
+						else:
+							var robot_id = command_info[1]
+							_Robot.pickup()
+			
+			#then send state
+			var state_message = encode_current_state()
+			
+			client.put_string(state_message)
 
 #						var command_type = Command.get_command()
 #						if command_type == Proto.Command.Command_types.GOTO:
@@ -237,82 +236,89 @@ func encode_environment_description() -> String:
 	env.arrival_area = {}
 	
 	set_area_parameters(env.arrival_area, $Arrival_Zone/Output_Belt)
+	
+	env.delivery_area = {}
+	
+	set_area_parameters(env.delivery_area, $Delivery_Zone/Input_Belt)
 
-#	var delivery_area = env.new_delivery_area()
-#	set_area_parameters(delivery_area, $Delivery_Zone/Input_Belt)
-#
-#	#info about machines
-#	for machine in machines_list:
-#		var new_machine = env.add_machines()
-#
-#		var input_area = new_machine.new_input_area()
-#		set_area_parameters(input_area, machine.get_node("Input_Belt"))
-#
-#		var output_area = new_machine.new_output_area()
-#		set_area_parameters(output_area, machine.get_node("Output_Belt"))
-#
-#		var buffer_sizes = machine.get_buffer_sizes()
-#		new_machine.set_input_size(buffer_sizes[0])
-#		new_machine.set_output_size(buffer_sizes[1])
-#
-#		var list = machine.get_possible_processes()
-#
-#		for process_id in list:
-#			new_machine.add_processes_list(process_id)
+	#info about machines
+	env.machines = []
+	for machine in machines_list:
+		var new_machine = {}
+		env.machines.append(new_machine)
+
+		new_machine.input_area = {}
+		set_area_parameters(new_machine.input_area, machine.get_node("Input_Belt"))
+
+		new_machine.output_area = {}
+		set_area_parameters(new_machine.output_area, machine.get_node("Output_Belt"))
+
+		var buffer_sizes = machine.get_buffer_sizes()
+		new_machine.input_size = buffer_sizes[0]
+		new_machine.output_size = buffer_sizes[1]
+
+		new_machine.processes_list = machine.get_possible_processes()
 	
 	return JSON.print(env)
 
-func encode_current_state() -> PoolByteArray:
+func encode_current_state() -> String:
 	#creates and serializes a protocol buffer containing the data about the current state of the simulation
 	
-	var state = Proto.State.new()
+	var state = {}
 	
 	#data about robots 
+	state.robots = []
 	for robot in robots_list:
-		var new_robot = state.add_robots()
-		new_robot.set_x(robot.position.x)
-		new_robot.set_y(robot.position.y)
-		new_robot.set_battery(robot.get_battery_proportion())
-		new_robot.set_is_moving(robot.is_moving())
+		var new_robot = {}
+		state.robots.append(new_robot)
+		
+		new_robot.x = robot.position.x
+		new_robot.y = robot.position.y
+		new_robot.battery = robot.get_battery_proportion()
+		new_robot.is_moving = robot.is_moving()
 		
 		
 	#data about packages 
+	state.package = []
 	for package in packages_list:
-		var new_package = state.add_packages()
+		var new_package = {}
+		state.package.append(new_package)
 		
 		var package_parent = package.get_parent()
 		
-		var package_location = new_package.new_location()
+		#new_package.location = {}
+		#var package_location = new_package.location
 		if package_parent is KinematicBody2D:
 			#case where this package is currently carried by a robot
-			package_location.set_location_type(Proto.State.Location.Location_Type.ROBOT)
-			package_location.set_parent_id(package_parent.get_id())
+			new_package.location_type = "robot"
+			new_package.location_id = package_parent.get_id()
 		elif package_parent.has_node("Input_Belt"):
 			#case where this package is currently in a machine
 			if package_parent.is_in_group("input"):
-				package_location.set_location_type(Proto.State.Location.Location_Type.MACHINE_INPUT)
+				new_package.location_type = "machine_input"
 			elif package_parent.is_in_group("output"):
-				package_location.set_location_type(Proto.State.Location.Location_Type.MACHINE_OUTPUT)
+				new_package.location_type = "machine_output"
 			else:
-				package_location.set_location_type(Proto.State.Location.Location_Type.MACHINE_INSIDE)
-			package_location.set_parent_id(package_parent.get_id())
+				new_package.location_type = "machine_size"
+			new_package.location_id = package_parent.get_id()
 			
 		else: 
 			#case where this package is currently in the arrival zone
-			package_location.set_location_type(Proto.State.Location.Location_Type.ARRIVAL)
-			package_location.set_parent_id(-1)#no id for arrival zone so set to -1
+			new_package.location_type = "arrival"
+			new_package.location_id = -1#no id for arrival zone so set to -1
+			
+		new_package.processes = []
 
 		var list = package.get_processes()
 		for process in list:
 			var id = process[0]
 			var duration = process[1]
 			
-			var new_process = new_package.add_processes_list()
-			new_process.set_process_id(id)
-			new_process.set_process_duration(duration)
+			new_package.processes.append({"id":id, "duration":duration})
+			
 		
 		
-	return state.to_bytes()
+	return JSON.print(state)
 
 
 func _unhandled_input(event):

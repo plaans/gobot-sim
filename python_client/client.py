@@ -9,6 +9,8 @@ import sys
 import json
 import time
 
+import pprint
+
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -17,7 +19,7 @@ server_address = ('localhost', 10000)
 print('connecting to {} port {}'.format(*server_address))
 sock.connect(server_address)
 	
-def goto_path_stand(stand_x,stand_y):
+def navigate_to(stand_x,stand_y):
 	#given robot position and position of stand to go to computes and sends instructions to move it to objective
 	#then issue goto command
 	Command = messages_pb2.Command()
@@ -34,49 +36,41 @@ def goto_path_stand(stand_x,stand_y):
 
 try:
 
-	message = json.dumps({'timestamp' : time.time(), 'robot_command': ['navigate_to', 505, 400]})
+	#message = json.dumps({'timestamp' : time.time(), 'robot_command': ['navigate_to', 505, 400]})
 	
-	message = json.dumps({'timestamp' : time.time(), 'robot_command': ['pickup', '0']})
-	length = len(message).to_bytes(4,'little') #4bytes because sending as int32 
-	sock.sendall(length + bytes(message,encoding="utf-8"))
+	#message = json.dumps({'timestamp' : time.time(), 'robot_command': ['pickup', '0']})
+	#length = len(message).to_bytes(4,'little') #4bytes because sending as int32 
+	#sock.sendall(length + bytes(message,encoding="utf-8"))
+	
 
-	data = ""
+
+
+	#first save environment
+	
+	environment = None
+	length = 0
+	while length == 0:
+		data = sock.recv(4)#because int32
+		length = len(data)
+		if len(data)>0:
+			size = int.from_bytes(data,'little')
+			data = sock.recv(size)
+			environment = json.loads(data)
+			print("environment : {}".format(environment)) 
+			
+			liste_machines = environment["machines"]
+			
+	
 	while True:
 		data = sock.recv(4)
 		if len(data)>0:
 			size = int.from_bytes(data,'little')
-			print(size) 
 			data = sock.recv(size)
 			state = json.loads(data)
-			print(state) 
-
-	# #first save environment
-	
-	# environment = messages_pb2.Environment_Description()
-	# length = 0
-	# while length == 0:
-	# 	data = sock.recv(4)#because int32
-	# 	length = len(data)
-	# 	if len(data)>0:
-	# 		size = int.from_bytes(data,'little')
-	# 		data = sock.recv(size)
-	# 		environment.ParseFromString(data)
-	# 		print(environment) 
 			
-	# 		liste_machines = environment.machines
-			
-	
-	
-	# destination_stand = None
+			pprint.pprint(state) 
 
-	# while True:
-	# 	data = sock.recv(4)
-	# 	if len(data)>0:
-	# 		size = int.from_bytes(data,'little')
-	# 		data = sock.recv(size)
-	# 		state = messages_pb2.State()
-	# 		state.ParseFromString(data)
-	# 		#print(state) 
+			#delivery = state["delivery_area"]
 			
 	# 		# if destination_stand == None:
 	# 			# #then we will fix the destination_stand to the farthest stand 
