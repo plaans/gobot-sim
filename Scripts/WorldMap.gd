@@ -3,7 +3,7 @@ extends TileMap
 onready var manager = TileManager.new(self)
 onready var world = TileWorld.new(self)
 
-var park_area_res = preload("res://Scenes/Parking_Area.tscn")
+var park_area_res = preload("res://Scenes/ParkingArea.tscn")
 
 const GROUP_SOLID = ["Wall", "Belt"]
 const GROUP_PARKING = ["ChargingFloor"]

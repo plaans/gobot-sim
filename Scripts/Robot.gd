@@ -22,7 +22,8 @@ export var current_battery : float = 10.0
 export var max_battery : float = 10.0
 export var battery_drain_rate : float = 0.4
 export var battery_charge_rate : float = 0.8
-var current_battery_frame : int = 9
+export var max_battery_frame : int = 20
+var current_battery_frame : int = 0
 
 var in_station : bool
 
@@ -42,9 +43,11 @@ func _physics_process(delta):
 			stop_path()
 		else:
 			var dir_vec: Vector2 = (path[current_path_point] - position)
-			var speed = 96.0
-			var time = dir_vec.length()/speed
+			var speed = 96.0 # px/s
+			var time = dir_vec.length()/speed # s
+			var angle = wrapf(dir_vec.angle() - rotation, -PI, PI) # rad
 			goto(dir_vec.angle(), speed, time)
+			do_rotation(angle, angle/time, time)
 		
 	if moving:
 		if current_battery == 0:
@@ -72,8 +75,7 @@ func _physics_process(delta):
 				self.rotation = target_angle
 				stop_rotation()
 			else:
-				var new_rotation = self.rotation + rotation_speed * delta
-				self.rotation = new_rotation
+				self.rotate(rotation_speed * delta)
 
 func _process(delta):
 	#is_facing(get_node("../Machine/Input_Belt"))
@@ -90,11 +92,11 @@ func get_in_station() -> bool:
 	return in_station
 			
 func update_battery_display():
-	var display = $Battery
-	var new_frame = int(((current_battery+1) / max_battery) * 8)
+	var display = $Sprite
+	var new_frame = int(max_battery_frame - (current_battery / max_battery) * max_battery_frame)
 	if new_frame != current_battery_frame:
 		current_battery_frame = new_frame
-		display.texture.set_current_frame(current_battery_frame)
+		display.frame = new_frame
 			
 func is_moving():
 	return moving
@@ -141,22 +143,14 @@ func add_package(Package : Node):
 	carried_package = Package
 	add_child(carried_package)
 	
-func do_rotation(angle:float, speed:float = -1):
+func do_rotation(angle: float, speed: float, time: float):
 	# angle : rad
-	#if speed negative or not specified take max_speed value
-	
-	if current_battery>0:
-		if speed <=0:
-			rotation_speed = max_rotation_speed
-		else:
-			rotation_speed = speed
-		
-		if angle <0:
-			rotation_speed *= -1
-		
-		rotate_time = angle / rotation_speed
-		target_angle = self.rotation + angle
-		rotating = true 
+	# speed : rad/s
+
+	rotation_speed = speed
+	rotate_time = time
+	target_angle = self.rotation + angle
+	rotating = true 
 		
 func stop_rotation():
 	rotating = false 

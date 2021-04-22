@@ -1,6 +1,0 @@
-[gd_scene format=2]
-
-[node name="Parking_Area" type="Area2D"]
-collision_layer = 0
-
-[node name="CollisionShape2D" type="CollisionPolygon2D" parent="."]
