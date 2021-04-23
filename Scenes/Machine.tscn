@@ -1,28 +1,28 @@
 [gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://Scripts/Machine.gd" type="Script" id=1]
-[ext_resource path="res://Assets/machine/Machine-2.png.png" type="Texture" id=2]
+[ext_resource path="res://Assets/machine/Machine-4.png" type="Texture" id=2]
 [ext_resource path="res://Scenes/Stand.tscn" type="PackedScene" id=3]
-[ext_resource path="res://Assets/machine/Machine-8.png.png" type="Texture" id=4]
-[ext_resource path="res://Assets/machine/Machine-10.png.png" type="Texture" id=5]
-[ext_resource path="res://Assets/machine/Machine-1.png.png" type="Texture" id=6]
-[ext_resource path="res://Assets/machine/Machine-6.png.png" type="Texture" id=7]
-[ext_resource path="res://Assets/machine/Machine-3.png.png" type="Texture" id=8]
-[ext_resource path="res://Assets/machine/Machine-5.png.png" type="Texture" id=9]
-[ext_resource path="res://Assets/machine/Machine-7.png.png" type="Texture" id=10]
-[ext_resource path="res://Assets/machine/Machine-4.png.png" type="Texture" id=11]
-[ext_resource path="res://Assets/machine/Machine-9.png.png" type="Texture" id=12]
+[ext_resource path="res://Assets/machine/Machine-6.png" type="Texture" id=4]
+[ext_resource path="res://Assets/machine/Machine-2.png" type="Texture" id=5]
+[ext_resource path="res://Assets/machine/Machine-3.png" type="Texture" id=6]
+[ext_resource path="res://Assets/machine/Machine-5.png" type="Texture" id=7]
+[ext_resource path="res://Assets/machine/Machine-9.png" type="Texture" id=8]
+[ext_resource path="res://Assets/machine/Machine-7.png" type="Texture" id=9]
+[ext_resource path="res://Assets/machine/Machine-8.png" type="Texture" id=10]
+[ext_resource path="res://Scenes/Package.tscn" type="PackedScene" id=11]
+[ext_resource path="res://Assets/machine/Machine-1.png" type="Texture" id=13]
 
-[sub_resource type="RectangleShape2D" id=2]
-extents = Vector2( 31.9771, 31.9668 )
-
-[sub_resource type="SpriteFrames" id=3]
+[sub_resource type="SpriteFrames" id=1]
 animations = [ {
-"frames": [ ExtResource( 6 ), ExtResource( 2 ), ExtResource( 8 ), ExtResource( 11 ), ExtResource( 9 ), ExtResource( 7 ), ExtResource( 10 ), ExtResource( 4 ), ExtResource( 12 ), ExtResource( 5 ) ],
+"frames": [ ExtResource( 13 ), ExtResource( 5 ), ExtResource( 6 ), ExtResource( 2 ), ExtResource( 7 ), ExtResource( 4 ), ExtResource( 9 ), ExtResource( 10 ), ExtResource( 8 ) ],
 "loop": true,
 "name": "default",
 "speed": 0.0
 } ]
+
+[sub_resource type="RectangleShape2D" id=2]
+extents = Vector2( 31.9771, 31.9668 )
 
 [node name="Machine" type="Node2D"]
 script = ExtResource( 1 )
@@ -31,19 +31,36 @@ script = ExtResource( 1 )
 "stands",
 ]]
 
+[node name="AnimatedSprite" type="AnimatedSprite" parent="StaticBody2D"]
+frames = SubResource( 1 )
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
 visible = false
 shape = SubResource( 2 )
 
-[node name="AnimatedSprite" type="AnimatedSprite" parent="StaticBody2D"]
-frames = SubResource( 3 )
-
 [node name="Input_Belt" parent="." groups=[
 "input",
 ] instance=ExtResource( 3 )]
-position = Vector2( -48, 0 )
+show_behind_parent = true
+position = Vector2( -48, -3.37457 )
 
 [node name="Output_Belt" parent="." groups=[
 "output",
 ] instance=ExtResource( 3 )]
-position = Vector2( 48, 0 )
+show_behind_parent = true
+position = Vector2( 48, -4 )
+
+[node name="ColorRect" type="ColorRect" parent="."]
+self_modulate = Color( 0.560784, 0.956863, 0.988235, 0.215686 )
+margin_left = -8.0
+margin_top = -13.0
+margin_right = 8.0
+margin_bottom = 4.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Package" parent="." instance=ExtResource( 11 )]
+visible = false
+show_behind_parent = true
+position = Vector2( 0, -4 )

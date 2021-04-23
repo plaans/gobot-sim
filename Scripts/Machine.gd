@@ -7,6 +7,9 @@ var possible_processes : Array
 var machine_id : int
 #id to uniquely identify this machine (also attributed from Main node)
 
+var colors_rects : Array #will contain the array of the sprites used to store colors
+onready var color_palette = get_parent().get_color_palette()
+
 export var input_size = 1
 export var output_size = 1
 var input_buffer : Array
@@ -25,12 +28,16 @@ var taskDuration #duration of current task
 
 var current_battery_frame : int = 0
 
+#variables used to make the color of current process blink
+var blinking_rect 
+var original_color
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	input_buffer=[]
 	output_buffer=[]
 	taskInProgress=false
+	generates_display()
 	
 func set_buffer_sizes(input, output):
 	input_size = input
@@ -51,6 +58,7 @@ func set_buffer_sizes(input, output):
 	
 func set_possible_processes(list_of_processes):
 	possible_processes = list_of_processes
+	update_tasks_display()
 	
 func set_id(id : int):
 	machine_id = id
@@ -74,6 +82,44 @@ func add_package(package : Node):
 			
 			adjust_positions(true)
 			
+
+func generates_display():
+	for k in range(10):
+		var rect := ColorRect.new()
+		
+		rect.rect_size.x = 9
+		rect.rect_size.y = 2
+		
+		if k%2:
+			rect.rect_position.x = -21
+		else:
+			rect.rect_position.x = 12
+		
+		rect.rect_position.y = -15 + 5 * int(k/2)
+		rect.modulate = ColorN(color_palette[k], 1)
+		rect.visible = false
+		$StaticBody2D/AnimatedSprite.add_child(rect)
+		colors_rects.append(rect)
+	
+
+func update_tasks_display():
+	for k in range(possible_processes.size()):
+		if k<10:
+			#only display  for the first 10 processes
+			var process_id = possible_processes[k]
+			var color_name
+			if process_id<color_palette.size():
+				color_name = color_palette[process_id]
+			else:
+				#if too much different tasks compared to palette size default other colors to white
+				color_name = "white"
+			
+			colors_rects[k].modulate = ColorN(color_name, 1)
+			colors_rects[k].visible = true
+		
+	for k in range(possible_processes.size(),10):
+		colors_rects[k].visible = false
+			
 func update_battery_display():
 	
 		
@@ -83,7 +129,8 @@ func update_battery_display():
 		new_frame = 0
 	else:
 		var ratio = min(timeSinceStart / taskDuration, 1)
-		new_frame = int(ratio  * 9)
+		var nb_frame = display.get_sprite_frames().get_frame_count("default")
+		new_frame = ceil(ratio  * nb_frame-1)
 		
 	
 	if new_frame != current_battery_frame:
@@ -145,11 +192,26 @@ func take():
 		package.position.x=0
 		return package
 		
+func find_rect(process_id : int):
+	#find rect displaying color of corresponding process if it exists
+	var index_in_list = possible_processes.find(process_id)
+	if index_in_list<0 or index_in_list>=10:
+		#if index of process not in list, too late in list to be visually displayed, return null
+		return null
+	else:
+		return colors_rects[index_in_list]
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
+	
 	if taskInProgress:
 		timeSinceStart += delta
+		
+		#update color of display
+		if blinking_rect!=null:
+			var new_color = Color.from_hsv(original_color.h, 0.2, original_color.v)
+			blinking_rect.modulate = original_color.linear_interpolate(new_color, 0.5+0.5*sin(-PI/2 + 5*timeSinceStart)) 
+			
 		if timeSinceStart >= taskDuration:
 			#task ended so check if space available on output belt
 			if output_buffer.size()<output_size:
@@ -158,12 +220,18 @@ func _process(delta):
 				#remove task from list of the package (because it was done)
 				var tasks_list = current_package.get_processes()
 				tasks_list.remove(tasks_list.find([current_process_id,taskDuration]))
+				current_package.update_tasks_display()
 				
 				#add package to output belt
 				output_buffer.push_back(current_package)
 				remove_child(current_package)
 				$Output_Belt.add_child(current_package)
+				current_package.set_draw_behind_parent(false)
+				current_package.position.y = 0
 				adjust_positions(false)
+				
+				blinking_rect.modulate = original_color
+				blinking_rect = null
 				
 				Logger.log_info("%-12s %8s %8s %8s" % ["processed", machine_id, current_process_id, taskDuration])
 		
@@ -174,6 +242,8 @@ func _process(delta):
 			$Input_Belt.remove_child(current_package)
 			add_child(current_package)
 			current_package.position.x = 0 #to remove the relative position used while on the belt
+			current_package.position.y = -4.5
+			current_package.set_draw_behind_parent(true)
 			adjust_positions(true)
 			
 			var process = process_to_be_done(current_package)#we know process will not be null since we checked when putting in input_buffer
@@ -182,6 +252,11 @@ func _process(delta):
 			
 			timeSinceStart = 0.0
 			taskInProgress = true
+			
+			blinking_rect = find_rect(current_process_id)
+			if blinking_rect!= null:
+				original_color = blinking_rect.modulate
+			
 	update_battery_display()		
 	
  

@@ -8,6 +8,7 @@ onready var _Robot = get_node("Robot")
 export (PackedScene) var PackageScene
 export (PackedScene) var MachineScene
 
+const color_palette : Array = ["cornflower", "crimson ", "yellow", "seagreen", "sandybrown", "skyblue ", "lightpink ", "palegreen ", "aquamarine", "saddlebrown"] #list of colorsto be used to represent processes
 
 var packages_list
 
@@ -81,6 +82,9 @@ func get_arg(args, arg_name, default):
 		return args[index+1]
 	else:
 		return default
+		
+func get_color_palette():
+	return color_palette 		
 	
 func add_package(package : Node):
 	packages_list.append(package)

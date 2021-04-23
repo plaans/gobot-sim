@@ -20,7 +20,7 @@ var current_path_point: int = 0
 
 export var current_battery : float = 10.0
 export var max_battery : float = 10.0
-export var battery_drain_rate : float = 0.4
+export var battery_drain_rate : float = 0.1
 export var battery_charge_rate : float = 0.8
 var current_battery_frame : int = 9
 
@@ -172,7 +172,7 @@ func pickup():
 		#first find the closest output stand
 		var closest_stand = find_closest_stand("output")
 		
-		if closest_stand !=null and is_facing(closest_stand):
+		if closest_stand !=null:
 			var machine = closest_stand.get_parent() #get machine corresponding to this output stand
 			#machine can actually also be a Delivery_Zone or Arrival_Zone but it will still have the functions needed
 				
@@ -185,7 +185,7 @@ func pickup():
 		#first find the closest input stand
 		var closest_stand = find_closest_stand("input")
 		
-		if closest_stand !=null and is_facing(closest_stand):
+		if closest_stand !=null:
 			var machine = closest_stand.get_parent() #get machine corresponding to this input stand
 			if machine.can_accept_package(carried_package):
 				remove_child(carried_package)
@@ -206,7 +206,7 @@ func find_closest_stand(group : String):
 	var closest_stand = null
 	var dist_min=1000000
 	for stand in stands:
-		if stand.is_in_group(group):
+		if stand.is_in_group(group) and is_facing(stand):
 			var distance = self.position.distance_to(stand.position)
 			if distance <= dist_min:
 				dist_min = distance
