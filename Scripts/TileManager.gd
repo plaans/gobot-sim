@@ -1,6 +1,6 @@
 class_name TileManager, "res://Assets/icons/TileManager.svg"
 
-# Used for getting connected cells, and create collision and navigation polygons from them
+# Used for getting connected cells and their polygons
 
 var tilemap: TileMap
 
@@ -34,7 +34,7 @@ func get_connected_cells_by_ids(world: TileWorld, ids: Array)->Array:
 func get_connected_cells_by_group(world: TileWorld, group: Array)->Array:
 	return get_connected_cells_by_ids(world, get_ids_from_group(group))
 
-# given a TileWorld, returns a rectangular polygon as a PoolVector2Array encasing the whole used area.
+# Given a TileWorld, returns a rectangular polygon as a PoolVector2Array encasing the whole used area.
 func get_outline(world: TileWorld)->PoolVector2Array:
 	return PoolVector2Array([
 		world.offset * tilemap.cell_size,
@@ -43,7 +43,9 @@ func get_outline(world: TileWorld)->PoolVector2Array:
 		Vector2(world.offset.x + world.size.x, world.offset.y) * tilemap.cell_size,
 	])
 
-# given an array of cell positions, returns an array of polygons matching the cells, merged if intersecting.
+# Given an array of cell positions, returns an array of polygons matching the cells, merged if intersecting.
+# Note: if the tile in the cell doesn't have a collision shape defined, the polygon will be defined automatically
+# as the cell size
 func cells_to_polys(cells: PoolVector2Array)->Array:
 	var cells_polys = []
 	var replacement_shape = PoolVector2Array([

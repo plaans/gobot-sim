@@ -1,5 +1,8 @@
 class_name PolyHelper
 
+# Helper class to do operations on multiple polygons
+# and create CollisionPolygon2Ds and NavigationPolygons
+
 static func grow_polys(polys: Array, delta: float)->Array:
 	var new_polys = []
 	
@@ -31,7 +34,9 @@ static func merge_polys(polys: Array)->Array:
 	
 	return new_polys
 
-# Note: polys is passed by reference
+# Given an array of polygons as PoolVector2Arrays and an outline polygon, returns
+# the new outline clipped by the polygons overlapping its border.
+# Note: The polys array is passed by reference and is mutated to remove the overlapping polygons from it
 static func outline_exclude_polys(polys: Array, outline: PoolVector2Array)->PoolVector2Array:
 	var new_outline: PoolVector2Array = outline
 	
@@ -46,7 +51,7 @@ static func outline_exclude_polys(polys: Array, outline: PoolVector2Array)->Pool
 	
 	return new_outline
 
-#given an array of polygons, returns an array of CollisionPoly2Ds
+# Given an array of polygons, returns an array of CollisionPolygon2Ds
 static func make_collision_polys(polys: Array)->Array:
 	var collision_polys = []
 	
@@ -57,7 +62,7 @@ static func make_collision_polys(polys: Array)->Array:
 	
 	return collision_polys
 
-#given an array of polygons and an external outline, returns a NavigationPolygon
+# Given an array of polygons and an external outline, returns a NavigationPolygon
 static func make_navigation_poly(polys: Array, outline: PoolVector2Array)->NavigationPolygon:
 	var navigation_poly: NavigationPolygon = NavigationPolygon.new()
 	

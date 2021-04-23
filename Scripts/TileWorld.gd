@@ -2,7 +2,8 @@ class_name TileWorld
 
 # Data management class.
 # Creates a view of the world's tiles as a 2-dimensional array,
-# with an offset (distance of the most top-left position from 0,0) and a size
+# with an offset (distance of the most top-left position from 0,0) 
+# and the size of the world
 
 var data: Array setget set_data, get_data
 var offset: Vector2 setget set_offset, get_offset
