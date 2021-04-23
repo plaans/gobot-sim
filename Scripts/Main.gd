@@ -51,8 +51,8 @@ func _ready():
 		])
 		shape_poly = shape_transform.xform(shape_poly);
 		shape_poly = Geometry.offset_polygon_2d(shape_poly, _Navigation.nav_margin)[0]
-		
-		_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.cut_poly(shape_poly, true)
+
+		_Navigation.set_navpoly(_Navigation.cut_poly(shape_poly, true))
 
 	
 	#values of arguments
