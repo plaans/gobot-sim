@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/ChargingFloor.png-f6a8b8a8c9ada7c04ddd3bf46d163212.stex"
+path="res://.import/TileManager.svg-9d4a9829ff915a8b706d7ad869ab6c47.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ChargingFloor.png"
-dest_files=[ "res://.import/ChargingFloor.png-f6a8b8a8c9ada7c04ddd3bf46d163212.stex" ]
+source_file="res://Assets/icons/TileManager.svg"
+dest_files=[ "res://.import/TileManager.svg-9d4a9829ff915a8b706d7ad869ab6c47.stex" ]
 
 [params]
 
@@ -20,7 +20,7 @@ compress/hdr_mode=0
 compress/bptc_ldr=0
 compress/normal_map=0
 flags/repeat=0
-flags/filter=false
+flags/filter=true
 flags/mipmaps=false
 flags/anisotropic=false
 flags/srgb=2

@@ -226,15 +226,3 @@ func _unhandled_input(event):
 		_Package = PackageScene.instance()
 		_Robot.add_package(_Package)
 		_Package.set_processes([[0,3],[1,7]])
-
-
-
-func _on_Parking_Area_body_entered(body):
-	#body is necessarily a robot since only moving body
-	body.set_in_station(true)
-
-
-func _on_Parking_Area_body_exited(body):
-	#body is necessarily a robot since only moving body
-	body.set_in_station(false)
-
