@@ -42,7 +42,6 @@ frame_8/delay_sec = 0.0
 script = ExtResource( 2 )
 
 [node name="Sprite" type="Sprite" parent="."]
-self_modulate = Color( 0, 0.788235, 1, 1 )
 position = Vector2( 6.19888e-06, 0 )
 scale = Vector2( 0.9, 0.9 )
 

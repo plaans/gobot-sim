@@ -79,12 +79,13 @@ func _process(delta):
 	#is_facing(get_node("../Machine/Input_Belt"))
 	if not(in_station):
 		current_battery = max(0, current_battery - battery_drain_rate*delta)
+		$Battery.modulate = Color(1,1,1)
 	else:
 		current_battery = min(max_battery, current_battery + battery_charge_rate*delta)
-#		if blinking_rect!=null:
-#			var new_color = Color.from_hsv(original_color.h, 0.2, original_color.v)
-#			blinking_rect.modulate = original_color.linear_interpolate(new_color, 0.5+0.5*sin(-PI/2 + 5*timeSinceStart)) 
-#
+		var original_color = Color(1,1,1)
+		var new_color = Color(0.5,1,1)
+		$Battery.modulate = original_color.linear_interpolate(new_color, 0.5+0.5*sin(-PI/2 + 5*OS.get_ticks_msec()/1000)) 
+
 	update_battery_display()
 	
 func set_in_station(state : bool):
