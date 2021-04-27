@@ -1,32 +1,45 @@
 [gd_scene load_steps=5 format=2]
 
-[ext_resource path="res://Assets/robot/robot_v2-sheet.png" type="Texture" id=1]
+[ext_resource path="res://Assets/robot/robot-sheet.png" type="Texture" id=1]
 [ext_resource path="res://Scripts/Robot.gd" type="Script" id=2]
 
 [sub_resource type="CircleShape2D" id=1]
 radius = 16.0
 
-[sub_resource type="CircleShape2D" id=2]
-radius = 32.8201
+[sub_resource type="Animation" id=3]
+resource_name = "Charging"
+length = 2.0
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite:modulate")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 1, 2 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 1 ), Color( 2, 2, 0, 1 ), Color( 1, 1, 1, 1 ) ]
+}
 
 [node name="Robot" type="KinematicBody2D" groups=[
 "robots",
 ]]
-
 script = ExtResource( 2 )
+max_battery_frame = 8
 
 [node name="Sprite" type="Sprite" parent="."]
 position = Vector2( 6.19888e-06, 0 )
 texture = ExtResource( 1 )
-vframes = 3
-hframes = 10
+hframes = 9
 
 [node name="Collision_Sphere" type="CollisionShape2D" parent="."]
 shape = SubResource( 1 )
 
-[node name="Area2D" type="Area2D" parent="."]
-collision_layer = 2
-collision_mask = 2
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+anims/Charging = SubResource( 3 )
 
-[node name="Pickup_Sphere" type="CollisionShape2D" parent="Area2D"]
-shape = SubResource( 2 )
+[node name="RayCast2D" type="RayCast2D" parent="."]
+enabled = true
+cast_to = Vector2( 100, 0 )

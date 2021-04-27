@@ -4,6 +4,28 @@ class_name TileManager, "res://Assets/icons/TileManager.svg"
 
 var tilemap: TileMap
 
+const DIRS_4 = [
+		Vector2.LEFT,
+		Vector2.UP,
+		Vector2.RIGHT,
+		Vector2.DOWN
+	]
+const DIRS_8 = [
+		Vector2.LEFT,
+		Vector2(-1, -1),
+		Vector2.UP,
+		Vector2(1, -1),
+		Vector2.RIGHT,
+		Vector2(1, 1),
+		Vector2.DOWN,
+		Vector2(-1, 1)
+	]
+
+enum Priority {
+	CLOCKWISE,
+	COUNTER_CLOCKWISE
+}
+
 func _init(tilemap: TileMap):
 	self.tilemap = tilemap
 
@@ -26,6 +48,7 @@ func get_connected_cells_by_ids(world: TileWorld, ids: Array)->Array:
 	for i in range(world.size.x):
 		for j in range(world.size.y):
 			if cells[i][j] in ids:
+				# from world data coordinates to real coordinates
 				connected_cells.append( cells_transform.xform( fill_cells(cells, Vector2(i,j), world.size, ids)))
 	
 	return connected_cells
@@ -75,13 +98,27 @@ func cells_to_polys(cells: PoolVector2Array)->Array:
 	
 	return PolyHelper.merge_polys(cells_polys)
 
-# Given an array of cells, the current cell, the size of the area to fill and an array of ids,
+########## Fill functions ##########
+
+# Given an array of cells, the current cell, the size of the area and an array of ids,
 # returns true if the cell is in the area and its id is contained in the ids array, else returns false.
 func is_cell_valid(cells: Array, pos: Vector2, size: Vector2, ids: Array)-> bool :
 	return !(0 > pos.x or pos.x >= size.x or 0 > pos.y or pos.y >= size.y or !cells[pos.x][pos.y] in ids)
 
-# Given an array of cells, a starting cell position, the size of the area to fill and an array of ids,
-# fills every connected cell with an id present in the ids array and returns a PoolVector2Array with 
+# Given an array of cells, the current cell, the size of the area and an array of ids,
+# returns an array with the position of every adjacent cells with ids present in the ids array
+func get_adjacent_cells(cells: Array, pos: Vector2, size: Vector2, ids: Array)->Array:
+	var adjacent_cells = []
+	# from real coordinates to world data coordinates
+	for dir in DIRS_4:
+		var new_pos = pos+dir
+		if is_cell_valid(cells, new_pos, size, ids):
+			adjacent_cells.append(new_pos)
+	
+	return adjacent_cells
+
+# Given an array of cells, a starting cell position, the size of the area and an array of ids,
+# fills every connected cell with an id present in the ids array, and returns a PoolVector2Array with 
 # the position of every filled cells.
 # Note: the cells array is passed by reference and will be mutated
 func fill_cells(cells: Array, start: Vector2, size: Vector2, ids: Array)->PoolVector2Array:
@@ -89,18 +126,12 @@ func fill_cells(cells: Array, start: Vector2, size: Vector2, ids: Array)->PoolVe
 	var filled_cells = PoolVector2Array()
 	
 	var queue = []
-	var dirs = [
-		Vector2.LEFT, 
-		Vector2.RIGHT, 
-		Vector2.UP, 
-		Vector2.DOWN
-	]
 	queue.append(start)
 	filled_cells.append(start)
 	cells[start.x][start.y] = fill_id
 	
 	while queue.size() > 0:
-		for dir in dirs:
+		for dir in DIRS_4:
 			var new_pos = queue[0]+dir
 			if(is_cell_valid(cells, new_pos, size, ids)):
 				queue.append(new_pos)
@@ -109,3 +140,27 @@ func fill_cells(cells: Array, start: Vector2, size: Vector2, ids: Array)->PoolVe
 		queue.remove(0)
 	
 	return filled_cells
+
+# Given an array of cells, a starting cell position, a direction to fill, the size of the area and an array of ids,
+# fills a line of connected cell in the given direction, with an id present in the ids array, and returns
+# a PoolVector2Array with the position of every filled cells.
+# Note: the cells array is passed by reference and will be mutated
+func fill_cells_directional(cells: Array, start: Vector2, dir: Vector2, size: Vector2, ids: Array)->PoolVector2Array:
+	var fill_id = -10
+	var filled_cells = PoolVector2Array()
+	
+	var queue = []
+	queue.append(start)
+	filled_cells.append(start)
+	cells[start.x][start.y] = fill_id
+	
+	while queue.size() > 0:
+		var new_pos = queue[0]+dir
+		if(is_cell_valid(cells, new_pos, size, ids)):
+			queue.append(new_pos)
+			filled_cells.append(new_pos)
+			cells[new_pos.x][new_pos.y] = fill_id
+		queue.remove(0)
+	
+	return filled_cells
+
