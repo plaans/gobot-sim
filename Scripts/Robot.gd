@@ -79,12 +79,12 @@ func _process(delta):
 	#is_facing(get_node("../Machine/Input_Belt"))
 	if not(in_station):
 		current_battery = max(0, current_battery - battery_drain_rate*delta)
-		$Battery.modulate = Color(1,1,1)
+		$Sprite.modulate = Color(1,1,1)
 	else:
 		current_battery = min(max_battery, current_battery + battery_charge_rate*delta)
 		var original_color = Color(1,1,1)
 		var new_color = Color(0.5,1,1)
-		$Battery.modulate = original_color.linear_interpolate(new_color, 0.5+0.5*sin(-PI/2 + 5*OS.get_ticks_msec()/1000)) 
+		$Sprite.modulate = original_color.linear_interpolate(new_color, 0.5+0.5*sin(-PI/2 + 5*OS.get_ticks_msec()/1000)) 
 
 	update_battery_display()
 	
