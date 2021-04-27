@@ -158,8 +158,6 @@ script = ExtResource( 2 )
 _WorldMapPath = NodePath("../WorldMap")
 nav_margin = 20.0
 
-[node name="NavigationPolygonInstance" type="NavigationPolygonInstance" parent="Navigation2D"]
-
 [node name="Delivery_Zone" parent="." instance=ExtResource( 8 )]
 position = Vector2( 976.439, 303.641 )
 

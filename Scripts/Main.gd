@@ -9,6 +9,7 @@ export (PackedScene) var RobotScene
 export (PackedScene) var PackageScene
 export (PackedScene) var MachineScene
 
+const color_palette : Array = ["cornflower", "crimson ", "yellow", "seagreen", "sandybrown", "skyblue ", "lightpink ", "palegreen ", "aquamarine", "saddlebrown"] #list of colorsto be used to represent processes
 
 var packages_list
 
@@ -55,8 +56,8 @@ func _ready():
 		])
 		shape_poly = shape_transform.xform(shape_poly);
 		shape_poly = Geometry.offset_polygon_2d(shape_poly, _Navigation.nav_margin)[0]
-		
-		_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.cut_poly(shape_poly, true)
+
+		_Navigation.set_navpoly(_Navigation.cut_poly(shape_poly, true))
 
 	
 
@@ -93,7 +94,10 @@ func get_arg(args, arg_name, default):
 		return args[index+1]
 	else:
 		return default
-
+		
+func get_color_palette():
+	return color_palette 		
+	
 func add_package(package : Node):
 	packages_list.append(package)
 	

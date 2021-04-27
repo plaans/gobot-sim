@@ -135,9 +135,9 @@ func _on_Timer_timeout():
 	if output_buffer.size()<output_size:
 		
 		var new_package = PackageScene.instance()
+		$Output_Belt.add_child(new_package)
 		new_package.set_processes([[0,3],[1,7]])
 		get_parent().add_package(new_package)
-		$Output_Belt.add_child(new_package)
 		output_buffer.push_back(new_package)
 	
 	$Timer.start(wait_time)#start again the timer

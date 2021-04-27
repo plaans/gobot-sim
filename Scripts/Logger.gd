@@ -31,6 +31,7 @@ func _ready():
 
 func trigger_save():
 	thread.start(self, "save_to_file", "")
+	thread.wait_to_finish()
 	
 func save_to_file(_arg):
 	mutex.lock()
@@ -45,7 +46,6 @@ func save_to_file(_arg):
 	file.store_string(copie)
 	file.close()
 	
-	thread.wait_to_finish()
 
 func set_log_location(location : String):
 	log_location = location
