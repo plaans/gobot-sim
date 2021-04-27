@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/ChargingFloor.png-f6a8b8a8c9ada7c04ddd3bf46d163212.stex"
+path="res://.import/robot-sheet.png-e4c1fda41406436c79f97518c9007f78.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/ChargingFloor.png"
-dest_files=[ "res://.import/ChargingFloor.png-f6a8b8a8c9ada7c04ddd3bf46d163212.stex" ]
+source_file="res://Assets/robot/robot-sheet.png"
+dest_files=[ "res://.import/robot-sheet.png-e4c1fda41406436c79f97518c9007f78.stex" ]
 
 [params]
 

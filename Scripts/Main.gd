@@ -52,8 +52,8 @@ func _ready():
 		])
 		shape_poly = shape_transform.xform(shape_poly);
 		shape_poly = Geometry.offset_polygon_2d(shape_poly, _Navigation.nav_margin)[0]
-		
-		_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.cut_poly(shape_poly, true)
+
+		_Navigation.set_navpoly(_Navigation.cut_poly(shape_poly, true))
 
 	
 	#values of arguments
@@ -230,15 +230,3 @@ func _unhandled_input(event):
 		_Package = PackageScene.instance()
 		_Robot.add_package(_Package)
 		_Package.set_processes([[0,3],[1,7]])
-
-
-
-func _on_Parking_Area_body_entered(body):
-	#body is necessarily a robot since only moving body
-	body.set_in_station(true)
-
-
-func _on_Parking_Area_body_exited(body):
-	#body is necessarily a robot since only moving body
-	body.set_in_station(false)
-
