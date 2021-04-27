@@ -20,7 +20,7 @@ var current_path_point: int = 0
 
 export var current_battery : float = 10.0
 export var max_battery : float = 10.0
-export var battery_drain_rate : float = 0.4
+export var battery_drain_rate : float = 0.1
 export var battery_charge_rate : float = 0.8
 export var max_battery_frame : int = 20
 var current_battery_frame : int = 0
@@ -79,8 +79,13 @@ func _process(delta):
 	#is_facing(get_node("../Machine/Input_Belt"))
 	if not(in_station):
 		current_battery = max(0, current_battery - battery_drain_rate*delta)
+		$Battery.modulate = Color(1,1,1)
 	else:
 		current_battery = min(max_battery, current_battery + battery_charge_rate*delta)
+		var original_color = Color(1,1,1)
+		var new_color = Color(0.5,1,1)
+		$Battery.modulate = original_color.linear_interpolate(new_color, 0.5+0.5*sin(-PI/2 + 5*OS.get_ticks_msec()/1000)) 
+
 	update_battery_display()
 	
 func set_in_station(state : bool):
@@ -140,6 +145,7 @@ func stop_path():
 func add_package(Package : Node):
 	carried_package = Package
 	add_child(carried_package)
+	carried_package.position.x=7
 	
 func do_rotation(angle: float, speed: float):
 	# angle : rad
@@ -165,13 +171,12 @@ func pickup():
 		#first find the closest output stand
 		var closest_stand = find_closest_stand("output")
 		
-		if closest_stand !=null and is_facing(closest_stand):
+		if closest_stand !=null:
 			var machine = closest_stand.get_parent() #get machine corresponding to this output stand
 			#machine can actually also be a Delivery_Zone or Arrival_Zone but it will still have the functions needed
 				
 			if machine.is_output_available():
-				carried_package = machine.take()
-				add_child(carried_package)
+				add_package(machine.take())
 				
 	else: 
 		#already carrying a package so drop off function
@@ -179,10 +184,11 @@ func pickup():
 		#first find the closest input stand
 		var closest_stand = find_closest_stand("input")
 		
-		if closest_stand !=null and is_facing(closest_stand):
+		if closest_stand !=null:
 			var machine = closest_stand.get_parent() #get machine corresponding to this input stand
 			if machine.can_accept_package(carried_package):
 				remove_child(carried_package)
+				carried_package.position.x=0
 				machine.add_package(carried_package)
 				carried_package = null 
 				
@@ -199,7 +205,7 @@ func find_closest_stand(group : String):
 	var closest_stand = null
 	var dist_min=1000000
 	for stand in stands:
-		if stand.is_in_group(group):
+		if stand.is_in_group(group) and is_facing(stand):
 			var distance = self.position.distance_to(stand.position)
 			if distance <= dist_min:
 				dist_min = distance

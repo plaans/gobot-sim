@@ -12,6 +12,7 @@ radius = 32.8201
 [node name="Robot" type="KinematicBody2D" groups=[
 "robots",
 ]]
+
 script = ExtResource( 2 )
 
 [node name="Sprite" type="Sprite" parent="."]
