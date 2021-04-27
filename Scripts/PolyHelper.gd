@@ -24,7 +24,7 @@ static func merge_polys(polys: Array)->Array:
 		var i: int = 0
 		while i < old_polys.size():
 			var test_poly = Geometry.merge_polygons_2d(current_poly, old_polys[i])
-			if test_poly.size() > 0:
+			if test_poly.size() == 1:
 				current_poly = test_poly[0]
 				old_polys.remove(i)
 				i = 0
@@ -63,10 +63,15 @@ static func make_collision_polys(polys: Array)->Array:
 	return collision_polys
 
 # Given an array of polygons and an external outline, returns a NavigationPolygon
+# Note: the function assumes you have already merged the polygons and cut the outline
 static func make_navigation_poly(polys: Array, outline: PoolVector2Array)->NavigationPolygon:
 	var navigation_poly: NavigationPolygon = NavigationPolygon.new()
 	
-	# TODO: calculate NavigationPolygon
+	# assumes every poly has been merged correctly
+	for poly in polys:
+		navigation_poly.add_outline(poly)
+	navigation_poly.add_outline(outline)
+	navigation_poly.make_polygons_from_outlines()
 	
 	return navigation_poly
 	

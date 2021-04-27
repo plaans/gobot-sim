@@ -45,9 +45,7 @@ func _physics_process(delta):
 			var dir_vec: Vector2 = (path[current_path_point] - position)
 			var speed = 96.0 # px/s
 			var time = dir_vec.length()/speed # s
-			var angle = wrapf(dir_vec.angle() - rotation, -PI, PI) # rad
 			goto(dir_vec.angle(), speed, time)
-			do_rotation(angle, angle/time, time)
 		
 	if moving:
 		if current_battery == 0:
@@ -143,12 +141,14 @@ func add_package(Package : Node):
 	carried_package = Package
 	add_child(carried_package)
 	
-func do_rotation(angle: float, speed: float, time: float):
+func do_rotation(angle: float, speed: float):
 	# angle : rad
 	# speed : rad/s
 
 	rotation_speed = speed
-	rotate_time = time
+	if angle < 0:
+		rotation_speed *= -1
+	rotate_time = abs(angle/speed)
 	target_angle = self.rotation + angle
 	rotating = true 
 		

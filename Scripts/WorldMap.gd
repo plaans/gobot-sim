@@ -13,7 +13,8 @@ func _ready():
 	var new_park_area = park_area_res.instance()
 	
 	# Usual process:
-	# get_connected_cells_by_group() -> cells_to_polys() -> make_collision_polys()
+	# get_connected_cells_by_group() -> cells_to_polys() 
+	# -> make_collision_polys()
 	var cells_groups = manager.get_connected_cells_by_group(world, GROUP_PARKING)
 	var new_polys = []
 	for group in cells_groups:
