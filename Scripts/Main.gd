@@ -17,7 +17,7 @@ var machines_list
 
 var robots_list
 
-var processes_list
+#var processes_list
 #each element of the array is an array of integers 
 #corresponding to the machines possible for the given process
 #example : if process no.3 can be done by machines 4 or 5, 
@@ -98,33 +98,35 @@ func initialization():
 	
 	packages_list = []
 	machines_list = []
-	for k in range(3):
+	for k in range(4):
 		var machine = MachineScene.instance()
 		add_child(machine)
-		machine.position = Vector2(700, 450 - 150*k)
+		machine.position = Vector2(350 + 350*(k%2), 450 - 150*(k/2))
 		machine.set_id(k)
 		machines_list.append(machine)
-		
-	
-	processes_list=[]
-	processes_list.append([0,2])
-	processes_list.append([0,1])
-	#for example the machines 0 or 2 can be used for the process 0 
-	
-	machines_list[0].set_possible_processes([0,1])  # the machine 0 can do processes 0 or 1
 	machines_list[0].set_buffer_sizes(5,2)
-	machines_list[1].set_possible_processes([1])
-	machines_list[2].set_possible_processes([0])
 	
-	#for testing purposes we use only one package and initially place it at the first stand
-	_Package = PackageScene.instance()
-	_Robot.add_package(_Package)
-	_Package.set_processes([[0,3],[1,7]])
-	packages_list.append(processes_list)
+	load_scenario("res://scenarios/test_scenario.json")
 	
-	possible_tasks = [[[0,3],[1,7]]]
 	
-# Called every frame. 'delta' is the elapsed time since the previous frame.
+func load_scenario(file_path : String):
+	var file = File.new()
+	file.open(file_path, File.READ) 
+	var content = file.get_as_text()
+	file.close()
+	var scenario = JSON.parse(content).get_result()
+	
+	if scenario.machines_possible_processes.size()!=machines_list.size():
+		Logger.log_error("Wrong number of machines : processes specified for %s machines but there are %s machines in the simulation" 
+						% [scenario.machines_possible_processes.size(),machines_list.size()])
+	else:
+		for k in range(machines_list.size()):
+			var machine = machines_list[k]
+			var processes = scenario.machines_possible_processes[k]
+			machine.set_possible_processes(processes)
+	
+	print( scenario)
+
 func _process(delta):
 	
 	if client!=null and !client.is_connected_to_host():
