@@ -149,9 +149,12 @@ func update_tasks_display():
 			else:
 				#if too much different tasks compared to palette size default other colors to white
 				color_name = "white"
+				Logger.log_warning("More tasks than the size of color palette, defaulting to displaying as white")
 			
 			colors_rects[k].modulate = ColorN(color_name, 1)
 			colors_rects[k].visible = true
+	if possible_processes.size() > 10 :
+		Logger.log_warning("More than 10 possible processes for a machine, displaying only the first 10")
 		
 	for k in range(possible_processes.size(),10):
 		colors_rects[k].visible = false
@@ -218,7 +221,6 @@ func compute_position(index : int, for_input : bool) -> float:
 	#returns the x position the package needs to be displayed at (in the machine local coordinates)
 	
 	if (for_input and index >= input_size) or (not(for_input) and index >= output_size):
-		print( "error with argument %s" % index)
 		return 0.0
 	else:
 		#input or output_belt

@@ -69,12 +69,20 @@ func _ready():
 	seed(rng_seed)
 
 	var default_log_name = "res://logs/log"+str(OS.get_system_time_msecs())+".log"
-	var log_name = get_arg(arguments,"--log", default_log_name)
+	var log_name = get_arg(arguments,"--log", "")
+	if log_name == "":
+		log_name = default_log_name
+		var dir = Directory.new()
+		if not(dir.dir_exists("logs")):
+			dir.make_dir("logs")
 	Logger.set_log_location(log_name)
 	
 	#launch TCP Server
 	tcp_server = TCP_Server.new();	
-	tcp_server.listen(port)
+	var listen_error = tcp_server.listen(port)
+	if listen_error:
+		Logger.log_error("Error trying to listen at port %s (Error code %s)" % [port,listen_error])
+
 	
 func get_arg(args, arg_name, default):
 	var index = args.find(arg_name)
