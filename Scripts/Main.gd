@@ -116,15 +116,20 @@ func load_scenario(file_path : String):
 	file.close()
 	var scenario = JSON.parse(content).get_result()
 	
-	if scenario.machines_possible_processes.size()!=machines_list.size():
+	if scenario.machines.size()!=machines_list.size():
 		Logger.log_error("Wrong number of machines : processes specified for %s machines but there are %s machines in the simulation" 
-						% [scenario.machines_possible_processes.size(),machines_list.size()])
+						% [scenario.machines.size(),machines_list.size()])
+	#elif scenario.packages.size()%2!=0:
+		#Logger.log_error("List of processes for packages contains an odd number of elements")
 	else:
 		for k in range(machines_list.size()):
 			var machine = machines_list[k]
-			var processes = scenario.machines_possible_processes[k]
+			var processes = scenario.machines[k].possible_processes
+			for i in range (processes.size()):
+				processes[i] = int(processes[i])
 			machine.set_possible_processes(processes)
-	
+			
+		$Arrival_Zone.set_next_packages(scenario.packages)
 	print( scenario)
 
 func _process(delta):
@@ -211,7 +216,7 @@ func _unhandled_input(event):
 		_Robot.pickup()
 		
 	if event.is_action_pressed("ui_left"):
-		_Robot.do_rotation(-1,0.5)
+		_Robot.do_rotation(-1,1.5)
 	if event.is_action_pressed("ui_right"):
 		_Robot.do_rotation(1,1.5)
 
@@ -219,6 +224,7 @@ func _unhandled_input(event):
 		match event.button_index:
 			BUTTON_LEFT:
 				_Robot.navigate_to(event.position)
+				Logger.trigger_save()
 			BUTTON_RIGHT:
 				var temp_shape = PoolVector2Array([Vector2(-32,-32),Vector2(-32,32),Vector2(32,32),Vector2(32,-32)])
 				var temp_transform = Transform2D(0, event.position)

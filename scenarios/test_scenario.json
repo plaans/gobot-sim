@@ -1,14 +1,13 @@
 {
-    "processes_nb": 5,
-	"machines_possible_processes": [
-		[0],
-		[1,2,3],
-		[4,5],
-		[0,5]
+	"machines": [
+		{"position":[350,450],"possible_processes":[0]},
+		{"position":[350,300],"possible_processes":[1,2,3]},
+		{"position":[700,450],"possible_processes":[4,5]},
+		{"position":[700,300],"possible_processes":[0,5]}
 	],
 	"packages":[
-		[0,5,3,20,4,10],
-		[2,3,8,5],
-		[4,30,0,10,3,10,4,10]
+		[[0,5],[3,20],[4,10]],
+		[[2,3],[1,5]],
+		[[4,30],[0,10],[3,10],[4,10]]
     ]
 }

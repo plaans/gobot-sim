@@ -312,8 +312,9 @@ func _process(delta):
 				output_buffer.push_front(current_package)
 				#adjust_positions(false)
 				
-				blinking_rect.modulate = original_color
-				blinking_rect = null
+				if blinking_rect!= null:
+					blinking_rect.modulate = original_color
+					blinking_rect = null
 				
 				Logger.log_info("%-12s %8s %8s %8s" % ["processed", machine_id, current_process_id, taskDuration])
 		
