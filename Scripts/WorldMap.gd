@@ -32,6 +32,14 @@ func _ready():
 	for cell in machine_cells:
 		var new_belts := get_linked_belts(cell)
 
+
+func get_used_cells_by_group(group: Array)->Array:
+	var ids = manager.get_ids_from_group(group)
+	var used_cells := []
+	for id in ids:
+		used_cells += get_used_cells_by_id(id)
+	return used_cells
+
 func collision_polys_from_group(tiles_group: Array)-> Array:
 	# Usual process:
 	# get_connected_cells_by_group() -> cells_to_polys() 
@@ -48,9 +56,5 @@ func get_linked_belts(machine_pos: Vector2)->Array:
 		pass
 	return belts
 
-func get_used_cells_by_group(group: Array)->Array:
-	var ids = manager.get_ids_from_group(group)
-	var used_cells := []
-	for id in ids:
-		used_cells += get_used_cells_by_id(id)
-	return used_cells
+func get_belt_from_dir(dir: Vector2, pos: Vector2):
+	pass
