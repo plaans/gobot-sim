@@ -72,7 +72,6 @@ func _ready():
 
 	var default_log_name = "res://logs/log"+str(OS.get_system_time_msecs())+".log"
 	var log_name = get_arg(arguments,"--log", "")
-	log_name = get_arg(arguments,"--log", "")
 	if log_name == "":
 		log_name = default_log_name
 		var dir = Directory.new()
@@ -83,7 +82,10 @@ func _ready():
 	
 	#launch TCP Server
 	tcp_server = TCP_Server.new();	
-	tcp_server.listen(port)
+	var listen_error = tcp_server.listen(port)
+	if listen_error:
+		Logger.log_error("Error trying to listen at port %s (Error code %s)" % [port,listen_error])
+
 	
 	#for tests
 	print( encode_environment_description())

@@ -56,6 +56,10 @@ func update_tasks_display():
 			
 			colors_sprites[k].modulate = ColorN(color_name, 1)
 			colors_sprites[k].visible = true
+			
+	if processes_list.size() > 8 :
+		Logger.log_warning("More than 8 processes to be done for a package, displaying only the first 8")
+		
 		
 	for k in range(processes_list.size(),8):
 		colors_sprites[k].visible = false

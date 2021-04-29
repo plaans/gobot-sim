@@ -156,9 +156,12 @@ func update_tasks_display():
 			else:
 				#if too much different tasks compared to palette size default other colors to white
 				color_name = "white"
+				Logger.log_warning("More tasks than the size of color palette, defaulting to displaying as white")
 			
 			colors_rects[k].modulate = ColorN(color_name, 1)
 			colors_rects[k].visible = true
+	if possible_processes.size() > 10 :
+		Logger.log_warning("More than 10 possible processes for a machine, displaying only the first 10")
 		
 	for k in range(possible_processes.size(),10):
 		colors_rects[k].visible = false
@@ -225,7 +228,6 @@ func compute_position(index : int, for_input : bool) -> float:
 	#returns the x position the package needs to be displayed at (in the machine local coordinates)
 	
 	if (for_input and index >= input_size) or (not(for_input) and index >= output_size):
-		print( "error with argument %s" % index)
 		return 0.0
 	else:
 		#input or output_belt
@@ -288,9 +290,9 @@ func move_packages():
 		#interpolate_package_position(current_package, 0, true, 0, false, progress_ratio)
 		
 		#then move packages in input_buffer
-		for k in range(input_buffer.size()):
+		for k in range(1,input_buffer.size()):
 			var package = input_buffer[k]
-			interpolate_package_position(package, k+1, true, k, true, progress_ratio)
+			interpolate_package_position(package, k, true, k-1, true, progress_ratio)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -314,6 +316,7 @@ func _process(delta):
 			#task ended so check if space available on output belt
 			if output_buffer.size()<output_size:
 				taskInProgress = false
+				input_buffer.pop_front()
 				
 				#add package to output belt
 				output_buffer.push_front(current_package)
@@ -327,7 +330,7 @@ func _process(delta):
 	else:
 		#case where no task currently processed, so check if package waiting in input_buffer and space in output_buffer
 		if input_buffer.size()>0 and output_buffer.size()<output_size:
-			current_package = input_buffer.pop_front()
+			current_package = input_buffer[0]
 			#current_package.position.x = 0 #to remove the relative position used while on the belt
 			#adjust_positions(true)
 			
