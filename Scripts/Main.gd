@@ -119,7 +119,7 @@ func initialization():
 	#for testing purposes we use only one package and initially place it at the first stand
 	_Package = PackageScene.instance()
 	_Robot.add_package(_Package)
-	_Package.set_processes([[0,3],[1,7]])
+	_Package.set_processes([Process.new(0,2),Process.new(1,5)])
 	packages_list.append(processes_list)
 	
 	possible_tasks = [[[0,3],[1,7]]]

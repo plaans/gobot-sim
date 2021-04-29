@@ -20,6 +20,11 @@ _global_script_classes=[ {
 "path": "res://Scripts/PolyHelper.gd"
 }, {
 "base": "Reference",
+"class": "Process",
+"language": "GDScript",
+"path": "res://Scripts/Process.gd"
+}, {
+"base": "Reference",
 "class": "TileManager",
 "language": "GDScript",
 "path": "res://Scripts/TileManager.gd"
@@ -32,6 +37,7 @@ _global_script_classes=[ {
 _global_script_class_icons={
 "GitAPI": "",
 "PolyHelper": "",
+"Process": "",
 "TileManager": "res://Assets/icons/TileManager.svg",
 "TileWorld": ""
 }

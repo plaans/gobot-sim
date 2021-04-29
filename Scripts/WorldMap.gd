@@ -6,10 +6,10 @@ onready var world = TileWorld.new(self)
 var park_area_res = preload("res://Scenes/ParkingArea.tscn")
 var interact_area_res = preload("res://Scenes/InteractArea.tscn")
 
-const GROUP_SOLID = ["Wall", "Belt"]
+const GROUP_SOLID = ["Wall", "InputBelt", "OutputBelt"]
 const GROUP_PARKING = ["ChargingFloor"]
 const GROUP_INTERACT = ["InteractionFloor"]
-const GROUP_BELT = ["Belt"]
+const GROUP_BELT = ["InputBelt", "OutputBelt"]
 const GROUP_MACHINE = ["Machine"]
 # Called when the node enters the scene tree for the first time.
 func _ready():
