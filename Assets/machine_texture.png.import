@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/belt.png-dadfc6e0986ee486878b10c1ec3daffc.stex"
+path="res://.import/machine_texture.png-dc599deb2387c78cfe0e1ea553eb39e7.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/belt.png"
-dest_files=[ "res://.import/belt.png-dadfc6e0986ee486878b10c1ec3daffc.stex" ]
+source_file="res://Assets/machine_texture.png"
+dest_files=[ "res://.import/machine_texture.png-dc599deb2387c78cfe0e1ea553eb39e7.stex" ]
 
 [params]
 
@@ -19,7 +19,7 @@ compress/lossy_quality=0.7
 compress/hdr_mode=0
 compress/bptc_ldr=0
 compress/normal_map=0
-flags/repeat=1
+flags/repeat=0
 flags/filter=false
 flags/mipmaps=false
 flags/anisotropic=false

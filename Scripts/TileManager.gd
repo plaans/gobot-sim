@@ -37,6 +37,13 @@ func get_ids_from_group(group: Array)->Array:
 		
 	return ids
 
+func get_used_cells_by_group(group: Array)->Array:
+	var ids = get_ids_from_group(group)
+	var used_cells := []
+	for id in ids:
+		used_cells += tilemap.get_used_cells_by_id(id)
+	return used_cells
+
 # Given a TileWorld and an array of ids, returns an array containing the groups of connected cells
 # with the given ids.
 # Note: the groups of cells are PoolVector2Arrays, containing all the cell's positions
@@ -98,24 +105,22 @@ func cells_to_polys(cells: PoolVector2Array)->Array:
 	
 	return PolyHelper.merge_polys(cells_polys)
 
+func collision_polys_from_group(world: TileWorld, tiles_group: Array)-> Array:
+	# Usual process:
+	# get_connected_cells_by_group() -> cells_to_polys() 
+	# -> make_collision_polys()
+	var cells_groups = get_connected_cells_by_group(world, tiles_group)
+	var new_polys = []
+	for group in cells_groups:
+		new_polys += cells_to_polys(group)
+	return PolyHelper.make_collision_polys(new_polys)
+
 ########## Fill functions ##########
 
 # Given an array of cells, the current cell, the size of the area and an array of ids,
 # returns true if the cell is in the area and its id is contained in the ids array, else returns false.
 func is_cell_valid(cells: Array, pos: Vector2, size: Vector2, ids: Array)-> bool :
 	return !(0 > pos.x or pos.x >= size.x or 0 > pos.y or pos.y >= size.y or !cells[pos.x][pos.y] in ids)
-
-# Given an array of cells, the current cell, the size of the area and an array of ids,
-# returns an array with the position of every adjacent cells with ids present in the ids array
-func get_adjacent_cells(cells: Array, pos: Vector2, size: Vector2, ids: Array)->Array:
-	var adjacent_cells = []
-	# from real coordinates to world data coordinates
-	for dir in DIRS_4:
-		var new_pos = pos+dir
-		if is_cell_valid(cells, new_pos, size, ids):
-			adjacent_cells.append(new_pos)
-	
-	return adjacent_cells
 
 # Given an array of cells, a starting cell position, the size of the area and an array of ids,
 # fills every connected cell with an id present in the ids array, and returns a PoolVector2Array with 
@@ -141,11 +146,25 @@ func fill_cells(cells: Array, start: Vector2, size: Vector2, ids: Array)->PoolVe
 	
 	return filled_cells
 
+# Given an array of cells, the current cell, the size of the area and an array of ids,
+# returns an array with the position of every adjacent cells with ids present in the ids array
+func fill_adjacent_cells(cells: Array, pos: Vector2, size: Vector2, ids: Array)->Array:
+	var fill_id = -10
+	var filled_cells = []
+	# from real coordinates to world data coordinates
+	for dir in DIRS_4:
+		var new_pos = pos+dir
+		if is_cell_valid(cells, new_pos, size, ids):
+			filled_cells.append(new_pos)
+			cells[new_pos.x][new_pos.y] = fill_id
+	
+	return filled_cells
+
 # Given an array of cells, a starting cell position, a direction to fill, the size of the area and an array of ids,
 # fills a line of connected cell in the given direction, with an id present in the ids array, and returns
 # a PoolVector2Array with the position of every filled cells.
 # Note: the cells array is passed by reference and will be mutated
-func fill_cells_directional(cells: Array, start: Vector2, dir: Vector2, size: Vector2, ids: Array)->PoolVector2Array:
+func fill_directional_cells(cells: Array, start: Vector2, dir: Vector2, size: Vector2, ids: Array)->PoolVector2Array:
 	var fill_id = -10
 	var filled_cells = PoolVector2Array()
 	
