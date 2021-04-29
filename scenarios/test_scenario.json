@@ -1,7 +1,7 @@
 {
 	"machines": [
 		{"position":[350,450],"possible_processes":[0]},
-		{"position":[350,300],"possible_processes":[1,2,3]},
+		{"position":[370,300],"possible_processes":[1,2,3]},
 		{"position":[700,450],"possible_processes":[4,5]},
 		{"position":[700,300],"possible_processes":[0,5]}
 	],

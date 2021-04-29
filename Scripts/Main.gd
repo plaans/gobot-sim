@@ -119,25 +119,52 @@ func initialization():
 	
 func load_scenario(file_path : String):
 	var file = File.new()
-	file.open(file_path, File.READ) 
-	var content = file.get_as_text()
+	var open_error = file.open(file_path, File.READ) 
+	if open_error:
+		Logger.log_error("Error opening the scenario file (Error code %s)" % open_error)
+		return
+	
+	var content = JSON.parse(file.get_as_text())
 	file.close()
-	var scenario = JSON.parse(content).get_result()
+	
+	if content.get_error():
+		Logger.log_error("Error parsing the scenario file (Error code %s)" % content.get_error())
+		return
+
+	var scenario = content.get_result()
 	
 	if scenario.machines.size()!=machines_list.size():
 		Logger.log_error("Wrong number of machines : processes specified for %s machines but there are %s machines in the simulation" 
 						% [scenario.machines.size(),machines_list.size()])
-	#elif scenario.packages.size()%2!=0:
-		#Logger.log_error("List of processes for packages contains an odd number of elements")
-	else:
-		for k in range(machines_list.size()):
-			var machine = machines_list[k]
-			var processes = scenario.machines[k].possible_processes
-			for i in range (processes.size()):
-				processes[i] = int(processes[i])
-			machine.set_possible_processes(processes)
+	
+	for k in range(machines_list.size()):
+		var processes = scenario.machines[k].possible_processes
+		for i in range (processes.size()):
+			processes[i] = int(processes[i])
 			
-		$Arrival_Zone.set_next_packages(scenario.packages)
+		var position = scenario.machines[k].position
+		var x = position[0]
+		var y = position[1]
+		
+		#find if there is a machine close enough to the position specified (for now search for distance <50)
+		var closest_machine = null
+		var dist_min = 100
+		for machine in machines_list:
+			var dist = machine.position.distance_to(Vector2(x,y))
+			if dist <=50 and dist<dist_min:
+				closest_machine = machine
+				dist_min = dist
+		if closest_machine == null:
+			Logger.log_error("Cannot identify the machine for position specified (%s %s)" % [x,y])
+		else:
+			#a machine was found close enough but if position was not exact still register a warning
+			if dist_min>0:
+				Logger.log_warning("No machine found at position specified (%s %s), so used instead the closest one at position (%s %s) " 
+				% [x,y,closest_machine.position.x,closest_machine.position.y])
+			
+			closest_machine.set_possible_processes(processes)
+		
+	$Arrival_Zone.set_next_packages(scenario.packages)
 	print( scenario)
 
 func _process(delta):
