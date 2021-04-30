@@ -34,17 +34,17 @@ export var ROBOT_SPEED = 96 #px/s
 # so 3m/s = 96px/s
 
 const Proto = preload("res://protobuf/proto.gd")
-var tcp_server #TCP_Server
-var client #StreamPeerTCP
 
 
-var env_sent : bool
+
 
 func _ready():		
 	
 	#initialization
 	initialization()
-
+	
+	
+	
 	for node in get_tree().get_nodes_in_group("stands"):
 		var shape_transform: Transform2D = node.get_node("CollisionShape2D").get_global_transform()
 		var shape: RectangleShape2D = node.get_node("CollisionShape2D").shape
@@ -65,7 +65,7 @@ func _ready():
 	
 	var arguments : Array = Array(OS.get_cmdline_args ())
 
-	var port = int(get_arg(arguments,"--port",10000 ))
+	
 	
 	var rng_seed = int(get_arg(arguments,"--seed",0 ))
 	seed(rng_seed)
@@ -80,15 +80,12 @@ func _ready():
 	Logger.set_log_location(log_name)
 
 	
-	#launch TCP Server
-	tcp_server = TCP_Server.new();	
-	var listen_error = tcp_server.listen(port)
-	if listen_error:
-		Logger.log_error("Error trying to listen at port %s (Error code %s)" % [port,listen_error])
+	#launch Communication Server
+	var port = int(get_arg(arguments,"--port",10000 ))
+	Communication.start_server(port)
+	
 
 	
-	#for tests
-	print( encode_environment_description())
 	
 func get_arg(args, arg_name, default):
 	var index = args.find(arg_name)
@@ -99,6 +96,7 @@ func get_arg(args, arg_name, default):
 		
 func get_color_palette():
 	return color_palette 		
+
 	
 func add_package(package : Node):
 	packages_list.append(package)
@@ -130,202 +128,26 @@ func initialization():
 	machines_list[0].set_buffer_sizes(5,2)
 	machines_list[1].set_possible_processes([1])
 	machines_list[2].set_possible_processes([0])
-	
-	for k in range(2):
-		var robot = RobotScene.instance()
-		add_child(robot)
-		robot.position = Vector2(100*k+200, 500)
-		robot.set_id(k)
-		
-		robots_list.append(robot)
-		
-	_Robot = robots_list[0]	
-	
-	for k in range(2):
-		var package = PackageScene.instance()
-		package.set_id(k)	
-		packages_list.append(package)
-		
-	_Package = packages_list[0]
-	_Robot.add_package(_Package)
-	_Package.set_processes([[0,3],[1,7]])
-	
-	robots_list[1].add_child(packages_list[1])
-	packages_list[1].set_processes([[1,7],[0,3]])
-	
-	_Robot.set_id(0)
-	
-	encode_environment_description()
-	
-	possible_tasks = [[[0,3],[1,7]]]
-	
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
-	
-	if client!=null and !client.is_connected_to_host():
-		#if client was disconnected set variable to null again
-		client=null
-	
-	if client==null and tcp_server.is_connection_available():
-		env_sent = false #new connection so has not yet received information about environment
-		client = tcp_server.take_connection() 
-		
-	
-	if client != null and client.is_connected_to_host():
-
-		if not(env_sent):
-			#if info about the environment not yet sent to client first sent this before other transmissions
-			#response with a message containing description of the enviroment for test
-			var env_message = encode_environment_description()
-			
-			client.put_string(env_message)
-			env_sent = true
-		else:
-			#then read if commands were received (read one at most)
-			if client.get_available_bytes() > 0:
-	#			var size= client.get_u32 ()
-	#			if size>0:
-				var response= client.get_string(-1);
-				var json = JSON.parse(response)
-				var content = json.get_result()
-				print( content)
-				
-				if content.has("robot_command"):
-					var command_info = content["robot_command"]
-					if command_info[0] == "pickup":
-						if command_info.size() != 2:
-							Logger.log_error("Wrong number of arguments for Pickup Command, expected 1 and got %s" % (command_info.size() -1))
-						else:
-							var robot_id = command_info[1]
-							_Robot.pickup()
-			
-			#then send state
-			var state_message = encode_current_state()
-			
-			client.put_string(state_message)
-
-#						var command_type = Command.get_command()
-#						if command_type == Proto.Command.Command_types.GOTO:
-#							_Robot.goto(Command.get_dir(), Command.get_speed(), Command.get_time()) 
-#						elif command_type == Proto.Command.Command_types.PICKUP :
-#							_Robot.pickup()
 #
-#			#first send data about state of world
-#			var bytes_to_send = encode_current_state()
-#			var size_bytes = bytes_to_send.size()
-
-#		#first send data about state of world
-#		var bytes_to_send = encode_current_state()
-#		var size_bytes = bytes_to_send.size()
+#	for k in range(2):
+#		var robot = RobotScene.instance()
+#		add_child(robot)
+#		robot.position = Vector2(100*k+200, 500)
+#		robot.set_id(k)
 #
-#		client.put_32(size_bytes)
-#		client.put_data(bytes_to_send)
+#		robots_list.append(robot)
 		
-			
-func set_area_parameters(area, stand : Node):
-	#used in the encode_environment_description  to set the area parameters to the area correspondign to the stand Node
-	var rectangle = stand.get_area_rectangle()
-	var position=rectangle[0]
-	var size=rectangle[1]
-	area.x = position.x
-	area.y = position.y
-	area.width = size.x
-	area.height = size.y
-			
-func encode_environment_description() -> String:
-	#creates and serializes a protocol buffer containing the description of the environment of the simulation
+	_Robot = $Robot
 	
-	var env = {}
+#	var _Package = PackageScene.instance()
+#	packages_list.append(_Package)
+#	_Robot.add_package(_Package)
+#	_Package.set_processes([[0,3],[1,7]])
 	
-	#info about arrival and delivery areas
+	#robots_list[1].add_child(packages_list[1])
+	#packages_list[1].set_processes([[1,7],[0,3]])
 	
-	env.arrival_area = {}
-	
-	set_area_parameters(env.arrival_area, $Arrival_Zone/Output_Belt)
-	
-	env.delivery_area = {}
-	
-	set_area_parameters(env.delivery_area, $Delivery_Zone/Input_Belt)
-
-	#info about machines
-	env.machines = []
-	for machine in machines_list:
-		var new_machine = {}
-		env.machines.append(new_machine)
-
-		new_machine.input_area = {}
-		set_area_parameters(new_machine.input_area, machine.get_node("Input_Belt"))
-
-		new_machine.output_area = {}
-		set_area_parameters(new_machine.output_area, machine.get_node("Output_Belt"))
-
-		var buffer_sizes = machine.get_buffer_sizes()
-		new_machine.input_size = buffer_sizes[0]
-		new_machine.output_size = buffer_sizes[1]
-
-		new_machine.processes_list = machine.get_possible_processes()
-	
-	return JSON.print(env)
-
-func encode_current_state() -> String:
-	#creates and serializes a protocol buffer containing the data about the current state of the simulation
-	
-	var state = {}
-	
-	#data about robots 
-	state.robots = []
-	for robot in robots_list:
-		var new_robot = {}
-		state.robots.append(new_robot)
-		
-		new_robot.x = robot.position.x
-		new_robot.y = robot.position.y
-		new_robot.battery = robot.get_battery_proportion()
-		new_robot.is_moving = robot.is_moving()
-		
-		
-	#data about packages 
-	state.package = []
-	for package in packages_list:
-		var new_package = {}
-		state.package.append(new_package)
-		
-		var package_parent = package.get_parent()
-		
-		#new_package.location = {}
-		#var package_location = new_package.location
-		if package_parent is KinematicBody2D:
-			#case where this package is currently carried by a robot
-			new_package.location_type = "robot"
-			new_package.location_id = package_parent.get_id()
-		elif package_parent.has_node("Input_Belt"):
-			#case where this package is currently in a machine
-			if package_parent.is_in_group("input"):
-				new_package.location_type = "machine_input"
-			elif package_parent.is_in_group("output"):
-				new_package.location_type = "machine_output"
-			else:
-				new_package.location_type = "machine_size"
-			new_package.location_id = package_parent.get_id()
-			
-		else: 
-			#case where this package is currently in the arrival zone
-			new_package.location_type = "arrival"
-			new_package.location_id = -1#no id for arrival zone so set to -1
-			
-		new_package.processes = []
-
-		var list = package.get_processes()
-		for process in list:
-			var id = process[0]
-			var duration = process[1]
-			
-			new_package.processes.append({"id":id, "duration":duration})
-			
-		
-		
-	return JSON.print(state)
-
+	#_Robot.set_id(0)
 
 func _unhandled_input(event):
 	# From GDQuest - Navigation 2D and Tilemaps
@@ -340,9 +162,7 @@ func _unhandled_input(event):
 	if event is InputEventMouseButton and event.pressed:
 		match event.button_index:
 			BUTTON_LEFT:
-				robots_list[0].navigate_to(event.position)
-			BUTTON_RIGHT:
-				robots_list[1].navigate_to(event.position)	
+				_Robot.navigate_to(event.position)
 				
 #			BUTTON_RIGHT:
 #				var temp_shape = PoolVector2Array([Vector2(-32,-32),Vector2(-32,32),Vector2(32,32),Vector2(32,-32)])
@@ -357,3 +177,4 @@ func _unhandled_input(event):
 		_Package = PackageScene.instance()
 		_Robot.add_package(_Package)
 		_Package.set_processes([[0,3],[1,7]])
+		packages_list.append(_Package)

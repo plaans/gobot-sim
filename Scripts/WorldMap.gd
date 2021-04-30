@@ -22,6 +22,7 @@ func _ready():
 	var collision_polys = PolyHelper.make_collision_polys(new_polys)
 	
 	for col_poly in collision_polys:
+		col_poly.add_to_group("parking_area_poly")
 		new_park_area.add_child(col_poly)
 	
 	self.add_child(new_park_area)

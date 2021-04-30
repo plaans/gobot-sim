@@ -3,7 +3,9 @@
 [ext_resource path="res://Scripts/Delivery_Zone.gd" type="Script" id=1]
 [ext_resource path="res://Scenes/Stand.tscn" type="PackedScene" id=2]
 
-[node name="Delivery_Zone" type="Node2D"]
+[node name="Delivery_Zone" type="Node2D" groups=[
+"delivery",
+]]
 script = ExtResource( 1 )
 
 [node name="Input_Belt" parent="." groups=[

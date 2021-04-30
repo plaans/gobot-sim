@@ -8,28 +8,23 @@ import sys
 
 import json
 import time
+import random
 
 import pprint
 
-# Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-# Connect the socket to the port where the server is listening
 server_address = ('localhost', 10000)
-print('connecting to {} port {}'.format(*server_address))
 sock.connect(server_address)
 	
-def navigate_to(stand_x,stand_y):
-	#given robot position and position of stand to go to computes and sends instructions to move it to objective
-	#then issue goto command
-	Command = messages_pb2.Command()
-	Command.command_name = messages_pb2.Command.Command_types.Value('GOTO_PATH')
-	Command.goto_path_parameters.destination_x = stand_x
-	Command.goto_path_parameters.destination_y = stand_y
+def send_command(command_info):
+	#command_info is the list containing the command name and the arguments, for example ['navigate_to', 505, 400]
 	
-	message = Command.SerializeToString()
+	message = json.dumps({'timestamp' : time.time(), 'robot_command': command_info})
 	length = len(message).to_bytes(4,'little') #4bytes because sending as int32 
-	sock.sendall(length + message)
+	sock.sendall(length + bytes(message,encoding="utf-8"))
+	
+	#waiting_for_command_to_be_processed = True
+	print(command_info)
 	
 	return	
 	
@@ -56,10 +51,12 @@ try:
 			size = int.from_bytes(data,'little')
 			data = sock.recv(size)
 			environment = json.loads(data)
-			print("environment : {}".format(environment)) 
+			pprint.pprint(environment) 
 			
 			liste_machines = environment["machines"]
 			
+			
+	waiting_for_command_to_be_processed = False
 	
 	while True:
 		data = sock.recv(4)
@@ -69,9 +66,50 @@ try:
 			state = json.loads(data)
 			
 			pprint.pprint(state) 
-
-			#delivery = state["delivery_area"]
 			
+			if waiting_for_command_to_be_processed:
+				if state["command_processed"] == True:
+					waiting_for_command_to_be_processed = False
+			else:
+
+				
+				
+				robot = state["robots"][0]
+				if robot["battery"]>0 and not(robot["is_moving"]):
+					if not(robot["in_station"]):
+						#case where the robot is not currently charging so go back if battery too low and else go to random location
+						if robot["battery"]<=0.4:
+							parking_areas = environment["parking_areas"][:1]
+							area = random.sample(parking_areas, k=1)[0]
+							destination = area["polygon"]["center"]
+							send_command(["navigate_to",robot["id"],destination[0],destination[1]])
+						else:
+							dest_x = random.randrange(100, 500)
+							dest_y = random.randrange(100, 500)
+							send_command(["navigate_to",robot["id"],dest_x,dest_y])
+					else:
+						#case where the robot is currently charging so stay until battery goes overs 0.9 and after that go to a random location
+						if robot["battery"]>=0.9:
+							dest_x = random.randrange(100, 500)
+							dest_y = random.randrange(100, 500)
+							send_command(["navigate_to",robot["id"],dest_x,dest_y])
+				
+				delivery = environment["delivery_area"]
+				
+				# for robot in state["robots"]:
+					# if not(robot["is_moving"]):
+						# package = robot["carried"]
+						# list_processes = package["processes"]
+						# send_command(['navigate_to', 505, 400])
+					# else:
+						# package_to_get = None
+						# for package in state["packages"]:
+							# if package["location_type"]!="robot":
+								# package_to_get = package
+								# processes_to_do = package["processes"]
+								# if len(processes_to_do)>0:
+									# next_process_id = processes_to_do[0][0]
+								
 	# 		# if destination_stand == None:
 	# 			# #then we will fix the destination_stand to the farthest stand 
 	# 			# stands_x = state.stands_x

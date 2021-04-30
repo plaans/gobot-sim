@@ -20,9 +20,11 @@ var current_path_point: int = 0
 var robot_id : int
 #id to uniquely identify this robot (also attributed from Main node)
 
+signal action_done
+
 export var current_battery : float = 10.0
 export var max_battery : float = 10.0
-export var battery_drain_rate : float = 0.1
+export var battery_drain_rate : float = 0.5
 export var battery_charge_rate : float = 0.8
 export var max_battery_frame : int = 20
 var current_battery_frame : int = 0
@@ -116,7 +118,7 @@ func update_battery_display():
 		display.frame = new_frame
 			
 func is_moving():
-	return moving
+	return following
 
 func goto(dir:float, speed:float, time:float):
 	# dir : rad
@@ -143,6 +145,8 @@ func navigate_to(point: Vector2):
 		
 		following = true
 		current_path_point = 0
+		
+	emit_signal("action_done")
 
 func stop():
 	move_time = 0.0
