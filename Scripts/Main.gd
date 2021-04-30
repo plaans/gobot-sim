@@ -18,7 +18,7 @@ var machines_list
 
 var robots_list
 
-var processes_list
+#var processes_list
 #each element of the array is an array of integers 
 #corresponding to the machines possible for the given process
 #example : if process no.3 can be done by machines 4 or 5, 
@@ -111,31 +111,67 @@ func initialization():
 	packages_list = []
 	robots_list = []
 	machines_list = []
-	for k in range(3):
+	for k in range(4):
 		var machine = MachineScene.instance()
 		add_child(machine)
-		machine.position = Vector2(700, 450 - 150*k)
+		machine.position = Vector2(350 + 350*(k%2), 450 - 150*(k/2))
 		machine.set_id(k)
 		machines_list.append(machine)
 		
-
-	processes_list=[]
-	processes_list.append([0,2])
-	processes_list.append([0,1])
-	#for example the machines 0 or 2 can be used for the process 0 
-	
-	machines_list[0].set_possible_processes([0,1])  # the machine 0 can do processes 0 or 1
 	machines_list[0].set_buffer_sizes(5,2)
-	machines_list[1].set_possible_processes([1])
-	machines_list[2].set_possible_processes([0])
-#
-#	for k in range(2):
-#		var robot = RobotScene.instance()
-#		add_child(robot)
-#		robot.position = Vector2(100*k+200, 500)
-#		robot.set_id(k)
-#
-#		robots_list.append(robot)
+	
+	load_scenario("res://scenarios/test_scenario.json")
+	
+	
+func load_scenario(file_path : String):
+	var file = File.new()
+	var open_error = file.open(file_path, File.READ) 
+	if open_error:
+		Logger.log_error("Error opening the scenario file (Error code %s)" % open_error)
+		return
+	
+	var content = JSON.parse(file.get_as_text())
+	file.close()
+	
+	if content.get_error():
+		Logger.log_error("Error parsing the scenario file (Error code %s)" % content.get_error())
+		return
+
+	var scenario = content.get_result()
+	
+	if scenario.machines.size()!=machines_list.size():
+		Logger.log_error("Wrong number of machines : processes specified for %s machines but there are %s machines in the simulation" 
+						% [scenario.machines.size(),machines_list.size()])
+	
+	for k in range(machines_list.size()):
+		var processes = scenario.machines[k].possible_processes
+		for i in range (processes.size()):
+			processes[i] = int(processes[i])
+			
+		var position = scenario.machines[k].position
+		var x = position[0]
+		var y = position[1]
+		
+		#find if there is a machine close enough to the position specified (for now search for distance <50)
+		var closest_machine = null
+		var dist_min = 100
+		for machine in machines_list:
+			var dist = machine.position.distance_to(Vector2(x,y))
+			if dist <=50 and dist<dist_min:
+				closest_machine = machine
+				dist_min = dist
+		if closest_machine == null:
+			Logger.log_error("Cannot identify the machine for position specified (%s %s)" % [x,y])
+		else:
+			#a machine was found close enough but if position was not exact still register a warning
+			if dist_min>0:
+				Logger.log_warning("No machine found at position specified (%s %s), so used instead the closest one at position (%s %s) " 
+				% [x,y,closest_machine.position.x,closest_machine.position.y])
+			
+			closest_machine.set_possible_processes(processes)
+		
+	$Arrival_Zone.set_next_packages(scenario.packages)
+	print( scenario)
 		
 	_Robot = $Robot
 	
@@ -155,7 +191,7 @@ func _unhandled_input(event):
 		_Robot.pickup()
 		
 	if event.is_action_pressed("ui_left"):
-		_Robot.do_rotation(-1,0.5)
+		_Robot.do_rotation(-1,1.5)
 	if event.is_action_pressed("ui_right"):
 		_Robot.do_rotation(1,1.5)
 
@@ -163,11 +199,10 @@ func _unhandled_input(event):
 		match event.button_index:
 			BUTTON_LEFT:
 				_Robot.navigate_to(event.position)
-				
-#			BUTTON_RIGHT:
-#				var temp_shape = PoolVector2Array([Vector2(-32,-32),Vector2(-32,32),Vector2(32,32),Vector2(32,-32)])
-#				var temp_transform = Transform2D(0, event.position)
-#
+			BUTTON_RIGHT:
+				var temp_shape = PoolVector2Array([Vector2(-32,-32),Vector2(-32,32),Vector2(32,32),Vector2(32,-32)])
+				var temp_transform = Transform2D(0, event.position)
+			
 #				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.cut_poly(temp_transform.xform(temp_shape))
 #			BUTTON_MIDDLE:
 #				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.static_poly
