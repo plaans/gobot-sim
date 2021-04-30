@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=2]
+[gd_scene load_steps=14 format=2]
 
 [ext_resource path="res://Scripts/Machine.gd" type="Script" id=1]
 [ext_resource path="res://Assets/machine/Machine-4.png" type="Texture" id=2]
@@ -10,7 +10,6 @@
 [ext_resource path="res://Assets/machine/Machine-9.png" type="Texture" id=8]
 [ext_resource path="res://Assets/machine/Machine-7.png" type="Texture" id=9]
 [ext_resource path="res://Assets/machine/Machine-8.png" type="Texture" id=10]
-[ext_resource path="res://Scenes/Package.tscn" type="PackedScene" id=11]
 [ext_resource path="res://Assets/machine/Machine-1.png" type="Texture" id=13]
 
 [sub_resource type="SpriteFrames" id=1]
@@ -61,8 +60,3 @@ margin_bottom = 4.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
-
-[node name="Package" parent="." instance=ExtResource( 11 )]
-visible = false
-show_behind_parent = true
-position = Vector2( 0, -4 )

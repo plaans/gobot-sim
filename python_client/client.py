@@ -9,6 +9,7 @@ import sys
 import json
 import time
 import random
+import numpy
 
 import pprint
 
@@ -28,6 +29,13 @@ def send_command(command_info):
 	
 	return	
 	
+def distance(position, destination):
+	return math.sqrt((position[0]-destination[0])**2 + (position[1]-destination[1])**2)
+					
+def angle(position, destination):
+	vector_x = destination[0] - position[0]
+	vector_y = destination[1] - position[1]
+	return numpy.angle(vector_x + vector_y * 1j)
 
 try:
 
@@ -74,33 +82,115 @@ try:
 
 				
 				
-				robot = state["robots"][0]
-				if robot["battery"]>0 and not(robot["is_moving"]):
-					if not(robot["in_station"]):
-						#case where the robot is not currently charging so go back if battery too low and else go to random location
-						if robot["battery"]<=0.4:
+				# robot = state["robots"][0]
+				# if robot["battery"]>0 and not(robot["is_moving"]):
+					# if not(robot["in_station"]):
+						# #case where the robot is not currently charging so go back if battery too low and else go to random location
+						# if robot["battery"]<=0.4:
+							# parking_areas = environment["parking_areas"][:1]
+							# area = random.sample(parking_areas, k=1)[0]
+							# destination = area["polygon"]["center"]
+							# send_command(["navigate_to",robot["id"],destination[0],destination[1]])
+						# else:
+							# dest_x = random.randrange(100, 500)
+							# dest_y = random.randrange(100, 500)
+							# send_command(["navigate_to",robot["id"],dest_x,dest_y])
+					# else:
+						# #case where the robot is currently charging so stay until battery goes overs 0.9 and after that go to a random location
+						# if robot["battery"]>=0.9:
+							# dest_x = random.randrange(100, 500)
+							# dest_y = random.randrange(100, 500)
+							# send_command(["navigate_to",robot["id"],dest_x,dest_y])
+				
+				# delivery = environment["delivery_area"]
+				
+				for robot in state["robots"]:
+				
+					if robot["battery"]>0 and not(robot["is_moving"]):
+					
+						if not(robot["in_station"]) and robot["battery"]<=0.4:
+							#case where the robot is not currently charging so go back if battery too low and else go to random location
+						
 							parking_areas = environment["parking_areas"][:1]
 							area = random.sample(parking_areas, k=1)[0]
 							destination = area["polygon"]["center"]
 							send_command(["navigate_to",robot["id"],destination[0],destination[1]])
-						else:
-							dest_x = random.randrange(100, 500)
-							dest_y = random.randrange(100, 500)
-							send_command(["navigate_to",robot["id"],dest_x,dest_y])
-					else:
-						#case where the robot is currently charging so stay until battery goes overs 0.9 and after that go to a random location
-						if robot["battery"]>=0.9:
-							dest_x = random.randrange(100, 500)
-							dest_y = random.randrange(100, 500)
-							send_command(["navigate_to",robot["id"],dest_x,dest_y])
-				
-				delivery = environment["delivery_area"]
-				
-				# for robot in state["robots"]:
-					# if not(robot["is_moving"]):
-						# package = robot["carried"]
-						# list_processes = package["processes"]
-						# send_command(['navigate_to', 505, 400])
+							
+						elif not(robot["in_station"]) or robot["battery"]>=0.9:
+					
+							package_id = robot["carried"]
+							carried_package = None
+							
+							if package_id!=-1:
+								#then robot is carrying a package, need to find it in package list and see where it needs to be delivered
+								
+								for package in state["packages"]:
+									if package["id"] == package_id:
+										carried_package = package
+										break
+										
+							if carried_package != None:
+								destination = None
+								
+								list_processes = package["processes"]
+								if len(list_processes) == 0:
+									destination = environment["delivery_area"]["center"]
+								else:
+									next_process_id = list_processes[0]["id"]
+									possible_machines=[]
+									for machine in environment["machines"]:
+										if next_process_id in machine["processes_list"]:
+											if distance(robot["position"],machine["input_area"]["center"])<100:
+												#machine already close enough so directly chose it as destination
+												destination = machine["input_area"]["center"]
+											else:
+												possible_machines.append(machine)
+									
+									if destination == None and len(possible_machines)>0:
+										chosed_machine = random.sample(possible_machines,1)[0]
+										destination = chosed_machine["input_area"]["center"]
+								
+								if destination != None:
+									if distance(robot["position"],destination) >=100:
+										send_command(["navigate_to",robot["id"]]+destination)
+									elif not(robot["is_rotating"]):
+										#already close enough, check if right angle or not
+										rotation = robot["rotation"]
+										target_rotation = angle(robot["position"],destination)
+										if abs(target_rotation-rotation)<=0.1:
+											send_command(["pickup",robot["id"]])
+										else:
+											send_command(["do_rotation",robot["id"],target_rotation - rotation, 1.5])
+							else:
+								#then robot is not carrying a package so check if there is one to go get
+								possible_packages = []
+								for package in state["packages"]:
+									if package["location_type"] in ["machine_output","arrival"]:
+										possible_packages.append(package)
+								if len(possible_packages)>0:
+									chosed_package = random.sample(possible_packages,1)[0]
+									destination = None
+									if package["location_type"] == "arrival":
+										destination = environment["arrival_area"]["center"]
+									else:
+										destination_id = chosed_package["location_id"]
+										for machine in environment["machines"]:
+											if destination_id == machine["id"]:
+												destination = machine["output_area"]["center"]
+											
+									if destination != None:
+										if distance(robot["position"],destination) >=100:
+											send_command(["navigate_to",robot["id"]]+destination)
+										elif not(robot["is_rotating"]):
+											#already close enough, check if right angle or not
+											rotation = robot["rotation"]
+											target_rotation = angle(robot["position"],destination)
+											if abs(target_rotation-rotation)<=0.1:
+												send_command(["pickup",robot["id"]])
+											else:
+												send_command(["do_rotation",robot["id"],target_rotation - rotation, 1.5])
+					
+														
 					# else:
 						# package_to_get = None
 						# for package in state["packages"]:

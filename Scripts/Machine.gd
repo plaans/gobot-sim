@@ -185,7 +185,15 @@ func update_battery_display():
 	if new_frame != current_battery_frame:
 		current_battery_frame = new_frame
 		display.set_frame(current_battery_frame)	
-			
+		
+func package_location(package):
+	if input_buffer.has(package):
+		return "machine_input"
+	elif output_buffer.has(package):
+		return "machine_output"
+	else:
+		return "machine_inside"		
+		
 func adjust_positions(for_input : bool):
 	#adjust the positions of all packages based on their position in the Array
 	#this will be done for the input belt if for_input=true and for the output belt if for_input=false

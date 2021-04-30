@@ -24,8 +24,8 @@ signal action_done
 
 export var current_battery : float = 10.0
 export var max_battery : float = 10.0
-export var battery_drain_rate : float = 0.5
-export var battery_charge_rate : float = 0.8
+export var battery_drain_rate : float = 0.25
+export var battery_charge_rate : float = 1.5
 export var max_battery_frame : int = 20
 var current_battery_frame : int = 0
 
@@ -119,6 +119,9 @@ func update_battery_display():
 			
 func is_moving():
 	return following
+	
+func is_rotating():
+	return rotating
 
 func goto(dir:float, speed:float, time:float):
 	# dir : rad

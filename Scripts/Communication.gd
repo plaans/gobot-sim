@@ -48,8 +48,6 @@ func _process(delta):
 			
 			#then read if commands were received (read one at most)
 			if client.get_available_bytes() > 0:
-	#			var size= client.get_u32 ()
-	#			if size>0:
 				var response= client.get_string(-1);
 				var json = JSON.parse(response)
 				var content = json.get_result()
@@ -79,6 +77,19 @@ func _process(delta):
 								Logger.log_warning("Instance specified for pickup command is not a robot (instance id %s)" % (robot_id))
 							else:
 								robot.navigate_to(Vector2(dest_x,dest_y))
+					elif command_info[0] == "do_rotation":
+						if command_info.size() != 4:
+							Logger.log_warning("Wrong number of arguments for do_rotation Command, expected 3 and got %s" % (command_info.size() -1))
+						else:
+							var robot_id = command_info[1]
+							var robot = instance_from_id(robot_id)
+							var angle = command_info[2]
+							var speed = command_info[3]
+							
+							if not(robot.has_method("pickup")):#way to check if the instance is a Robot
+								Logger.log_warning("Instance specified for pickup command is not a robot (instance id %s)" % (robot_id))
+							else:
+								robot.do_rotation(angle, speed)
 			
 			#then send state
 			var state_message = encode_current_state()
@@ -183,43 +194,45 @@ func encode_current_state() -> String:
 		state.robots.append(new_robot)
 		
 		new_robot.id = robot.get_instance_id()
-		new_robot.x = robot.position.x
-		new_robot.y = robot.position.y
+		
+		new_robot.position = [robot.position.x, robot.position.y]
+		
+		new_robot.rotation = robot.rotation
+		
 		new_robot.battery = robot.get_battery_proportion()
 		new_robot.is_moving = robot.is_moving()
+		new_robot.is_rotating = robot.is_rotating()
 		new_robot.in_station = robot.get_in_station()
+		
+		#info about if the robot is carrying a package, -1 if not 
+		new_robot.carried = -1
+		for child in robot.get_children():
+			if child.is_in_group("packages"):
+				new_robot.carried = child.get_instance_id()
 		
 
 	#data about packages 
-	state.package = []
+	state.packages = []
 	var packages_list = get_tree().get_nodes_in_group("packages")
 	for package in packages_list:
 
 		var new_package = {}
-		state.package.append(new_package)
+		state.packages.append(new_package)
 
 		new_package.id = package.get_instance_id()
 	
 		var package_parent = package.get_parent()
-
 		if package_parent is KinematicBody2D:
 			#case where this package is currently carried by a robot
 			new_package.location_type = "robot"
-			new_package.location_id = package_parent.get_instance_id()
 		elif package_parent.has_node("Input_Belt"):
 			#case where this package is currently in a machine
-			if package_parent.is_in_group("input"):
-				new_package.location_type = "machine_input"
-			elif package_parent.is_in_group("output"):
-				new_package.location_type = "machine_output"
-			else:
-				new_package.location_type = "machine_inside"
-			new_package.location_id = package_parent.get_instance_id()
+			new_package.location_type = package_parent.package_location(package)
 
 		else: 
 			#case where this package is currently in the arrival zone
 			new_package.location_type = "arrival"
-			new_package.location_id = -1#no id for arrival zone so set to -1
+		new_package.location_id = package_parent.get_instance_id()
 
 		new_package.processes = []
 
