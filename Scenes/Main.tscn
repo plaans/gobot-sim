@@ -1,21 +1,12 @@
-[gd_scene load_steps=13 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://Assets/tileset.tres" type="TileSet" id=1]
 [ext_resource path="res://Scripts/Navigation2D.gd" type="Script" id=2]
 [ext_resource path="res://Scripts/Main.gd" type="Script" id=3]
 [ext_resource path="res://Scenes/Robot.tscn" type="PackedScene" id=4]
 [ext_resource path="res://Scenes/Machine.tscn" type="PackedScene" id=5]
-[ext_resource path="res://Scenes/Arrival_Zone.tscn" type="PackedScene" id=6]
 [ext_resource path="res://Scenes/Package.tscn" type="PackedScene" id=7]
-[ext_resource path="res://Scenes/Delivery_Zone.tscn" type="PackedScene" id=8]
-[ext_resource path="res://Assets/belt_texture.png" type="Texture" id=9]
-[ext_resource path="res://Shaders/Belt_tile_shader.shader" type="Shader" id=11]
 [ext_resource path="res://Scripts/WorldMap.gd" type="Script" id=14]
-
-[sub_resource type="ShaderMaterial" id=1]
-shader = ExtResource( 11 )
-shader_param/dir = Vector2( -2, 0 )
-shader_param/speed = 1.0
 
 [node name="Main" type="Node"]
 script = ExtResource( 3 )
@@ -35,21 +26,5 @@ script = ExtResource( 2 )
 _WorldMapPath = NodePath("../WorldMap")
 nav_margin = 20.0
 
-[node name="Delivery_Zone" parent="." instance=ExtResource( 8 )]
-position = Vector2( 976.439, 303.641 )
-
-[node name="Arrival_Zone" parent="." instance=ExtResource( 6 )]
-position = Vector2( 47.877, 303.641 )
-
 [node name="Robot" parent="." instance=ExtResource( 4 )]
 position = Vector2( 256, 544 )
-
-[node name="Line2D" type="Line2D" parent="."]
-material = SubResource( 1 )
-points = PoolVector2Array( 208, 336, 272, 336, 272, 272, 368, 272 )
-width = 32.0
-default_color = Color( 1, 1, 1, 1 )
-texture = ExtResource( 9 )
-texture_mode = 1
-begin_cap_mode = 1
-end_cap_mode = 1

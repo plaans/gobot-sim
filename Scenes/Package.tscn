@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://Assets/package/package.png" type="Texture" id=1]
 [ext_resource path="res://Scripts/Package.gd" type="Script" id=2]
 [ext_resource path="res://Assets/white_square.png" type="Texture" id=3]
+[ext_resource path="res://Scenes/ProcessesNode.tscn" type="PackedScene" id=4]
 
 [node name="Package" type="PathFollow2D"]
 rotate = false
@@ -14,39 +15,39 @@ script = ExtResource( 2 )
 position = Vector2( -4.76837e-07, 5.96046e-08 )
 texture = ExtResource( 1 )
 
-[node name="Processes" type="Node2D" parent="."]
+[node name="ProcessesNode" parent="." instance=ExtResource( 4 )]
 
-[node name="0" type="Sprite" parent="Processes"]
+[node name="0" type="Sprite" parent="ProcessesNode"]
 visible = false
 position = Vector2( 6.5, -3.5 )
 scale = Vector2( 0.00488281, 0.00488281 )
 texture = ExtResource( 3 )
 
-[node name="1" type="Sprite" parent="Processes"]
+[node name="1" type="Sprite" parent="ProcessesNode"]
 visible = false
 position = Vector2( 9.53674e-07, -3.5 )
 scale = Vector2( 0.00488281, 0.00488281 )
 texture = ExtResource( 3 )
 
-[node name="2" type="Sprite" parent="Processes"]
+[node name="2" type="Sprite" parent="ProcessesNode"]
 visible = false
 position = Vector2( -6.5, -3.5 )
 scale = Vector2( 0.00488281, 0.00488281 )
 texture = ExtResource( 3 )
 
-[node name="3" type="Sprite" parent="Processes"]
+[node name="3" type="Sprite" parent="ProcessesNode"]
 visible = false
 position = Vector2( 6.5, 2.5 )
 scale = Vector2( 0.00488281, 0.00488281 )
 texture = ExtResource( 3 )
 
-[node name="4" type="Sprite" parent="Processes"]
+[node name="4" type="Sprite" parent="ProcessesNode"]
 visible = false
 position = Vector2( 0, 2.5 )
 scale = Vector2( 0.00488281, 0.00488281 )
 texture = ExtResource( 3 )
 
-[node name="5" type="Sprite" parent="Processes"]
+[node name="5" type="Sprite" parent="ProcessesNode"]
 visible = false
 position = Vector2( -6.5, 2.5 )
 scale = Vector2( 0.00488281, 0.00488281 )

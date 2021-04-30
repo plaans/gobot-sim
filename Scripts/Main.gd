@@ -42,17 +42,8 @@ func _ready():
 	initialization()
 
 	for node in get_tree().get_nodes_in_group("stands"):
-		var shape_transform: Transform2D = node.get_node("CollisionShape2D").get_global_transform()
-		var shape: RectangleShape2D = node.get_node("CollisionShape2D").shape
-		var shape_poly := PoolVector2Array([
-			Vector2(-shape.extents.x, -shape.extents.y),
-			Vector2(-shape.extents.x, shape.extents.y),
-			Vector2(shape.extents.x, shape.extents.y),
-			Vector2(shape.extents.x, -shape.extents.y)
-		])
-		shape_poly = shape_transform.xform(shape_poly);
+		var shape_poly: PoolVector2Array = PolyHelper.get_poly_from_collision_shape(node.get_node("CollisionShape2D"))
 		shape_poly = Geometry.offset_polygon_2d(shape_poly, _Navigation.nav_margin)[0]
-
 		_Navigation.set_navpoly(_Navigation.cut_poly(shape_poly, true))
 
 	
@@ -95,34 +86,7 @@ func remove_package(package : Node):
 		packages_list.remove(package_index)
 		
 func initialization():
-	
-	packages_list = []
-	machines_list = []
-	for k in range(3):
-		var machine = MachineScene.instance()
-		add_child(machine)
-		machine.position = Vector2(700, 450 - 150*k)
-		machine.set_id(k)
-		machines_list.append(machine)
-		
-	
-	processes_list=[]
-	processes_list.append([0,2])
-	processes_list.append([0,1])
-	#for example the machines 0 or 2 can be used for the process 0 
-	
-	machines_list[0].set_possible_processes([0,1])  # the machine 0 can do processes 0 or 1
-	machines_list[0].set_buffer_sizes(5,2)
-	machines_list[1].set_possible_processes([1])
-	machines_list[2].set_possible_processes([0])
-	
-	#for testing purposes we use only one package and initially place it at the first stand
-	_Package = PackageScene.instance()
-	_Robot.add_package(_Package)
-	_Package.set_processes([Process.new(0,2),Process.new(1,5)])
-	packages_list.append(processes_list)
-	
-	possible_tasks = [[[0,3],[1,7]]]
+	pass
 	
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
