@@ -119,9 +119,13 @@ func initialization():
 		machines_list.append(machine)
 		
 	machines_list[0].set_buffer_sizes(5,2)
+	machines_list[1].set_buffer_sizes(2,5)
+	machines_list[2].set_buffer_sizes(3,3)
+	machines_list[3].set_buffer_sizes(5,2)
 	
 	load_scenario("res://scenarios/test_scenario.json")
 	
+	_Robot = robots_list[0]
 	
 func load_scenario(file_path : String):
 	var file = File.new()
@@ -169,21 +173,20 @@ func load_scenario(file_path : String):
 				% [x,y,closest_machine.position.x,closest_machine.position.y])
 			
 			closest_machine.set_possible_processes(processes)
+			
+	for k in range(scenario.robots.size()):
+		var new_robot = RobotScene.instance()
+		add_child(new_robot)
+		var new_position = scenario.robots[k].position
+		new_robot.position.x = new_position[0]
+		new_robot.position.y = new_position[1]
+		
+		robots_list.append(new_robot)
 		
 	$Arrival_Zone.set_next_packages(scenario.packages)
 	print( scenario)
 		
-	_Robot = $Robot
 	
-#	var _Package = PackageScene.instance()
-#	packages_list.append(_Package)
-#	_Robot.add_package(_Package)
-#	_Package.set_processes([[0,3],[1,7]])
-	
-	#robots_list[1].add_child(packages_list[1])
-	#packages_list[1].set_processes([[1,7],[0,3]])
-	
-	#_Robot.set_id(0)
 
 func _unhandled_input(event):
 	# From GDQuest - Navigation 2D and Tilemaps

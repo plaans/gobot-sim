@@ -16,6 +16,8 @@ import pprint
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_address = ('localhost', 10000)
 sock.connect(server_address)
+
+environment = None
 	
 def send_command(command_info):
 	#command_info is the list containing the command name and the arguments, for example ['navigate_to', 505, 400]
@@ -35,7 +37,21 @@ def distance(position, destination):
 def angle(position, destination):
 	vector_x = destination[0] - position[0]
 	vector_y = destination[1] - position[1]
-	return numpy.angle(vector_x + vector_y * 1j)
+	angle = (numpy.angle(vector_x + vector_y * 1j)) % (2*math.pi)
+	if angle > math.pi:
+		angle -= 2*math.pi
+	
+	return angle
+
+def position(package):
+	#finds the position of a package by finding its parent
+	if package["location_type"] == "arrival":
+		return environment["arrival_area"]["center"]
+	else:
+		destination_id = package["location_id"]
+		for machine in environment["machines"]:
+			if destination_id == machine["id"]:
+				return  machine["output_area"]["center"]
 
 try:
 
@@ -50,7 +66,7 @@ try:
 
 	#first save environment
 	
-	environment = None
+	
 	length = 0
 	while length == 0:
 		data = sock.recv(4)#because int32
@@ -140,7 +156,7 @@ try:
 									possible_machines=[]
 									for machine in environment["machines"]:
 										if next_process_id in machine["processes_list"]:
-											if distance(robot["position"],machine["input_area"]["center"])<100:
+											if distance(robot["position"],machine["input_area"]["center"])<40:
 												#machine already close enough so directly chose it as destination
 												destination = machine["input_area"]["center"]
 											else:
@@ -151,7 +167,7 @@ try:
 										destination = chosed_machine["input_area"]["center"]
 								
 								if destination != None:
-									if distance(robot["position"],destination) >=100:
+									if distance(robot["position"],destination) >=40:
 										send_command(["navigate_to",robot["id"]]+destination)
 									elif not(robot["is_rotating"]):
 										#already close enough, check if right angle or not
@@ -163,32 +179,32 @@ try:
 											send_command(["do_rotation",robot["id"],target_rotation - rotation, 1.5])
 							else:
 								#then robot is not carrying a package so check if there is one to go get
+								destination = None
+								
 								possible_packages = []
 								for package in state["packages"]:
 									if package["location_type"] in ["machine_output","arrival"]:
-										possible_packages.append(package)
-								if len(possible_packages)>0:
+										if distance(robot["position"],position(package))<100:
+											#package already close enough so directly chose it as destination
+											destination = position(package)
+										else:
+											possible_packages.append(package)
+										
+								if destination == None and len(possible_packages)>0:
 									chosed_package = random.sample(possible_packages,1)[0]
-									destination = None
-									if package["location_type"] == "arrival":
-										destination = environment["arrival_area"]["center"]
-									else:
-										destination_id = chosed_package["location_id"]
-										for machine in environment["machines"]:
-											if destination_id == machine["id"]:
-												destination = machine["output_area"]["center"]
+									destination = position(chosed_package)
 											
-									if destination != None:
-										if distance(robot["position"],destination) >=100:
-											send_command(["navigate_to",robot["id"]]+destination)
-										elif not(robot["is_rotating"]):
-											#already close enough, check if right angle or not
-											rotation = robot["rotation"]
-											target_rotation = angle(robot["position"],destination)
-											if abs(target_rotation-rotation)<=0.1:
-												send_command(["pickup",robot["id"]])
-											else:
-												send_command(["do_rotation",robot["id"],target_rotation - rotation, 1.5])
+								if destination != None:
+									if distance(robot["position"],destination) >=100:
+										send_command(["navigate_to",robot["id"]]+destination)
+									elif not(robot["is_rotating"]):
+										#already close enough, check if right angle or not
+										rotation = robot["rotation"]
+										target_rotation = angle(robot["position"],destination)
+										if abs(target_rotation-rotation)<=0.1:
+											send_command(["pickup",robot["id"]])
+										else:
+											send_command(["do_rotation",robot["id"],target_rotation - rotation, 1.5])
 					
 														
 					# else:

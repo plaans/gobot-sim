@@ -32,6 +32,8 @@ var current_battery_frame : int = 0
 var blinking_rect 
 var original_color
 
+var broken : bool = false
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	input_buffer=[]
@@ -71,7 +73,6 @@ func set_id(id : int):
 	
 func get_id() -> int:
 	return machine_id
-	
 
 func can_accept_package(package : Node):
 	#returns true if both there is space in the input_buffer and the machine can accept the package
@@ -301,59 +302,62 @@ func move_packages():
 		for k in range(1,input_buffer.size()):
 			var package = input_buffer[k]
 			interpolate_package_position(package, k, true, k-1, true, progress_ratio)
+			
+func broke():
+	broken = true
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	
-	if taskInProgress:
-		timeSinceStart += delta
-		move_packages()
-		
-		#update color of display
-		if blinking_rect!=null:
-			var new_color = Color.from_hsv(original_color.h, 0.2, original_color.v)
-			blinking_rect.modulate = original_color.linear_interpolate(new_color, 0.5+0.5*sin(-PI/2 + 5*timeSinceStart)) 
-		
-		if 	timeSinceStart/taskDuration>=0.75 and ((timeSinceStart-delta)/taskDuration<0.75):
-			#remove task from list of the package (because it was done)
-			var tasks_list = current_package.get_processes()
-			tasks_list.remove(tasks_list.find([current_process_id,taskDuration]))
-			current_package.update_tasks_display()
+	if not(broken):
+		if taskInProgress:
+			timeSinceStart += delta
+			move_packages()
 			
-		if timeSinceStart >= taskDuration:
-			#task ended so check if space available on output belt
-			if output_buffer.size()<output_size:
-				taskInProgress = false
-				input_buffer.pop_front()
+			#update color of display
+			if blinking_rect!=null:
+				var new_color = Color.from_hsv(original_color.h, 0.2, original_color.v)
+				blinking_rect.modulate = original_color.linear_interpolate(new_color, 0.5+0.5*sin(-PI/2 + 5*timeSinceStart)) 
+			
+			if 	timeSinceStart/taskDuration>=0.75 and ((timeSinceStart-delta)/taskDuration<0.75):
+				#remove task from list of the package (because it was done)
+				var tasks_list = current_package.get_processes()
+				tasks_list.remove(tasks_list.find([current_process_id,taskDuration]))
+				current_package.update_tasks_display()
 				
-				#add package to output belt
-				output_buffer.push_front(current_package)
-				#adjust_positions(false)
+			if timeSinceStart >= taskDuration:
+				#task ended so check if space available on output belt
+				if output_buffer.size()<output_size:
+					taskInProgress = false
+					input_buffer.pop_front()
+					
+					#add package to output belt
+					output_buffer.push_front(current_package)
+					#adjust_positions(false)
+					
+					if blinking_rect!= null:
+						blinking_rect.modulate = original_color
+						blinking_rect = null
+					
+					Logger.log_info("%-12s %8s %8s %8s" % ["processed", machine_id, current_process_id, taskDuration])
+			
+		else:
+			#case where no task currently processed, so check if package waiting in input_buffer and space in output_buffer
+			if input_buffer.size()>0 and output_buffer.size()<output_size:
+				current_package = input_buffer[0]
+				#current_package.position.x = 0 #to remove the relative position used while on the belt
+				#adjust_positions(true)
 				
+				var process = process_to_be_done(current_package)#we know process will not be null since we checked when putting in input_buffer
+				current_process_id = process[0]
+				taskDuration = process[1]
+				
+				timeSinceStart = 0.0
+				taskInProgress = true
+				
+				blinking_rect = find_rect(current_process_id)
 				if blinking_rect!= null:
-					blinking_rect.modulate = original_color
-					blinking_rect = null
+					original_color = blinking_rect.modulate
 				
-				Logger.log_info("%-12s %8s %8s %8s" % ["processed", machine_id, current_process_id, taskDuration])
-		
-	else:
-		#case where no task currently processed, so check if package waiting in input_buffer and space in output_buffer
-		if input_buffer.size()>0 and output_buffer.size()<output_size:
-			current_package = input_buffer[0]
-			#current_package.position.x = 0 #to remove the relative position used while on the belt
-			#adjust_positions(true)
-			
-			var process = process_to_be_done(current_package)#we know process will not be null since we checked when putting in input_buffer
-			current_process_id = process[0]
-			taskDuration = process[1]
-			
-			timeSinceStart = 0.0
-			taskInProgress = true
-			
-			blinking_rect = find_rect(current_process_id)
-			if blinking_rect!= null:
-				original_color = blinking_rect.modulate
-			
-	update_battery_display()		
+		update_battery_display()		
 	
  

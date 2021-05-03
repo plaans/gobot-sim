@@ -127,7 +127,7 @@ func goto(dir:float, speed:float, time:float):
 	# dir : rad
 	# speed : px/s
 	# time : s
-	Logger.log_info("%-12s %8.3f;%8.3f;%8.3f" % ["goto", dir, speed, time])
+	#Logger.log_info("%-12s %8.3f;%8.3f;%8.3f" % ["goto", dir, speed, time])
 	move_time = time
 	velocity = speed * Vector2.RIGHT.rotated(dir) # already normalized
 	moving = true
@@ -145,7 +145,6 @@ func navigate_to(point: Vector2):
 		new_path_line.default_color = Color(1,1,1,0.5)
 		self.path_line = new_path_line
 		_nav.add_child(new_path_line)
-		
 		following = true
 		current_path_point = 0
 		
@@ -185,7 +184,7 @@ func stop_rotation():
 	rotate_time = 0.0
 	
 func pickup():
-	Logger.log_info("%-12s" % "pickup")
+	#Logger.log_info("%-12s" % "pickup")
 	if carried_package==null:
 		#no package carried so pick up function
 		

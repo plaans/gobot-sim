@@ -51,6 +51,7 @@ func _process(delta):
 				var response= client.get_string(-1);
 				var json = JSON.parse(response)
 				var content = json.get_result()
+				print( content)
 				
 				if content.has("robot_command"):
 					var command_info = content["robot_command"]
@@ -63,6 +64,7 @@ func _process(delta):
 							if not(robot.has_method("pickup")):#way to check if the instance is a Robot
 								Logger.log_warning("Instance specified for pickup command is not a robot (instance id %s)" % (robot_id))
 							else:
+								Logger.log_info("%-12s %8s" % ["pickup", robot_id])
 								robot.pickup()
 					elif command_info[0] == "navigate_to":
 						if command_info.size() != 4:
@@ -76,6 +78,7 @@ func _process(delta):
 							if not(robot.has_method("pickup")):#way to check if the instance is a Robot
 								Logger.log_warning("Instance specified for pickup command is not a robot (instance id %s)" % (robot_id))
 							else:
+								Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["navigate_to", robot_id, dest_x, dest_y])
 								robot.navigate_to(Vector2(dest_x,dest_y))
 					elif command_info[0] == "do_rotation":
 						if command_info.size() != 4:
@@ -89,6 +92,7 @@ func _process(delta):
 							if not(robot.has_method("pickup")):#way to check if the instance is a Robot
 								Logger.log_warning("Instance specified for pickup command is not a robot (instance id %s)" % (robot_id))
 							else:
+								Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["do_rotation", robot_id, angle, speed])
 								robot.do_rotation(angle, speed)
 			
 			#then send state
