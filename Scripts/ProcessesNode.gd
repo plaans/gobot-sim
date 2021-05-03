@@ -18,7 +18,8 @@ func _ready():
 
 # Updates the processes displays to show available processes
 func update_processes_display():
-	if processes.size() == 0 or !processes_displays:
+	# Skip function if the node has not entered the scene tree
+	if !is_inside_tree():
 		return
 	
 	for i in processes_displays.size():

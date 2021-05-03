@@ -3,6 +3,7 @@ extends StaticBody2D
 # A belt that needs to be linked to a machine to work.
 # The link to the machine is only logical and does not affect the hierarchy of the scene.
 # Linking is done from the machine, by setting this node as an input or output belt.
+# To make the belt itself, set the size and the line points at any time.
 #
 # belt_type affects the visual direction of the belt and the way packages are accepted
 
@@ -12,7 +13,7 @@ enum BeltType {
 	OUTPUT
 }
 export(BeltType) var belt_type = BeltType.INPUT
-export var size : int = 0 setget set_size, get_size # slots
+export var size : int = 1 setget set_size, get_size # slots
 export var visual_speed: float = 1.0 setget set_visual_speed, get_visual_speed # slot/s
 var packages: Array = []
 var machine: Node = null # reference to the machine the belt is linked to
@@ -23,9 +24,9 @@ onready var _PackagePath = $PackagePath
 onready var _VisualLine = $Line2D
 
 func _ready():
-	# At the start of the simulation, make the line if there are points
+	# At the start of the simulation, make the line if there are points already set
 	if line_points:
-		setup_line(line_points)
+		setup_line()
 	
 	_VisualLine.material.set_shader_param("speed", visual_speed)
 
@@ -44,7 +45,7 @@ func get_visual_speed():
 
 func set_line_points(new_points: PoolVector2Array):
 	line_points = new_points
-	setup_line(line_points)
+	setup_line()
 func get_line_points():
 	return line_points
 
@@ -54,29 +55,33 @@ func is_empty():
 	return packages.size() == 0
 
 # Note: must be called after node entered the tree, or it will not have any effect
-func setup_line(new_points: PoolVector2Array):
-	if !is_inside_tree():
+func setup_line():
+	# Skip function if the node has not entered the scene tree, or if there are
+	# no line_points specified
+	if !is_inside_tree() or !line_points:
 		return
-	# Copy the points given at initialization to the Line2D
-	if belt_type == BeltType.INPUT:
-		new_points.invert()
-	_VisualLine.points = new_points
-	# then create the path the packages will follow
-	# from the points of the visual line
+	
+	var new_points = line_points
 	var new_curve = Curve2D.new()
+	# The belt is caculated starting from the machine, and so the order 
+	# of the points needs to be inverted if the belt_type is an OUTPUT
+	if belt_type == BeltType.OUTPUT:
+		new_points.invert()
+	
+	_VisualLine.points = new_points
 	for point in new_points:
 		new_curve.add_point(point)
 	_PackagePath.curve = new_curve
 
-# Used by a robot or a machine to place a package on the belt.
+# Used called by a robot or a machine trying to place a package on the belt.
 # If the belt is full return false, else return true
 # If the belt is an input, check if the linked machine accepts the package and
 # return the result.
-func can_accept_package(package: Node, mode: int = 0)->bool:
+func can_accept_package(package: Node)->bool:
 	if is_full():
 		return false
 	elif machine and belt_type == BeltType.INPUT:
-		return machine.match_process(package, mode)
+		return machine.match_process(package)
 	else:
 		return true
 

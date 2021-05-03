@@ -2,8 +2,13 @@ extends Node2D
 
 var delivery_limit: float setget set_delivery_limit, get_delivery_limit
 # deadline for delivering the package
-onready var _Processes = $ProcessesNode
+onready var processes = $ProcessesNode
 # List of processes and helper to display processes colors
+enum ProcessMode {
+	PROCESS_FIRST,
+	PROCESS_ANY
+}
+export(ProcessMode) var process_mode = ProcessMode.PROCESS_FIRST
 
 func _ready():
 	pass
