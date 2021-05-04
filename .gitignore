@@ -23,6 +23,3 @@ logs/
 
 *.pyc
 
-# Test Resources
-TestResources/
-

@@ -1,0 +1,27 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://Scripts/Belt.gd" type="Script" id=1]
+[ext_resource path="res://Assets/belt_texture.png" type="Texture" id=2]
+[ext_resource path="res://Shaders/belt_tile.shader" type="Shader" id=3]
+
+[sub_resource type="ShaderMaterial" id=1]
+shader = ExtResource( 3 )
+shader_param/dir = Vector2( 1, 0 )
+shader_param/speed = 0.0
+
+[node name="Belt" type="StaticBody2D"]
+script = ExtResource( 1 )
+
+[node name="Line2D" type="Line2D" parent="."]
+material = SubResource( 1 )
+width = 32.0
+default_color = Color( 1, 1, 1, 1 )
+texture = ExtResource( 2 )
+texture_mode = 1
+begin_cap_mode = 1
+end_cap_mode = 1
+
+[node name="PackagePath" type="Path2D" parent="."]
+curve = null
+
+[node name="Tween" type="Tween" parent="."]

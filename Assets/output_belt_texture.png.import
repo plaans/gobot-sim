@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Machine-7.png-e655e72a2246d17a811825c02322c406.stex"
+path="res://.import/output_belt_texture.png-b6e14922f9b649c97d0e79304eab7945.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/machine/Machine-7.png"
-dest_files=[ "res://.import/Machine-7.png-e655e72a2246d17a811825c02322c406.stex" ]
+source_file="res://Assets/output_belt_texture.png"
+dest_files=[ "res://.import/output_belt_texture.png-b6e14922f9b649c97d0e79304eab7945.stex" ]
 
 [params]
 
@@ -30,5 +30,5 @@ process/HDR_as_SRGB=false
 process/invert_color=false
 stream=false
 size_limit=0
-detect_3d=true
+detect_3d=false
 svg/scale=1.0

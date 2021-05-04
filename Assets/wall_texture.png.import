@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Machine-9.png-40311ddd30488e1f60e1ec4949c87e7c.stex"
+path="res://.import/wall_texture.png-23d474b295121b4fb9a53505e98814e9.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/machine/Machine-9.png"
-dest_files=[ "res://.import/Machine-9.png-40311ddd30488e1f60e1ec4949c87e7c.stex" ]
+source_file="res://Assets/wall_texture.png"
+dest_files=[ "res://.import/wall_texture.png-23d474b295121b4fb9a53505e98814e9.stex" ]
 
 [params]
 
@@ -30,5 +30,5 @@ process/HDR_as_SRGB=false
 process/invert_color=false
 stream=false
 size_limit=0
-detect_3d=true
+detect_3d=false
 svg/scale=1.0

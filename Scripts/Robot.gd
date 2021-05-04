@@ -25,14 +25,13 @@ export var battery_charge_rate : float = 0.8
 export var max_battery_frame : int = 20
 var current_battery_frame : int = 0
 
-var in_station : bool
+var in_station: bool setget set_in_station,get_in_station
+var in_interact: bool setget set_in_interact,get_in_interact
 
-onready var raycast : RayCast2D = RayCast2D.new()
+onready var raycast : RayCast2D = $RayCast2D
 
 func _ready():
-	add_child(raycast)
-	raycast.set_enabled(true)
-	raycast.set_cast_to(Vector2( 1500,0 ))
+	pass
 
 func _physics_process(delta):
 	if !moving && following:
@@ -87,19 +86,29 @@ func _process(delta):
 		current_battery = min(max_battery, current_battery + battery_charge_rate*delta)
 		var original_color = Color(1,1,1)
 		var new_color = Color(0.5,1,1)
-		$Sprite.modulate = original_color.linear_interpolate(new_color, 0.5+0.5*sin(-PI/2 + 5*OS.get_ticks_msec()/1000)) 
 
 	update_battery_display()
 	
 func set_in_station(state : bool):
 	in_station = state
+	if in_station:
+		$AnimationPlayer.play("charging")
+	else:
+		$AnimationPlayer.seek(0,true)
+		$AnimationPlayer.stop()
 	
 func get_in_station() -> bool:
 	return in_station
+
+func set_in_interact(state : bool):
+	in_interact = state
+	
+func get_in_interact() -> bool:
+	return in_interact
 			
 func update_battery_display():
 	var display = $Sprite
-	var new_frame = int(max_battery_frame - (current_battery / max_battery) * max_battery_frame)
+	var new_frame = int((current_battery / max_battery) * max_battery_frame)
 	if new_frame != current_battery_frame:
 		current_battery_frame = new_frame
 		display.frame = new_frame
@@ -172,7 +181,7 @@ func pickup():
 		#no package carried so pick up function
 		
 		#first find the closest output stand
-		var closest_stand = find_closest_stand("output")
+		var closest_stand = find_target_stand("output")
 		
 		if closest_stand !=null:
 			var machine = closest_stand.get_parent() #get machine corresponding to this output stand
@@ -187,7 +196,7 @@ func pickup():
 		#already carrying a package so drop off function
 		
 		#first find the closest input stand
-		var closest_stand = find_closest_stand("input")
+		var closest_stand = find_target_stand("input")
 		
 		if closest_stand !=null:
 			var machine = closest_stand.get_parent() #get machine corresponding to this input stand
@@ -199,23 +208,31 @@ func pickup():
 		else:
 			Logger.log_warning("No stand found for pickup call")
 				
-func is_facing(body : Node) -> bool:
+#func is_facing(body : Node) -> bool:
+#
+#	var collider = raycast.get_collider()
+#	return collider == body
 	
-	var collider = raycast.get_collider()
-	return collider == body
-	
-func find_closest_stand(group : String):
+func find_target_stand(group : String):
 	#if no stands in pickup radius returns null
 	#if multiple stands are in pickup radius returns the closest one
+	if !in_interact:
+		return null
 	
-	var stands = $Area2D.get_overlapping_bodies()
-	var closest_stand = null
-	var dist_min=1000000
-	for stand in stands:
-		if stand.is_in_group(group) and is_facing(stand):
-			var distance = self.position.distance_to(stand.position)
-			if distance <= dist_min:
-				dist_min = distance
-				closest_stand = stand	
-	return closest_stand
+	var target_stand = raycast.get_collider()
+	if target_stand and target_stand.is_in_group(group):
+		return target_stand
+	else:
+		return null
+	
+#	var stands = $Area2D.get_overlapping_bodies()
+#	var closest_stand = null
+#	var dist_min=1000000
+#	for stand in stands:
+#		if stand.is_in_group(group) and is_facing(stand):
+#			var distance = self.position.distance_to(stand.position)
+#			if distance <= dist_min:
+#				dist_min = distance
+#				closest_stand = stand	
+#	return closest_stand
 	
