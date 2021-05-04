@@ -38,10 +38,12 @@ func _process(delta):
 
 func set_input_belt(belt: Node):
 	input_belt = belt
-	belt.machine = self
+	if belt:
+		belt.machine = self
 func set_output_belt(belt: Node):
 	output_belt = belt
-	belt.machine = self
+	if belt:
+		belt.machine = self
 
 # Given a package returns true if the package's processes 
 # are compatible with the machine, else returns false.
