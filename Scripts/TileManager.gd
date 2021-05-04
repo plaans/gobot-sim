@@ -21,7 +21,7 @@ const DIRS_8 = [
 		Vector2(-1, 1)
 	]
 
-enum Priority {
+enum {
 	CLOCKWISE,
 	COUNTER_CLOCKWISE
 }
@@ -57,12 +57,22 @@ func get_connected_cells_by_ids(world: TileWorld, ids: Array)->Array:
 			if cells[i][j] in ids:
 				# from world data coordinates to real coordinates
 				connected_cells.append( cells_transform.xform( fill_cells(cells, Vector2(i,j), world.size, ids)))
-	
 	return connected_cells
 
 # same as get_connected_cells_by_ids(), but using an array of tile names instead.
 func get_connected_cells_by_group(world: TileWorld, group: Array)->Array:
 	return get_connected_cells_by_ids(world, get_ids_from_group(group))
+
+
+func get_adjacent_cells_by_ids(pos: Vector2, ids: Array)->Array:
+	var adjacent_cells = []
+	for dir in DIRS_4:
+		if tilemap.get_cellv(pos+dir) in ids:
+			adjacent_cells.append(pos+dir)
+	return adjacent_cells
+
+func get_adjacent_cells_by_group(pos: Vector2, group: Array)->Array:
+	return get_adjacent_cells_by_ids(pos, get_ids_from_group(group))
 
 # Given a TileWorld, returns a rectangular polygon as a PoolVector2Array encasing the whole used area.
 func get_outline(world: TileWorld)->PoolVector2Array:
@@ -72,6 +82,15 @@ func get_outline(world: TileWorld)->PoolVector2Array:
 		(world.offset + world.size) * tilemap.cell_size, 
 		Vector2(world.offset.x + world.size.x, world.offset.y) * tilemap.cell_size,
 	])
+
+# Given an array of cell position, returns an array of 2-values arrays.
+# This is used to transform a PoolVector2Array into a JSON-compatible structure
+# Note: not recommended for big arrays of Vector2
+func cells_to_arrays(cells: Array)->Array:
+	var new_array = []
+	for cell in cells:
+		new_array.append([cell.x,cell.y])
+	return new_array
 
 # Given an array of cell positions, returns an array of polygons matching the cells, merged if intersecting.
 # Note: if the tile in the cell doesn't have a collision shape defined, the polygon will be defined automatically
@@ -138,7 +157,7 @@ func fill_cells(cells: Array, start: Vector2, size: Vector2, ids: Array)->PoolVe
 	while queue.size() > 0:
 		for dir in DIRS_4:
 			var new_pos = queue[0]+dir
-			if(is_cell_valid(cells, new_pos, size, ids)):
+			if is_cell_valid(cells, new_pos, size, ids):
 				queue.append(new_pos)
 				filled_cells.append(new_pos)
 				cells[new_pos.x][new_pos.y] = fill_id
@@ -151,7 +170,7 @@ func fill_cells(cells: Array, start: Vector2, size: Vector2, ids: Array)->PoolVe
 func fill_adjacent_cells(cells: Array, pos: Vector2, size: Vector2, ids: Array)->Array:
 	var fill_id = -10
 	var filled_cells = []
-	# from real coordinates to world data coordinates
+	
 	for dir in DIRS_4:
 		var new_pos = pos+dir
 		if is_cell_valid(cells, new_pos, size, ids):
@@ -159,6 +178,25 @@ func fill_adjacent_cells(cells: Array, pos: Vector2, size: Vector2, ids: Array)-
 			cells[new_pos.x][new_pos.y] = fill_id
 	
 	return filled_cells
+
+# Similar to fill_adjacent_cells, but only fills and returns the first cell.
+# The priority can be used to get different results, but has no impact on the complexity
+func fill_first_adjacent_cell(cells: Array, pos: Vector2, size: Vector2, ids: Array, priority: int = CLOCKWISE)->Vector2:
+	var fill_id = -10
+	var filled_cell = null
+	var dirs = DIRS_4
+	if priority == COUNTER_CLOCKWISE:
+		dirs.invert()
+	
+	var i := 0
+	while i < dirs.size() and !filled_cell:
+		var new_pos = pos+dirs[i]
+		if is_cell_valid(cells, new_pos, size, ids):
+			filled_cell = new_pos
+			cells[new_pos.x][new_pos.y] = fill_id
+		i += 1
+	
+	return filled_cell
 
 # Given an array of cells, a starting cell position, a direction to fill, the size of the area and an array of ids,
 # fills a line of connected cell in the given direction, with an id present in the ids array, and returns
@@ -175,7 +213,7 @@ func fill_directional_cells(cells: Array, start: Vector2, dir: Vector2, size: Ve
 	
 	while queue.size() > 0:
 		var new_pos = queue[0]+dir
-		if(is_cell_valid(cells, new_pos, size, ids)):
+		if is_cell_valid(cells, new_pos, size, ids):
 			queue.append(new_pos)
 			filled_cells.append(new_pos)
 			cells[new_pos.x][new_pos.y] = fill_id

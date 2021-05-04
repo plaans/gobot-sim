@@ -108,7 +108,6 @@ func set_process_blinking(blink: bool, speed: float = 4.0):
 	if current_display_index >= 0:
 		target_display = processes.processes_displays[current_display_index]
 	
-	print(current_display_index, target_display)
 	if blink:
 		if target_display:
 			tween.remove(target_display)
