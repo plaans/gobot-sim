@@ -26,14 +26,14 @@ func _ready():
 	new_park_area.name = "ParkingArea "+str(new_park_area)
 	for col_poly in manager.collision_polys_from_group(world, GROUP_PARKING):
 		new_park_area.add_child(col_poly)
-	self.add_child(new_park_area)
+	add_child(new_park_area)
 	
 	# Make multiple InteractAreas
 	for col_poly in manager.collision_polys_from_group(world, GROUP_INTERACT):
 		var new_interact_area = interact_area_res.instance()
 		new_interact_area.name = "InteractArea "+str(new_interact_area)
 		new_interact_area.add_child(col_poly)
-		self.add_child(new_interact_area)
+		add_child(new_interact_area)
 	
 	# Make the machines
 	var machines = make_machines()
@@ -86,8 +86,8 @@ func make_single_belt(start: Vector2, next: Vector2, id: int, type: int):
 	var cell_transform := Transform2D(0, world.offset)
 	
 	# Fill directionnally, get first adjacent tile, repeat from there
-	var pos = cell_transform.xform(start)
-	var next_pos = cell_transform.xform(next)
+	var pos = cell_transform.xform_inv(start)
+	var next_pos = cell_transform.xform_inv(next)
 	while next_pos:
 		var new_line = manager.fill_directional_cells(cells, next_pos, next_pos-pos, world.size, [id])
 		if new_line.size() > 0:
@@ -102,13 +102,17 @@ func make_single_belt(start: Vector2, next: Vector2, id: int, type: int):
 	var i := 0
 	while i < belt_lines.size():
 		if i == 0:
-			new_points.append(map_to_world(cell_transform.xform_inv(belt_lines[i][0])) + cell_size/2)
-		new_points.append(map_to_world(cell_transform.xform_inv(belt_lines[i][-1])) + cell_size/2)
+			new_points.append(map_to_world(cell_transform.xform(belt_lines[i][0])) + cell_size/2)
+		new_points.append(map_to_world(cell_transform.xform(belt_lines[i][-1])) + cell_size/2)
 		i += 1 # Well, of course it gets stuck if you forget this !
 	# Create the Belt object itself
 	var new_belt = belt_res.instance()
 	new_belt.belt_type = type
 	new_belt.line_points = new_points
+	
+	# TODO: add collision poly to the belt, remove collision from the tiles
+	# TODO: rework navigation cutout system
+	
 	add_child(new_belt)
 	
 	return new_belt
