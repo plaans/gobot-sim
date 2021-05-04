@@ -77,7 +77,11 @@ func _physics_process(delta):
 func _process(delta):
 	#is_facing(get_node("../Machine/Input_Belt"))
 	if not(in_station):
-		current_battery = max(0, current_battery - battery_drain_rate*delta)
+		var new_battery = max(0, current_battery - battery_drain_rate*delta)
+		if current_battery>0 and new_battery==0:
+			Logger.log_info("Battery became empty for robot of id %s" % self.get_instance_id())
+		current_battery = new_battery
+		$Sprite.modulate = Color(1,1,1)
 	else:
 		current_battery = min(max_battery, current_battery + battery_charge_rate*delta)
 		var original_color = Color(1,1,1)
@@ -185,6 +189,8 @@ func pickup():
 				
 			if machine.is_output_available():
 				add_package(machine.take())
+		else:
+			Logger.log_warning("No stand found for pickup call")
 				
 	else: 
 		#already carrying a package so drop off function
@@ -199,6 +205,8 @@ func pickup():
 				carried_package.position.x=0
 				machine.add_package(carried_package)
 				carried_package = null 
+		else:
+			Logger.log_warning("No stand found for pickup call")
 				
 #func is_facing(body : Node) -> bool:
 #
