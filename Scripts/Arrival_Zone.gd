@@ -34,6 +34,7 @@ func take():
 func _process(delta):
 	if output_buffer.size()==0 and next_packages.size()>0:
 		var new_package = PackageScene.instance()
+		new_package.set_name(get_parent().new_package_name())
 		add_child(new_package)
 		var processes_list = next_packages.pop_front()
 		for i in range (processes_list.size()):

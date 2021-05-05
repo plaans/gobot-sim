@@ -17,8 +17,7 @@ var path_line: Line2D
 var following: bool = false
 var current_path_point: int = 0
 
-var robot_id : int
-#id to uniquely identify this robot (also attributed from Main node)
+var robot_name
 
 signal action_done
 
@@ -37,6 +36,8 @@ func _ready():
 	add_child(raycast)
 	raycast.set_enabled(true)
 	raycast.set_cast_to(Vector2( 1500,0 ))
+	add_to_group("export_static")
+	add_to_group("export_dynamic")
 
 func _physics_process(delta):
 	if !moving && following:
@@ -94,18 +95,18 @@ func _process(delta):
 		$Sprite.modulate = original_color.linear_interpolate(new_color, 0.5+0.5*sin(-PI/2 + 5*OS.get_ticks_msec()/1000)) 
 
 	update_battery_display()
+
+func set_name(name : String):
+	robot_name = name
+	
+func get_name() -> String:
+	return robot_name
 	
 func set_in_station(state : bool):
 	in_station = state
 	
 func get_in_station() -> bool:
 	return in_station
-			
-func set_id(id : int):
-	robot_id = id
-	
-func get_id() -> int:
-	return robot_id
 	
 func get_battery_proportion():
 	return current_battery / max_battery
@@ -235,4 +236,18 @@ func find_closest_stand(group : String):
 				dist_min = distance
 				closest_stand = stand	
 	return closest_stand
+	
+func export_static():
+	return [["robot", robot_name]]
+	
+func export_dynamic():
+	var export_data=[]
+	export_data.append(["coordinates", robot_name, [position.x, position.y]])
+	export_data.append(["rotation", robot_name, rotation])
+	export_data.append(["battery", robot_name, get_battery_proportion()])
+	export_data.append(["is_moving", robot_name, is_moving()])
+	export_data.append(["is_rotating", robot_name, is_rotating()])
+	export_data.append(["in_station", robot_name, in_station])
+	return export_data
+		
 	

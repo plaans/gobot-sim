@@ -4,8 +4,7 @@ extends Node2D
 # Declare member variables here. Examples:
 
 
-var package_id : int
-#id to uniquely identify this package (also attributed from Main node)
+var package_name
 
 var colors_sprites : Array #will contain the array of the sprites used to store colors
 const color_palette : Array = ["cornflower", "crimson ", "yellow", "seagreen", "sandybrown", "skyblue ", "lightpink ", "palegreen ", "aquamarine", "saddlebrown"] #list of colorsto be used to represent processes
@@ -19,15 +18,16 @@ var delivery_limit : float
 
 var location #node currently carrying the package
 
-
-func set_id(id : int):
-	package_id = id
+func set_name(name : String):
+	package_name = name
 	
-func get_id() -> int:
-	return package_id
+func get_name() -> String:
+	return package_name
 
 func _ready():
 	generates_display()
+	add_to_group("export_static")
+	add_to_group("export_dynamic")
 	
 
 func generates_display():
@@ -87,3 +87,14 @@ func get_location() -> Node:
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 #func _process(delta):
 #	pass
+
+func export_static():
+	return [["package", package_name]]
+	
+func export_dynamic():
+	var export_data=[]
+	export_data.append(["location", package_name, get_parent().get_name()])
+	export_data.append(["processes", package_name, get_processes()])
+	
+	return export_data
+

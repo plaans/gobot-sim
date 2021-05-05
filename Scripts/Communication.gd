@@ -132,127 +132,145 @@ func set_area_parameters(area, stand : Node):
 func encode_environment_description() -> String:
 	#creates and serializes a protocol buffer containing the description of the environment of the simulation
 	
-	var env = {}
+#	var env = {}
+#
+#	#info about arrival and delivery areas
+#
+#	env.arrival_area = {}
+#	var arrival = get_tree().get_nodes_in_group("arrival")[0]
+#	env.arrival_area.id = arrival.get_instance_id()
+#	set_area_parameters(env.arrival_area, arrival.get_node("Output_Belt"))
+#
+#	env.delivery_area = {}
+#	var delivery = get_tree().get_nodes_in_group("delivery")[0]
+#	env.delivery_area.id = delivery.get_instance_id()
+#	set_area_parameters(env.delivery_area, delivery.get_node("Input_Belt"))
+#
+#	#info about machines
+#	env.machines = []
+#	var machines_list = get_tree().get_nodes_in_group("machines")
+#	for machine in machines_list:
+#		var new_machine = {}
+#		env.machines.append(new_machine)
+#
+#		new_machine.id = machine.get_instance_id()
+#
+#		new_machine.input_area = {}
+#		set_area_parameters(new_machine.input_area, machine.get_node("Input_Belt"))
+#
+#		new_machine.output_area = {}
+#		set_area_parameters(new_machine.output_area, machine.get_node("Output_Belt"))
+#
+#		var buffer_sizes = machine.get_buffer_sizes()
+#		new_machine.input_size = buffer_sizes[0]
+#		new_machine.output_size = buffer_sizes[1]
+#
+#		new_machine.processes_list = machine.get_possible_processes()
+#
+#	#info about charging area
+#	env.parking_areas = []
+#	var parking_area_zones = get_tree().get_nodes_in_group("parking_area_poly")
+#	for zone in parking_area_zones:
+#		var new_zone = {}
+#		env.parking_areas.append(new_zone)
+#		new_zone.id = zone.get_instance_id()
+#
+#		var new_polygon = {}
+#		new_zone.polygon = new_polygon
+#
+#		var polygon = zone.get_polygon()
+#		var center_vector = polygon_center(polygon)
+#		new_polygon.center = [center_vector.x,center_vector.y]
+#		new_polygon.points = polygon
+
+	var env = []
 	
-	#info about arrival and delivery areas
-	
-	env.arrival_area = {}
-	var arrival = get_tree().get_nodes_in_group("arrival")[0]
-	env.arrival_area.id = arrival.get_instance_id()
-	set_area_parameters(env.arrival_area, arrival.get_node("Output_Belt"))
-	
-	env.delivery_area = {}
-	var delivery = get_tree().get_nodes_in_group("delivery")[0]
-	env.delivery_area.id = delivery.get_instance_id()
-	set_area_parameters(env.delivery_area, delivery.get_node("Input_Belt"))
-
-	#info about machines
-	env.machines = []
-	var machines_list = get_tree().get_nodes_in_group("machines")
-	for machine in machines_list:
-		var new_machine = {}
-		env.machines.append(new_machine)
-
-		new_machine.id = machine.get_instance_id()
-
-		new_machine.input_area = {}
-		set_area_parameters(new_machine.input_area, machine.get_node("Input_Belt"))
-
-		new_machine.output_area = {}
-		set_area_parameters(new_machine.output_area, machine.get_node("Output_Belt"))
-
-		var buffer_sizes = machine.get_buffer_sizes()
-		new_machine.input_size = buffer_sizes[0]
-		new_machine.output_size = buffer_sizes[1]
-
-		new_machine.processes_list = machine.get_possible_processes()
-		
-	#info about charging area
-	env.parking_areas = []
-	var parking_area_zones = get_tree().get_nodes_in_group("parking_area_poly")
-	for zone in parking_area_zones:
-		var new_zone = {}
-		env.parking_areas.append(new_zone)
-		new_zone.id = zone.get_instance_id()
-		
-		var new_polygon = {}
-		new_zone.polygon = new_polygon
-		
-		var polygon = zone.get_polygon()
-		var center_vector = polygon_center(polygon)
-		new_polygon.center = [center_vector.x,center_vector.y]
-		new_polygon.points = polygon
+	var static_nodes = get_tree().get_nodes_in_group("export_static")
+	for node in static_nodes:
+	  var static_data = node.call("export_static")
+	  env = env + static_data
 	
 	return JSON.print(env)
 
 func encode_current_state() -> String:
 	#creates and serializes a protocol buffer containing the data about the current state of the simulation
 	
-	var state = {}
+#	var state = {}
+#
+#	#data about robots 
+#	state.robots = []
+#	var robots_list = get_tree().get_nodes_in_group("robots")
+#	for robot in robots_list:
+#		var new_robot = {}
+#		state.robots.append(new_robot)
+#
+#		new_robot.id = robot.get_instance_id()
+#
+#		new_robot.position = [robot.position.x, robot.position.y]
+#
+#		new_robot.rotation = robot.rotation
+#
+#		new_robot.battery = robot.get_battery_proportion()
+#		new_robot.is_moving = robot.is_moving()
+#		new_robot.is_rotating = robot.is_rotating()
+#		new_robot.in_station = robot.get_in_station()
+#
+#		#info about if the robot is carrying a package, -1 if not 
+#		new_robot.carried = -1
+#		for child in robot.get_children():
+#			if child.is_in_group("packages"):
+#				new_robot.carried = child.get_instance_id()
+#
+#
+#	#data about packages 
+#	state.packages = []
+#	var packages_list = get_tree().get_nodes_in_group("packages")
+#	for package in packages_list:
+#
+#		var new_package = {}
+#		state.packages.append(new_package)
+#
+#		new_package.id = package.get_instance_id()
+#
+#		var package_parent = package.get_parent()
+#		if package_parent is KinematicBody2D:
+#			#case where this package is currently carried by a robot
+#			new_package.location_type = "robot"
+#		elif package_parent.has_node("Input_Belt"):
+#			#case where this package is currently in a machine
+#			new_package.location_type = package_parent.package_location(package)
+#
+#		else: 
+#			#case where this package is currently in the arrival zone
+#			new_package.location_type = "arrival"
+#		new_package.location_id = package_parent.get_instance_id()
+#
+#		new_package.processes = []
+#
+#		var list = package.get_processes()
+#		for process in list:
+#			var id = process[0]
+#			var duration = process[1]
+#
+#			new_package.processes.append({"id":id, "duration":duration})
+#
+#
+#	state.command_processed = command_applied
+#	command_applied = false
+
+	var state = []
 	
-	#data about robots 
-	state.robots = []
-	var robots_list = get_tree().get_nodes_in_group("robots")
-	for robot in robots_list:
-		var new_robot = {}
-		state.robots.append(new_robot)
-		
-		new_robot.id = robot.get_instance_id()
-		
-		new_robot.position = [robot.position.x, robot.position.y]
-		
-		new_robot.rotation = robot.rotation
-		
-		new_robot.battery = robot.get_battery_proportion()
-		new_robot.is_moving = robot.is_moving()
-		new_robot.is_rotating = robot.is_rotating()
-		new_robot.in_station = robot.get_in_station()
-		
-		#info about if the robot is carrying a package, -1 if not 
-		new_robot.carried = -1
-		for child in robot.get_children():
-			if child.is_in_group("packages"):
-				new_robot.carried = child.get_instance_id()
-		
-
-	#data about packages 
-	state.packages = []
-	var packages_list = get_tree().get_nodes_in_group("packages")
-	for package in packages_list:
-
-		var new_package = {}
-		state.packages.append(new_package)
-
-		new_package.id = package.get_instance_id()
-	
-		var package_parent = package.get_parent()
-		if package_parent is KinematicBody2D:
-			#case where this package is currently carried by a robot
-			new_package.location_type = "robot"
-		elif package_parent.has_node("Input_Belt"):
-			#case where this package is currently in a machine
-			new_package.location_type = package_parent.package_location(package)
-
-		else: 
-			#case where this package is currently in the arrival zone
-			new_package.location_type = "arrival"
-		new_package.location_id = package_parent.get_instance_id()
-
-		new_package.processes = []
-
-		var list = package.get_processes()
-		for process in list:
-			var id = process[0]
-			var duration = process[1]
-
-			new_package.processes.append({"id":id, "duration":duration})
-
-		
-	state.command_processed = command_applied
-	command_applied = false
+	var dynamic_nodes = get_tree().get_nodes_in_group("export_dynamic")
+	for node in dynamic_nodes:
+	  var dynamic_data = node.call("export_dynamic")
+	  state = state + dynamic_data
 		
 	return JSON.print(state)
 
+func disconnect_client():
+	if client !=null:
+		client.disconnect_from_host()
+		client = null
 	
 func polygon_center(points_list : PoolVector2Array):
 	var size = points_list.size()

@@ -33,17 +33,15 @@ export var ROBOT_SPEED = 96 #px/s
 # 1m ~ 32px
 # so 3m/s = 96px/s
 
-const Proto = preload("res://protobuf/proto.gd")
-
-
+var machines_nb : int = 0
+var robots_nb : int = 0
+var packages_nb : int = 0
 
 
 func _ready():		
 	
 	#initialization
 	initialization()
-	
-	
 	
 	for node in get_tree().get_nodes_in_group("stands"):
 		var shape_transform: Transform2D = node.get_node("CollisionShape2D").get_global_transform()
@@ -84,8 +82,17 @@ func _ready():
 	var port = int(get_arg(arguments,"--port",10000 ))
 	Communication.start_server(port)
 	
-
+func new_machine_name():
+	machines_nb += 1
+	return "machine%s" % machines_nb
 	
+func new_robot_name():
+	robots_nb += 1
+	return "robot%s" % robots_nb
+	
+func new_package_name():
+	packages_nb += 1
+	return "package%s" % packages_nb
 	
 func get_arg(args, arg_name, default):
 	var index = args.find(arg_name)
@@ -113,9 +120,9 @@ func initialization():
 	machines_list = []
 	for k in range(4):
 		var machine = MachineScene.instance()
+		machine.set_name(new_machine_name())
 		add_child(machine)
 		machine.position = Vector2(350 + 350*(k%2), 450 - 150*(k/2))
-		machine.set_id(k)
 		machines_list.append(machine)
 		
 	machines_list[0].set_buffer_sizes(5,2)
@@ -176,6 +183,7 @@ func load_scenario(file_path : String):
 			
 	for k in range(scenario.robots.size()):
 		var new_robot = RobotScene.instance()
+		new_robot.set_name(new_robot_name())
 		add_child(new_robot)
 		var new_position = scenario.robots[k].position
 		new_robot.position.x = new_position[0]
@@ -197,6 +205,9 @@ func _unhandled_input(event):
 		_Robot.do_rotation(-1,1.5)
 	if event.is_action_pressed("ui_right"):
 		_Robot.do_rotation(1,1.5)
+		
+	if event is InputEventKey and event.pressed and event.scancode == KEY_D:	
+		Communication.disconnect_client()
 
 	if event is InputEventMouseButton and event.pressed:
 		match event.button_index:
@@ -216,3 +227,4 @@ func _unhandled_input(event):
 		_Robot.add_package(_Package)
 		_Package.set_processes([[0,3],[1,7]])
 		packages_list.append(_Package)
+		

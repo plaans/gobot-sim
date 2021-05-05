@@ -4,8 +4,7 @@ extends Node2D
 # Declare member variables here. Examples:
 var possible_processes : Array
 #ids of all processes that can be done by this machine (initialized from Main node)
-var machine_id : int
-#id to uniquely identify this machine (also attributed from Main node)
+var machine_name
 
 var colors_rects : Array #will contain the array of the sprites used to store colors
 onready var color_palette = get_parent().get_color_palette()
@@ -40,6 +39,13 @@ func _ready():
 	output_buffer=[]
 	taskInProgress=false
 	generates_display()
+	add_to_group("export_static")
+	
+func set_name(name : String):
+	machine_name = name
+	
+func get_name() -> String:
+	return machine_name
 	
 func set_buffer_sizes(input, output):
 	input_size = input
@@ -67,12 +73,6 @@ func set_possible_processes(list_of_processes):
 	
 func get_possible_processes():
 	return possible_processes
-	
-func set_id(id : int):
-	machine_id = id
-	
-func get_id() -> int:
-	return machine_id
 
 func can_accept_package(package : Node):
 	#returns true if both there is space in the input_buffer and the machine can accept the package
@@ -338,7 +338,7 @@ func _process(delta):
 						blinking_rect.modulate = original_color
 						blinking_rect = null
 					
-					Logger.log_info("%-12s %8s %8s %8s" % ["processed", machine_id, current_process_id, taskDuration])
+					Logger.log_info("%-12s %8s %8s %8s" % ["processed", machine_name, current_process_id, taskDuration])
 			
 		else:
 			#case where no task currently processed, so check if package waiting in input_buffer and space in output_buffer
@@ -360,4 +360,20 @@ func _process(delta):
 				
 		update_battery_display()		
 	
- 
+func export_static():
+	var export_data = []
+	export_data.append(["machine", machine_name])
+	
+	var input_area_position = $Input_Belt.get_area_rectangle()[0]
+	export_data.append(["input_area", machine_name, [input_area_position.x,input_area_position.y]])
+	
+	var output_area_position = $Output_Belt.get_area_rectangle()[0]
+	export_data.append(["output_area", machine_name, [output_area_position.x,output_area_position.y]])
+
+	export_data.append(["buffers_sizes", machine_name, [input_size,output_size]])
+	
+	export_data.append(["processes_list", machine_name, get_possible_processes()])
+
+	return export_data
+	
+	
