@@ -12,12 +12,12 @@ enum BeltType {
 	INPUT,
 	OUTPUT
 }
-export(BeltType) var belt_type = BeltType.INPUT
-export var size : int = 1 setget set_size, get_size # slots
-export var visual_speed: float = 1.0 setget set_visual_speed, get_visual_speed # slot/s
+export(BeltType) var belt_type = BeltType.INPUT setget set_belt_type
+export var size : int = 1 setget set_size # slots
+export var visual_speed: float = 1.0 setget set_visual_speed # slot/s
 var packages: Array = []
 var machine: Node = null # reference to the machine the belt is linked to
-var line_points: PoolVector2Array setget set_line_points, get_line_points
+var line_points: PoolVector2Array setget set_line_points
 # Points used to make the line and the path
 
 onready var _PackagePath = $PackagePath
@@ -32,22 +32,24 @@ func _ready():
 
 func set_size(new_size: int):
 	size = new_size
-func get_size():
-	return size
+
+func set_belt_type(new_type: int):
+	belt_type = new_type
+	match belt_type:
+		BeltType.INPUT:
+			add_to_group("input")
+		BeltType.OUTPUT:
+			add_to_group("output")
 
 func set_visual_speed(new_visual_speed: float):
 	visual_speed = new_visual_speed
 	# in case the Line2D isn't loaded yet
 	if _VisualLine:
 		_VisualLine.material.set_shader_param("speed", visual_speed)
-func get_visual_speed():
-	return visual_speed
 
 func set_line_points(new_points: PoolVector2Array):
 	line_points = new_points
 	setup_line()
-func get_line_points():
-	return line_points
 
 func is_full():
 	return packages.size() >= size
@@ -98,13 +100,15 @@ func add_package(package: Node):
 
 # Removes a package at the given index, and returns the removed package.
 # In case of failure, returns null
-func remove_package(index: int)->Node:
-	var old_package: Node = packages[index]
-	packages.remove(index)
+func remove_package(index: int = 0)->Node:
+	var old_package: Node = null
+	if packages.size() > 0:
+		old_package = packages[index]
+		packages.remove(index)
 	# Skips moving packages if no package was removed
 	if old_package:
 		old_package.get_parent().remove_child(old_package)
-		var slot := index
+		var slot := wrapf(index, 0, packages.size()-1)
 		while old_package and slot < packages.size():
 			move_package_offset(packages[slot], slot/size)
 			slot += 1

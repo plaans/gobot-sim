@@ -124,13 +124,18 @@ func cells_to_polys(cells: PoolVector2Array)->Array:
 	
 	return PolyHelper.merge_polys(cells_polys)
 
+# Given a TileWorld and a group of tiles to fill,
+# returns the merged collision polys of connected tiles from this group.
 func collision_polys_from_group(world: TileWorld, tiles_group: Array)-> Array:
+	var cell_groups = get_connected_cells_by_group(world, tiles_group)
+	return collision_polys_from_cell_groups(cell_groups)
+
+# Given an array of group of tiles, returns the merged collision polys from the cells
+func collision_polys_from_cell_groups(cell_groups: Array)-> Array:
 	# Usual process:
-	# get_connected_cells_by_group() -> cells_to_polys() 
-	# -> make_collision_polys()
-	var cells_groups = get_connected_cells_by_group(world, tiles_group)
+	# cells_to_polys() -> make_collision_polys()
 	var new_polys = []
-	for group in cells_groups:
+	for group in cell_groups:
 		new_polys += cells_to_polys(group)
 	return PolyHelper.make_collision_polys(new_polys)
 

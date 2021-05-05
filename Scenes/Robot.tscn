@@ -6,8 +6,8 @@
 [sub_resource type="CircleShape2D" id=1]
 radius = 16.0
 
-[sub_resource type="Animation" id=3]
-resource_name = "Charging"
+[sub_resource type="Animation" id=2]
+resource_name = "charging"
 length = 2.0
 loop = true
 tracks/0/type = "value"
@@ -38,7 +38,7 @@ hframes = 9
 shape = SubResource( 1 )
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-anims/Charging = SubResource( 3 )
+anims/charging = SubResource( 2 )
 
 [node name="RayCast2D" type="RayCast2D" parent="."]
 enabled = true

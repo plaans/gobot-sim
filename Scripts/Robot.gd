@@ -17,7 +17,6 @@ var path_line: Line2D
 var following: bool = false
 var current_path_point: int = 0
 
-
 export var current_battery : float = 10.0
 export var max_battery : float = 10.0
 export var battery_drain_rate : float = 0.1
@@ -25,8 +24,8 @@ export var battery_charge_rate : float = 0.8
 export var max_battery_frame : int = 20
 var current_battery_frame : int = 0
 
-var in_station: bool setget set_in_station,get_in_station
-var in_interact: bool setget set_in_interact,get_in_interact
+var in_station: bool setget set_in_station
+var in_interact: bool setget set_in_interact
 
 onready var raycast : RayCast2D = $RayCast2D
 
@@ -81,11 +80,8 @@ func _process(delta):
 		if current_battery>0 and new_battery==0:
 			Logger.log_info("Battery became empty for robot of id %s" % self.get_instance_id())
 		current_battery = new_battery
-		$Sprite.modulate = Color(1,1,1)
 	else:
 		current_battery = min(max_battery, current_battery + battery_charge_rate*delta)
-		var original_color = Color(1,1,1)
-		var new_color = Color(0.5,1,1)
 
 	update_battery_display()
 	
@@ -96,15 +92,9 @@ func set_in_station(state : bool):
 	else:
 		$AnimationPlayer.seek(0,true)
 		$AnimationPlayer.stop()
-	
-func get_in_station() -> bool:
-	return in_station
 
 func set_in_interact(state : bool):
 	in_interact = state
-	
-func get_in_interact() -> bool:
-	return in_interact
 			
 func update_battery_display():
 	var display = $Sprite
@@ -177,62 +167,39 @@ func stop_rotation():
 	
 func pickup():
 	Logger.log_info("%-12s" % "pickup")
-	if carried_package==null:
+	if !carried_package:
 		#no package carried so pick up function
 		
-		#first find the closest output stand
-		var closest_stand = find_target_stand("output")
-		
-		if closest_stand !=null:
-			var machine = closest_stand.get_parent() #get machine corresponding to this output stand
-			#machine can actually also be a Delivery_Zone or Arrival_Zone but it will still have the functions needed
-				
-			if machine.is_output_available():
-				add_package(machine.take())
+		#first find the closest output belt
+		var target_belt = find_target_belt(1)
+		if target_belt and !target_belt.is_empty():
+			var package = target_belt.remove_package()
+			add_package(package)
 		else:
-			Logger.log_warning("No stand found for pickup call")
+			Logger.log_warning("No belt found for pickup call")
 				
 	else: 
 		#already carrying a package so drop off function
 		
-		#first find the closest input stand
-		var closest_stand = find_target_stand("input")
-		
-		if closest_stand !=null:
-			var machine = closest_stand.get_parent() #get machine corresponding to this input stand
-			if machine.can_accept_package(carried_package):
-				remove_child(carried_package)
-				carried_package.position.x=0
-				machine.add_package(carried_package)
-				carried_package = null 
+		#first find the closest input belt
+		var target_belt = find_target_belt(0)
+		if target_belt and target_belt.can_accept_package(carried_package):
+			target_belt.add_package(carried_package)
+			carried_package = null 
 		else:
-			Logger.log_warning("No stand found for pickup call")
-				
-#func is_facing(body : Node) -> bool:
-#
-#	var collider = raycast.get_collider()
-#	return collider == body
-	
-func find_target_stand(group : String):
-	#if no stands in pickup radius returns null
-	#if multiple stands are in pickup radius returns the closest one
+			Logger.log_warning("No belt found for pickup call")
+
+# Given a group string, returns the node which the robot's raycast is colliding with 
+# if it's in the group.
+# If there is no node colliding, if the node is not in the given group,
+# or if the robot is not in an interaction area, returns null.
+func find_target_belt(type: int)->Node:
 	if !in_interact:
 		return null
 	
-	var target_stand = raycast.get_collider()
-	if target_stand and target_stand.is_in_group(group):
-		return target_stand
+	var target_belt = raycast.get_collider()
+	if target_belt and target_belt.belt_type == type:
+		return target_belt
 	else:
 		return null
-	
-#	var stands = $Area2D.get_overlapping_bodies()
-#	var closest_stand = null
-#	var dist_min=1000000
-#	for stand in stands:
-#		if stand.is_in_group(group) and is_facing(stand):
-#			var distance = self.position.distance_to(stand.position)
-#			if distance <= dist_min:
-#				dist_min = distance
-#				closest_stand = stand	
-#	return closest_stand
 	

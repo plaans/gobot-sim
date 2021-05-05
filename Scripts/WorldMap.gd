@@ -105,13 +105,16 @@ func make_single_belt(start: Vector2, next: Vector2, id: int, type: int):
 			new_points.append(map_to_world(cell_transform.xform(belt_lines[i][0])) + cell_size/2)
 		new_points.append(map_to_world(cell_transform.xform(belt_lines[i][-1])) + cell_size/2)
 		i += 1 # Well, of course it gets stuck if you forget this !
+	
 	# Create the Belt object itself
 	var new_belt = belt_res.instance()
 	new_belt.belt_type = type
 	new_belt.line_points = new_points
 	
-	# TODO: add collision poly to the belt, remove collision from the tiles
-	# TODO: rework navigation cutout system
+	# Make the collision poly
+	var col_polys = manager.collision_polys_from_cell_groups(belt_lines)
+	for col_poly in col_polys:
+		new_belt.add_child(col_poly)
 	
 	add_child(new_belt)
 	

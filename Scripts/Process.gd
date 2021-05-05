@@ -3,6 +3,9 @@ class_name Process
 # Data management class.
 # Creates a process with an id and a duration
 # Color is calculated automatically with RNG, seeded by the id
+#
+# Create a process from an array:
+# | var new_process = Process.new().from_array([...])
 
 var id: int setget set_id, get_id
 var duration: float setget set_duration, get_duration
