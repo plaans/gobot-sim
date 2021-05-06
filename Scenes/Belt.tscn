@@ -20,8 +20,6 @@ width = 32.0
 default_color = Color( 1, 1, 1, 1 )
 texture = ExtResource( 2 )
 texture_mode = 1
-begin_cap_mode = 1
-end_cap_mode = 1
 
 [node name="PackagePath" type="Path2D" parent="."]
 curve = null

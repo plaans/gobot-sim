@@ -17,20 +17,25 @@ var path_line: Line2D
 var following: bool = false
 var current_path_point: int = 0
 
-export var current_battery : float = 10.0
 export var max_battery : float = 10.0
 export var battery_drain_rate : float = 0.1
 export var battery_charge_rate : float = 0.8
 export var max_battery_frame : int = 20
 var current_battery_frame : int = 0
+var current_battery : float = 10.0
 
 var in_station: bool setget set_in_station
 var in_interact: bool setget set_in_interact
 
 onready var raycast : RayCast2D = $RayCast2D
 
+export var TEST_ROBOT_SPEED = 96 #px/s
+# Note:
+# 1m ~ 32px
+# so 3m/s = 96px/s
+
 func _ready():
-	pass
+	current_battery = max_battery
 
 func _physics_process(delta):
 	if !moving && following:
@@ -41,7 +46,7 @@ func _physics_process(delta):
 			stop_path()
 		else:
 			var dir_vec: Vector2 = (path[current_path_point] - position)
-			var speed = 96.0 # px/s
+			var speed = TEST_ROBOT_SPEED # px/s
 			var time = dir_vec.length()/speed # s
 			goto(dir_vec.angle(), speed, time)
 		

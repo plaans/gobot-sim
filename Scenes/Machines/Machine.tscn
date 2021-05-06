@@ -1,12 +1,12 @@
 [gd_scene load_steps=10 format=2]
 
-[ext_resource path="res://Scripts/Machine.gd" type="Script" id=1]
+[ext_resource path="res://Scripts/Machines/Machine.gd" type="Script" id=1]
 [ext_resource path="res://Assets/machine/progress_over.tres" type="Texture" id=2]
 [ext_resource path="res://Assets/white_square.png" type="Texture" id=3]
 [ext_resource path="res://Assets/machine/progress_under.tres" type="Texture" id=4]
 [ext_resource path="res://Assets/machine/progress_fill.tres" type="Texture" id=5]
 [ext_resource path="res://Scenes/ProcessesNode.tscn" type="PackedScene" id=6]
-[ext_resource path="res://Assets/machine/Machine-1.png" type="Texture" id=13]
+[ext_resource path="res://Assets/machine/Machine_texture.png" type="Texture" id=13]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 31.9771, 31.9668 )
@@ -41,7 +41,10 @@ tracks/1/keys = {
 "values": [ 0.0, -2.0, 0.0, 2.0, 0.0 ]
 }
 
-[node name="Machine" type="StaticBody2D"]
+[node name="Machine" type="StaticBody2D" groups=[
+"machines",
+"solid",
+]]
 script = ExtResource( 1 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

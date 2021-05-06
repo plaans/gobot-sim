@@ -25,11 +25,6 @@ var processes_list
 
 var possible_tasks
 
-export var ROBOT_SPEED = 96 #px/s
-# Note:
-# 1m ~ 32px
-# so 3m/s = 96px/s
-
 const Proto = preload("res://protobuf/proto.gd")
 var tcp_server #TCP_Server
 var client #StreamPeerTCP
@@ -41,7 +36,7 @@ func _ready():
 	#initialization
 	initialization()
 
-	for node in get_tree().get_nodes_in_group("stands"):
+	for node in get_tree().get_nodes_in_group("solid"):
 		var shape_poly: PoolVector2Array = PolyHelper.get_poly_from_collision_shape(node.get_node("CollisionShape2D"))
 		shape_poly = Geometry.offset_polygon_2d(shape_poly, _Navigation.nav_margin)[0]
 		_Navigation.set_navpoly(_Navigation.cut_poly(shape_poly, true))

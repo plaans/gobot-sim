@@ -5,7 +5,9 @@
 [ext_resource path="res://Assets/white_square.png" type="Texture" id=3]
 [ext_resource path="res://Scenes/ProcessesNode.tscn" type="PackedScene" id=4]
 
-[node name="Package" type="PathFollow2D"]
+[node name="Package" type="PathFollow2D" groups=[
+"packages",
+]]
 rotate = false
 loop = false
 lookahead = 1.0

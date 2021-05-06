@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/floor_texture.png-1775fea58394a4041de44ebe73876a64.stex"
+path="res://.import/interaction_area_tiles.png-0f31ddd75e99d81046ec25f221a2df6a.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/floor_texture.png"
-dest_files=[ "res://.import/floor_texture.png-1775fea58394a4041de44ebe73876a64.stex" ]
+source_file="res://Assets/interaction_area_tiles.png"
+dest_files=[ "res://.import/interaction_area_tiles.png-0f31ddd75e99d81046ec25f221a2df6a.stex" ]
 
 [params]
 

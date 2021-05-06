@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/output_belt_texture.png-b6e14922f9b649c97d0e79304eab7945.stex"
+path="res://.import/output_belt_tile.png-2d2c061e5a1a07b53214eb0d1b9e7ed3.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/output_belt_texture.png"
-dest_files=[ "res://.import/output_belt_texture.png-b6e14922f9b649c97d0e79304eab7945.stex" ]
+source_file="res://Assets/output_belt_tile.png"
+dest_files=[ "res://.import/output_belt_tile.png-2d2c061e5a1a07b53214eb0d1b9e7ed3.stex" ]
 
 [params]
 

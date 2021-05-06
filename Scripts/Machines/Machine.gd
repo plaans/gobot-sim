@@ -1,5 +1,6 @@
 extends Node2D
 
+export var progress_gradient: Gradient = preload("res://Assets/machine/progress_gradient.tres")
 
 # Declare member variables here. Examples:
 var input_belt: Node = null setget set_input_belt
@@ -16,14 +17,12 @@ var remaining_process_time: float = 0.0 # remaining time until process is finish
 var process_time: float = 0.0 # the duration of the current process, in s
 onready var _Progress: TextureProgress = $MachineSprite/TextureProgress
 # Progress bar to display the progress of the current process
-
 onready var processes = $ProcessesNode
 # List of processes and helper to display processes colors
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	pass
-
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -87,11 +86,11 @@ func start_process():
 		
 		$AnimationPlayer.play("process")
 		set_process_blinking(true)
-		# TODO: make process display blink
 
 func do_process(delta: float):
 	remaining_process_time -= delta
-	_Progress.value = (remaining_process_time/process_time)*100
+	_Progress.value = (process_time - remaining_process_time)/process_time*100
+	_Progress.tint_progress = progress_gradient.interpolate((process_time - remaining_process_time)/process_time)
 	if finished_processing():
 		# Remove the current process from this package
 		current_package.processes.remove_process(current_package_index)
@@ -100,7 +99,6 @@ func do_process(delta: float):
 func stop_process():
 	$AnimationPlayer.stop()
 	set_process_blinking(false)
-	# TODO: stop process display blinking
 
 func set_process_blinking(blink: bool, speed: float = 4.0):
 	var tween = $Tween

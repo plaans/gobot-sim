@@ -2,7 +2,9 @@
 
 [ext_resource path="res://Scripts/ParkingArea.gd" type="Script" id=1]
 
-[node name="ParkingArea" type="Area2D"]
+[node name="ParkingArea" type="Area2D" groups=[
+"parking_areas",
+]]
 collision_layer = 0
 script = ExtResource( 1 )
 [connection signal="body_entered" from="." to="." method="_on_ParkingArea_body_entered"]
