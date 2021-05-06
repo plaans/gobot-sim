@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://Scripts/Machines/InputMachine.gd" type="Script" id=1]
-[ext_resource path="res://Assets/machine/Machine_texture.png" type="Texture" id=2]
+[ext_resource path="res://Assets/machine/input_machine_texture.png" type="Texture" id=2]
 [ext_resource path="res://Assets/machine/progress_over.tres" type="Texture" id=3]
 [ext_resource path="res://Assets/machine/progress_under.tres" type="Texture" id=4]
 [ext_resource path="res://Assets/machine/progress_fill.tres" type="Texture" id=5]

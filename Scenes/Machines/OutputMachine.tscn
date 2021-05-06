@@ -4,7 +4,7 @@
 [ext_resource path="res://Assets/machine/progress_over.tres" type="Texture" id=2]
 [ext_resource path="res://Assets/machine/progress_under.tres" type="Texture" id=3]
 [ext_resource path="res://Assets/machine/progress_fill.tres" type="Texture" id=4]
-[ext_resource path="res://Assets/machine/Machine_texture.png" type="Texture" id=5]
+[ext_resource path="res://Assets/machine/output_machine_texture.png" type="Texture" id=5]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 32, 32 )
