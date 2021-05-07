@@ -89,14 +89,14 @@ func can_accept_package(package: Node)->bool:
 
 # Adds the given package at the end of the packages array
 func add_package(package: Node):
-	var slot = packages.size()
+	var slot: float = packages.size()
 	packages.append(package)
 	package.get_parent().remove_child(package)
 	_PackagePath.add_child(package)
 	
-	package.pos = Vector2.ZERO
-	package.unit_offset = 0.0
-	move_package_offset(package, slot/size)
+	package.position = Vector2.ZERO
+	package.unit_offset = 1.0
+	move_package_offset(package, slot/size + 0.5/size)
 
 # Removes a package at the given index, and returns the removed package.
 # In case of failure, returns null
@@ -110,7 +110,7 @@ func remove_package(index: int = 0)->Node:
 		old_package.get_parent().remove_child(old_package)
 		var slot := wrapf(index, 0, packages.size()-1)
 		while old_package and slot < packages.size():
-			move_package_offset(packages[slot], slot/size)
+			move_package_offset(packages[slot], slot/size + 0.5/size)
 			slot += 1
 	
 	return old_package

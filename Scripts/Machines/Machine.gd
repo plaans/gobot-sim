@@ -97,6 +97,7 @@ func do_process(delta: float):
 		stop_process()
 
 func stop_process():
+	_Progress.value = 0
 	$AnimationPlayer.stop()
 	set_process_blinking(false)
 

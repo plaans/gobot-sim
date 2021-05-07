@@ -24,7 +24,7 @@ export(PackedScene) var package_scene = preload("res://Scenes/Package.tscn")
 var packages_templates: Array = []
 
 func _ready():
-	pass
+	process_time = create_time
 
 func set_create_time(new_create_time: float):
 	create_time = new_create_time
@@ -33,6 +33,13 @@ func set_create_time(new_create_time: float):
 func start_process():
 	remaining_process_time = process_time
 	$AnimationPlayer.play("process")
+
+func do_process(delta: float):
+	remaining_process_time -= delta
+	_Progress.value = (process_time - remaining_process_time)/process_time*100
+	_Progress.tint_progress = progress_gradient.interpolate((process_time - remaining_process_time)/process_time)
+	if finished_processing():
+		stop_process()
 
 func set_process_blinking(blink: bool, speed: float = 4.0):
 	pass
@@ -57,7 +64,7 @@ func request_input()->Node:
 		# Create processes from the template
 		var new_processes := []
 		for process_array in template:
-			new_processes.append(Process.new().from_array(process_array))
+			new_processes.append(Process.new(process_array[0], process_array[1]))
 		# Create actual package
 		new_package = package_scene.instance()
 		add_child(new_package)

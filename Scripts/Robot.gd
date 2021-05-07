@@ -151,8 +151,8 @@ func stop_path():
 
 func add_package(Package : Node):
 	carried_package = Package
+	carried_package.position = Vector2(7, 0)
 	add_child(carried_package)
-	carried_package.position.x=7
 	
 func do_rotation(angle: float, speed: float):
 	# angle : rad
@@ -179,6 +179,7 @@ func pickup():
 		var target_belt = find_target_belt(1)
 		if target_belt and !target_belt.is_empty():
 			var package = target_belt.remove_package()
+			print(package)
 			add_package(package)
 		else:
 			Logger.log_warning("No belt found for pickup call")
@@ -202,9 +203,10 @@ func find_target_belt(type: int)->Node:
 	if !in_interact:
 		return null
 	
-	var target_belt = raycast.get_collider()
-	if target_belt and target_belt.belt_type == type:
-		return target_belt
+	var target_object = raycast.get_collider()
+	if target_object and target_object.is_in_group("belts") and target_object.belt_type == type:
+		return target_object
+		print("found belt")
 	else:
 		return null
 	

@@ -12,7 +12,7 @@ var duration: float setget set_duration, get_duration
 var color: Color setget set_color, get_color
 
 # Note: if no id or duration is given, the fields will stay empty
-func _init(new_id: int = NAN, new_duration: float = NAN):
+func _init(new_id: int = 0, new_duration: float = 0.0):
 	if new_id:
 		id = new_id
 		color = calculate_color(id)
@@ -38,10 +38,6 @@ func get_color():
 
 func to_array()->Array:
 	return [id, duration]
-func from_array(data: Array = []):
-	id = int(data[0])
-	duration = float(data[1])
-	color = calculate_color(id)
 
 static func calculate_color(id: int)->Color:
 	var rng := RandomNumberGenerator.new()

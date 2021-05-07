@@ -39,6 +39,11 @@ func _ready():
 		static_transform = Transform2D(0.0, world.offset)
 		static_navpoly = PolyHelper.make_navigation_poly(new_polys, new_outline)
 		current_navpoly_id = self.navpoly_add(static_navpoly, static_transform)
+		
+		for node in get_tree().get_nodes_in_group("solid"):
+			var shape_poly: PoolVector2Array = PolyHelper.get_poly_from_collision_shape(node.get_node("CollisionShape2D"))
+			shape_poly = Geometry.offset_polygon_2d(shape_poly, nav_margin)[0]
+			set_navpoly(cut_poly(shape_poly, true))
 	
 	
 func cut_poly(poly: PoolVector2Array, deep: bool = false)->NavigationPolygon:

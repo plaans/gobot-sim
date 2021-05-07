@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://Scripts/Machines/OutputMachine.gd" type="Script" id=1]
 [ext_resource path="res://Assets/machine/progress_over.tres" type="Texture" id=2]
@@ -9,8 +9,39 @@
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 32, 32 )
 
+[sub_resource type="Animation" id=2]
+resource_name = "process"
+length = 0.5
+loop = true
+step = 0.05
+tracks/0/type = "value"
+tracks/0/path = NodePath("MachineSprite:scale")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.05, 0.15, 0.25, 0.3, 0.4, 0.5 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1 ),
+"update": 0,
+"values": [ Vector2( 1, 1 ), Vector2( 0.94, 1.06 ), Vector2( 1.02, 0.98 ), Vector2( 1, 1 ), Vector2( 0.94, 1.06 ), Vector2( 1.02, 0.98 ), Vector2( 1, 1 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("MachineSprite:rotation_degrees")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.1, 0.25, 0.35, 0.5 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
+"update": 0,
+"values": [ 0.0, -2.0, 0.0, 2.0, 0.0 ]
+}
+
 [node name="OutputMachine" type="StaticBody2D" groups=[
 "machines",
+"output_machines",
 "solid",
 ]]
 script = ExtResource( 1 )
@@ -40,3 +71,4 @@ __meta__ = {
 }
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+anims/process = SubResource( 2 )

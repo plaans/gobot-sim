@@ -10,16 +10,6 @@
 [ext_resource path="res://Assets/tiles/input_machine_tile.png" type="Texture" id=8]
 [ext_resource path="res://Assets/tiles/output_machine_tile.png" type="Texture" id=9]
 
-
-
-
-
-
-
-
-
-
-
 [sub_resource type="ConvexPolygonShape2D" id=1]
 points = PoolVector2Array( 0, 0, 32, 0, 32, 32, 0, 32 )
 

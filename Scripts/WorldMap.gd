@@ -115,15 +115,14 @@ func make_single_belt(start: Vector2, next: Vector2, id: int, type: int):
 		else:
 			next_pos = null
 	
-#	var i := 0
-#	while i < belt_lines.size():
-#		if i == 0 and belt_lines[i].size() > 1:
-#			new_points.append(map_to_world(cell_transform.xform(belt_lines[i][0])) + cell_size/2)
-#		new_points.append(map_to_world(cell_transform.xform(belt_lines[i][-1])) + cell_size/2)
-#		i += 1 # Well, of course it gets stuck if you forget this !
-	
+	# Calculate belt's size from number of tiles
+	var new_size := 0
+	for line in belt_lines:
+		new_size += line.size()
+
 	# Create the Belt object itself
 	var new_belt = belt_scene.instance()
+	new_belt.size = new_size
 	new_belt.belt_type = type
 	new_belt.line_points = new_points
 	
