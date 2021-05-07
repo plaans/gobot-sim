@@ -53,22 +53,24 @@ func _process(delta):
 				var content = json.get_result()
 				print( content)
 				
-				if content.has("robot_command"):
-					var command_info = content["robot_command"]
+				var error_message = ""
+				
+				if content["type"] == "robot_command":
+					var command_info = content["data"]
 					if command_info[0] == "pickup":
 						if command_info.size() != 2:
-							Logger.log_warning("Wrong number of arguments for pickup Command, expected 1 and got %s" % (command_info.size() -1))
+							error_message = "Wrong number of arguments for pickup Command, expected 1 and got %s" % (command_info.size() -1)
 						else:
 							var robot_id = command_info[1]
 							var robot = instance_from_id(robot_id)
 							if not(robot.has_method("pickup")):#way to check if the instance is a Robot
-								Logger.log_warning("Instance specified for pickup command is not a robot (instance id %s)" % (robot_id))
+								error_message = "Instance specified for pickup command is not a robot (instance id %s)" % (robot_id)
 							else:
 								Logger.log_info("%-12s %8s" % ["pickup", robot_id])
 								robot.pickup()
 					elif command_info[0] == "navigate_to":
 						if command_info.size() != 4:
-							Logger.log_warning("Wrong number of arguments for navigate_to Command, expected 3 and got %s" % (command_info.size() -1))
+							error_message = "Wrong number of arguments for navigate_to Command, expected 3 and got %s" % (command_info.size() -1)
 						else:
 							var robot_id = command_info[1]
 							var robot = instance_from_id(robot_id)
@@ -94,6 +96,15 @@ func _process(delta):
 							else:
 								Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["do_rotation", robot_id, angle, speed])
 								robot.do_rotation(angle, speed)
+								
+					var response_message = ""
+					if error_message != "":
+						Logger.log_warning(error_message)
+						response_message = error_message
+					else:
+						response_message = "Command succesfully applied"
+					var encoded = JSON.print({'type': 'response', 'id':content["id"], 'data':response_message})
+					client.put_string(encoded)
 			
 			#then send state
 			var state_message = encode_current_state()
@@ -190,7 +201,7 @@ func encode_environment_description() -> String:
 	  var static_data = node.call("export_static")
 	  env = env + static_data
 	
-	return JSON.print(env)
+	return JSON.print({'type' : 'environment', 'data' :env})
 
 func encode_current_state() -> String:
 	#creates and serializes a protocol buffer containing the data about the current state of the simulation
@@ -265,7 +276,7 @@ func encode_current_state() -> String:
 	  var dynamic_data = node.call("export_dynamic")
 	  state = state + dynamic_data
 		
-	return JSON.print(state)
+	return JSON.print({'type' : 'state', 'data' :state})
 
 func disconnect_client():
 	if client !=null:

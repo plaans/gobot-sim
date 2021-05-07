@@ -12,8 +12,8 @@ class TCP_Client:
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.sock.connect((self.address, self.port))
 
-	def send_command(self, command_info):
-		message = json.dumps({'robot_command': command_info})
+	def send_data(self, data):
+		message = json.dumps(data)
 		length = len(message).to_bytes(4,'little') 
 		try:
 			self.sock.sendall(length + bytes(message,encoding="utf-8"))
