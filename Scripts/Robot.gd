@@ -20,14 +20,14 @@ var current_path_point: int = 0
 export var max_battery : float = 10.0
 export var battery_drain_rate : float = 0.1
 export var battery_charge_rate : float = 0.8
-export var max_battery_frame : int = 20
-var current_battery_frame : int = 0
 var current_battery : float = 10.0
 
 var in_station: bool setget set_in_station
 var in_interact: bool setget set_in_interact
 
 onready var raycast : RayCast2D = $RayCast2D
+onready var _Progress = $Sprite/TextureProgress
+export var progress_gradient: Gradient = preload("res://Assets/robot/progress_gradient.tres")
 
 export var TEST_ROBOT_SPEED = 96 #px/s
 # Note:
@@ -102,11 +102,8 @@ func set_in_interact(state : bool):
 	in_interact = state
 			
 func update_battery_display():
-	var display = $Sprite
-	var new_frame = int((current_battery / max_battery) * max_battery_frame)
-	if new_frame != current_battery_frame:
-		current_battery_frame = new_frame
-		display.frame = new_frame
+	_Progress.value = current_battery/max_battery*100
+	_Progress.tint_progress = progress_gradient.interpolate(_Progress.value/100)
 			
 func is_moving():
 	return moving

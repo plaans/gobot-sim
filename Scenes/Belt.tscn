@@ -5,6 +5,7 @@
 [ext_resource path="res://Shaders/belt_tile.shader" type="Shader" id=3]
 
 [sub_resource type="ShaderMaterial" id=1]
+resource_local_to_scene = true
 shader = ExtResource( 3 )
 shader_param/dir = Vector2( 1, 0 )
 shader_param/speed = 0.0
