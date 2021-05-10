@@ -4,7 +4,7 @@ extends Node2D
 # Example when instancing Package scene:
 # | var new_package = load("path/to/Package").instance()
 # | add_child(new_package)
-# | new_package._Processes.set_processes(...)
+# | new_package.processes.processes = ...
 
 var processes: Array setget set_processes, get_processes
 # Array containing all the processes

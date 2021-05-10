@@ -8,8 +8,6 @@ onready var _Robot = get_node("Robot")
 export (PackedScene) var PackageScene
 export (PackedScene) var MachineScene
 
-const color_palette : Array = ["cornflower", "crimson ", "yellow", "seagreen", "sandybrown", "skyblue ", "lightpink ", "palegreen ", "aquamarine", "saddlebrown"] #list of colorsto be used to represent processes
-
 var packages_list
 
 var machines_list
@@ -25,27 +23,26 @@ var processes_list
 
 var possible_tasks
 
-export var ROBOT_SPEED = 96 #px/s
-# Note:
-# 1m ~ 32px
-# so 3m/s = 96px/s
-
 const Proto = preload("res://protobuf/proto.gd")
 var tcp_server #TCP_Server
 var client #StreamPeerTCP
 
 
-
-
 func _ready():	
 	#initialization
-	initialization()
-
-	for node in get_tree().get_nodes_in_group("stands"):
-		var shape_poly: PoolVector2Array = PolyHelper.get_poly_from_collision_shape(node.get_node("CollisionShape2D"))
-		shape_poly = Geometry.offset_polygon_2d(shape_poly, _Navigation.nav_margin)[0]
-		_Navigation.set_navpoly(_Navigation.cut_poly(shape_poly, true))
-
+	var test_templates = [ [[0,10],[1,5]], [[0,1],[1,8],[2,6]], [[2,3],[1,9]], [[2,7],[0,12],[5,4]] ]
+	var test_processes = [[Process.new(0,0), Process.new(1,0), Process.new(2,0)], [Process.new(2,0), Process.new(3,0), Process.new(4,0), Process.new(5,0)]]
+	var machine_nb := 0
+	for machine in get_tree().get_nodes_in_group("machines"):
+		if machine.is_in_group("input_machines"):
+			machine.packages_templates = test_templates
+			machine.create_time = 5.0
+		elif machine.is_in_group("output_machines"):
+			pass
+		else:
+			machine.processes.processes = test_processes[machine_nb]
+			machine_nb += 1
+	
 	
 	#values of arguments
 	
@@ -81,9 +78,6 @@ func get_arg(args, arg_name, default):
 		return args[index+1]
 	else:
 		return default
-		
-func get_color_palette():
-	return color_palette 		
 	
 func add_package(package : Node):
 	packages_list.append(package)
@@ -93,9 +87,38 @@ func remove_package(package : Node):
 	if package_index >= 0 :
 		packages_list.remove(package_index)
 		
-func initialization():
-	pass
-	
+
+func _unhandled_input(event):
+	# From GDQuest - Navigation 2D and Tilemaps
+	if event.is_action_pressed("ui_accept"):
+		_Robot.pickup()
+		
+	if event.is_action_pressed("ui_left"):
+		_Robot.do_rotation(-PI/2, 2.0)
+	if event.is_action_pressed("ui_right"):
+		_Robot.do_rotation(PI/2, 2.0)
+
+	if event is InputEventMouseButton and event.pressed:
+		match event.button_index:
+			BUTTON_LEFT:
+				_Robot.navigate_to(event.position)
+			BUTTON_RIGHT:
+#				var temp_shape = PoolVector2Array([Vector2(-32,-32),Vector2(-32,32),Vector2(32,32),Vector2(32,-32)])
+#				var temp_transform = Transform2D(0, event.position)
+#				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.cut_poly(temp_transform.xform(temp_shape))
+				var angle = _Robot.get_angle_to(event.position)
+				_Robot.do_rotation(angle, 2.0)
+			BUTTON_MIDDLE:
+#				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.static_poly
+				pass
+
+	if event.is_action_pressed("ui_down"):
+		#to simply generate a package (carried by the robot) with a simple key press for testing purposes
+		_Package = PackageScene.instance()
+		_Robot.add_package(_Package)
+		_Package.set_processes([[0,3],[1,7]])
+
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	
@@ -106,7 +129,6 @@ func _process(delta):
 	if client==null and tcp_server.is_connection_available():
 		client = tcp_server.take_connection() 
 
-	
 	if client != null and client.is_connected_to_host():
 		
 		#then read if commands were received (read one at most)
@@ -134,10 +156,7 @@ func _process(delta):
 		
 		client.put_32(size_bytes)
 		client.put_data(bytes_to_send)
-		
-	
 
-			
 
 func encode_current_state():
 	#creates and serializes a protocol buffer containing the data about the current state of the simulation
@@ -163,8 +182,6 @@ func encode_current_state():
 		package_location.set_location_type(Proto.State.Location.Type.STAND)
 	package_location.set_location_id(_Package.get_parent().get_index())
 
-	
-	
 	#data about stands
 	var list_stands=$Stands.get_children()
 	state.set_nb_stands(list_stands.size())
@@ -173,32 +190,3 @@ func encode_current_state():
 		state.add_stands_y(stand.position.y)
 		
 	return state.to_bytes()
-
-
-func _unhandled_input(event):
-	# From GDQuest - Navigation 2D and Tilemaps
-	if event.is_action_pressed("ui_accept"):
-		_Robot.pickup()
-		
-	if event.is_action_pressed("ui_left"):
-		_Robot.do_rotation(-1,0.5)
-	if event.is_action_pressed("ui_right"):
-		_Robot.do_rotation(1,1.5)
-
-	if event is InputEventMouseButton and event.pressed:
-		match event.button_index:
-			BUTTON_LEFT:
-				_Robot.navigate_to(event.position)
-			BUTTON_RIGHT:
-				var temp_shape = PoolVector2Array([Vector2(-32,-32),Vector2(-32,32),Vector2(32,32),Vector2(32,-32)])
-				var temp_transform = Transform2D(0, event.position)
-				
-				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.cut_poly(temp_transform.xform(temp_shape))
-			BUTTON_MIDDLE:
-				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.static_poly
-
-	if event.is_action_pressed("ui_down"):
-		#to simply generate a package (carried by the robot) with a simple key press for testing purposes
-		_Package = PackageScene.instance()
-		_Robot.add_package(_Package)
-		_Package.set_processes([[0,3],[1,7]])

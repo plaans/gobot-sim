@@ -1,12 +1,14 @@
-[gd_resource type="TileSet" load_steps=9 format=2]
+[gd_resource type="TileSet" load_steps=11 format=2]
 
-[ext_resource path="res://Assets/ChargingFloor.png" type="Texture" id=1]
-[ext_resource path="res://Assets/output_belt_texture.png" type="Texture" id=2]
-[ext_resource path="res://Assets/InteractionFloor.png" type="Texture" id=3]
-[ext_resource path="res://Assets/floor_texture.png" type="Texture" id=4]
-[ext_resource path="res://Assets/wall_texture.png" type="Texture" id=5]
-[ext_resource path="res://Assets/machine_texture.png" type="Texture" id=6]
-[ext_resource path="res://Assets/input_belt_texture.png" type="Texture" id=7]
+[ext_resource path="res://Assets/tiles/parking_area_tiles.png" type="Texture" id=1]
+[ext_resource path="res://Assets/tiles/output_belt_tile.png" type="Texture" id=2]
+[ext_resource path="res://Assets/tiles/interaction_area_tiles.png" type="Texture" id=3]
+[ext_resource path="res://Assets/tiles/floor_tiles.png" type="Texture" id=4]
+[ext_resource path="res://Assets/tiles/wall_tile.png" type="Texture" id=5]
+[ext_resource path="res://Assets/tiles/machine_tile.png" type="Texture" id=6]
+[ext_resource path="res://Assets/tiles/input_belt_tile.png" type="Texture" id=7]
+[ext_resource path="res://Assets/tiles/input_machine_tile.png" type="Texture" id=8]
+[ext_resource path="res://Assets/tiles/output_machine_tile.png" type="Texture" id=9]
 
 [sub_resource type="ConvexPolygonShape2D" id=1]
 points = PoolVector2Array( 0, 0, 32, 0, 32, 32, 0, 32 )
@@ -144,3 +146,31 @@ points = PoolVector2Array( 0, 0, 32, 0, 32, 32, 0, 32 )
 11/shape_one_way_margin = 0.0
 11/shapes = [  ]
 11/z_index = 0
+12/name = "InputMachine"
+12/texture = ExtResource( 8 )
+12/tex_offset = Vector2( 0, 0 )
+12/modulate = Color( 1, 1, 1, 1 )
+12/region = Rect2( 0, 0, 32, 32 )
+12/tile_mode = 0
+12/occluder_offset = Vector2( 0, 0 )
+12/navigation_offset = Vector2( 0, 0 )
+12/shape_offset = Vector2( 0, 0 )
+12/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+12/shape_one_way = false
+12/shape_one_way_margin = 0.0
+12/shapes = [  ]
+12/z_index = 0
+13/name = "OutputMachine"
+13/texture = ExtResource( 9 )
+13/tex_offset = Vector2( 0, 0 )
+13/modulate = Color( 1, 1, 1, 1 )
+13/region = Rect2( 0, 0, 32, 32 )
+13/tile_mode = 0
+13/occluder_offset = Vector2( 0, 0 )
+13/navigation_offset = Vector2( 0, 0 )
+13/shape_offset = Vector2( 0, 0 )
+13/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+13/shape_one_way = false
+13/shape_one_way_margin = 0.0
+13/shapes = [  ]
+13/z_index = 0
