@@ -46,6 +46,7 @@ func _physics_process(delta):
 			
 		if current_path_point >= path.size():
 			stop_path()
+			Communication.command_result(robot_name, "navigate_to", "Navigate_to command completed successfully")
 		else:
 			var dir_vec: Vector2 = (path[current_path_point] - position)
 			var speed = 96.0 # px/s
@@ -72,11 +73,13 @@ func _physics_process(delta):
 	if rotating:
 		if current_battery == 0:
 			stop_rotation()
+			Communication.command_result(robot_name, "do_rotation", "Could not complete rotation command because battery became empty")
 		else:
 			rotate_time -= delta
 			if rotate_time <= 0 :
 				self.rotation = target_angle
 				stop_rotation()
+				Communication.command_result(robot_name, "do_rotation", "do_rotation command completed successfully")
 			else:
 				self.rotate(rotation_speed * delta)
 

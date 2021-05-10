@@ -6,8 +6,12 @@ const Proto = preload("res://protobuf/proto.gd")
 var tcp_server #TCP_Server
 var client #StreamPeerTCP
 
+var client_counter = 0
+
 var env_sent : bool
 var command_applied : bool = false
+
+var registered_commands = {}
 
 func start_server(port : int):	
 	#initialization
@@ -33,7 +37,7 @@ func _process(delta):
 	if client==null and tcp_server.is_connection_available():
 		env_sent = false #new connection so has not yet received information about environment
 		client = tcp_server.take_connection() 
-		
+		client_counter +=1
 	
 	if client != null and client.is_connected_to_host():
 
@@ -68,6 +72,8 @@ func _process(delta):
 							else:
 								Logger.log_info("%-12s %8s" % ["pickup", robot_id])
 								robot.pickup()
+								registered_commands[robot.get_name()]["pickup"] = content["id"]
+								
 					elif command_info[0] == "navigate_to":
 						if command_info.size() != 4:
 							error_message = "Wrong number of arguments for navigate_to Command, expected 3 and got %s" % (command_info.size() -1)
@@ -111,24 +117,17 @@ func _process(delta):
 			
 			client.put_string(state_message)
 
-#						var command_type = Command.get_command()
-#						if command_type == Proto.Command.Command_types.GOTO:
-#							_Robot.goto(Command.get_dir(), Command.get_speed(), Command.get_time()) 
-#						elif command_type == Proto.Command.Command_types.PICKUP :
-#							_Robot.pickup()
-#
-#			#first send data about state of world
-#			var bytes_to_send = encode_current_state()
-#			var size_bytes = bytes_to_send.size()
 
-#		#first send data about state of world
-#		var bytes_to_send = encode_current_state()
-#		var size_bytes = bytes_to_send.size()
-#
-#		client.put_32(size_bytes)
-#		client.put_data(bytes_to_send)
 		
+func send_command_completed(result, command_id):
+	#will send the info about completion of command to client
+	var encoded = JSON.print({'type': 'completion', 'id':command_id, 'data':result})	
+	client.put_string(encoded)
 	
+func command_result(node_name, command_name, result):
+	if registered_commands.has(node_name) and registered_commands[node_name].has(command_name):
+		var command_id = registered_commands[node_name][command_name]
+		send_command_completed(result, command_id)
 
 			
 func set_area_parameters(area, stand : Node):

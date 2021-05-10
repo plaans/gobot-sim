@@ -36,6 +36,8 @@ class StateClient(TCP_Client):
 				name = line[1]
 				attribute = line[0]
 				value = line[2]
+				if name not in self.state:
+					self.state[name] = {}
 				self.state[name][attribute] = value
 
 	def get_data(self, key, name):

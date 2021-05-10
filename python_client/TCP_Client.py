@@ -1,5 +1,4 @@
 import socket
-import syslog
 
 import json
 

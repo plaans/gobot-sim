@@ -30,10 +30,16 @@ Below are listed the attributes and commands that can be sent.
  - Buffers sizes (ints) ['buffers\_sizes', machine\_name, [input\_size,output\_size]]
  - Processes (list of ints) : ['processes\_list', machine\_name, processes_list]
 
+
 ### Package
 
  - Location (string) : ['location', package\_name, parent\_name]
  - Processes (list of ints) : ['processes\_list', package\_name, processes_list]
+ 
+### Parking area : 
+
+ - Center (floats) : ['center', parking\_area\_name, [x,y]]
+ - Polygons (floats) : ['polygons\_list', parking\_area\_name, polygons\_list]
  
 ## List of commands
 
