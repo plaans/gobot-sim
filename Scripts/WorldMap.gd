@@ -24,19 +24,7 @@ enum BeltType {
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	# Make ParkingArea
-	var new_park_area = park_area_scene.instance()
-	new_park_area.name = "ParkingArea "+str(new_park_area)
-	for col_poly in manager.collision_polys_from_group(world, GROUP_PARKING):
-		new_park_area.add_child(col_poly)
-	add_child(new_park_area)
-	
-	# Make multiple InteractAreas
-	for col_poly in manager.collision_polys_from_group(world, GROUP_INTERACT):
-		var new_interact_area = interact_area_scene.instance()
-		new_interact_area.name = "InteractArea "+str(new_interact_area)
-		new_interact_area.add_child(col_poly)
-		add_child(new_interact_area)
-	
+	var parking_areas = make_parking_areas()
 	# Make the machines
 	var machines = make_machines()
 
@@ -57,6 +45,7 @@ func make_machines()->Array:
 		# Place the machine in the center of the cell
 		new_machine.position = machine_cell*cell_size + cell_size/2
 		add_child(new_machine)
+		
 		# Create the belts
 		var belts = make_belts(machine_cell)
 		new_machine.input_belt = belts[0]
@@ -92,26 +81,25 @@ func make_belts(machine_cell: Vector2)->Array:
 func make_single_belt(start: Vector2, next: Vector2, id: int, type: int):
 	var belt_lines := []
 	var cells: Array = world.data.duplicate(true)
-	var cell_transform := Transform2D(0, world.offset)
 	
 	# Compute the visual line's points during fill
 	var new_points = []
 	# Fill directionnally, get first adjacent tile, repeat from there
-	var pos = cell_transform.xform_inv(start)
-	var next_pos = cell_transform.xform_inv(next)
+	var pos = world.transform.xform_inv(start)
+	var next_pos = world.transform.xform_inv(next)
 	var dir: Vector2 = (next_pos-pos).normalized()
-	new_points.append(map_to_world(cell_transform.xform(pos)) + (cell_size/2)*(Vector2.ONE + dir))
+	new_points.append(map_to_world(world.transform.xform(pos)) + (cell_size/2)*(Vector2.ONE + dir))
 	while next_pos:
 		var new_line = manager.fill_directional_cells(cells, next_pos, dir, world.size, [id])
 		if new_line.size() > 0:
-			belt_lines.append(new_line)
+			belt_lines.append(world.transform.xform(new_line))
 			pos = new_line[-1]
 			next_pos = manager.fill_first_adjacent_cell(cells, pos, world.size, [id])
 			if next_pos:
 				dir = (next_pos-pos).normalized()
-				new_points.append(map_to_world(cell_transform.xform(pos)) + (cell_size/2))
+				new_points.append(map_to_world(world.transform.xform(pos)) + (cell_size/2))
 			else:
-				new_points.append(map_to_world(cell_transform.xform(pos)) + (cell_size/2)*(Vector2.ONE + dir))
+				new_points.append(map_to_world(world.transform.xform(pos)) + (cell_size/2)*(Vector2.ONE + dir))
 		else:
 			next_pos = null
 	
@@ -131,6 +119,36 @@ func make_single_belt(start: Vector2, next: Vector2, id: int, type: int):
 	for col_poly in col_polys:
 		new_belt.add_child(col_poly)
 	
-	add_child(new_belt)
+	# Make the InteractAreas
+	make_interact_areas(belt_lines, new_belt)
 	
+	add_child(new_belt)
 	return new_belt
+
+# Given an array containing the cells of the belt, returns an array of InteractAreas.
+# 
+func make_interact_areas(belt_lines: Array, belt: Node)->Array:
+	var new_groups = manager.get_connected_cells_to_groups_by_group(world, belt_lines, GROUP_INTERACT)
+	var col_polys = manager.collision_polys_from_cell_groups(new_groups)
+	var interact_areas = []
+	
+	for col_poly in col_polys:
+		var new_interact_area = interact_area_scene.instance()
+		new_interact_area.add_child(col_poly)
+		new_interact_area.belt = belt
+		
+		interact_areas.append(new_interact_area)
+		add_child(new_interact_area)
+	return interact_areas
+
+
+func make_parking_areas()->Array:
+	var parking_areas = []
+	
+	for col_poly in manager.collision_polys_from_group(world, GROUP_PARKING):
+		var new_park_area = park_area_scene.instance()
+		new_park_area.add_child(col_poly)
+		
+		parking_areas.append(new_park_area)
+		add_child(new_park_area)
+	return parking_areas
