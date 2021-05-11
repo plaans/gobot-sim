@@ -40,7 +40,7 @@ Left click - Move to position
 Right click - Turn to position
 
 Left / Right - Turn 90°
-Space - Pick / Put"
+Up / Down - Pick / Place"
 __meta__ = {
 "_edit_use_anchors_": false
 }

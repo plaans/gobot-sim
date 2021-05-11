@@ -192,30 +192,32 @@ func stop_rotation():
 	rotation_speed = 0
 	rotate_time = 0.0
 	
-func pickup():
+func pick():
+	Logger.log_info("%-12s" % "pickup")
+	if carried_package:
+		Logger.log_warning("Already carrying a package for pick() call")
+		return
+	
+	var target_belt = find_target_belt(1)
+	if target_belt and !target_belt.is_empty():
+		var package = target_belt.remove_package()
+		add_package(package)
+	else:
+		Logger.log_warning("No belt found for pick() call")
+
+func place():
 	Logger.log_info("%-12s" % "pickup")
 	if !carried_package:
-		#no package carried so pick up function
-		
-		#first find the closest output belt
-		var target_belt = find_target_belt(1)
-		if target_belt and !target_belt.is_empty():
-			var package = target_belt.remove_package()
-			print(package)
-			add_package(package)
-		else:
-			Logger.log_warning("No belt found for pickup call")
-				
-	else: 
-		#already carrying a package so drop off function
-		
-		#first find the closest input belt
-		var target_belt = find_target_belt(0)
-		if target_belt and target_belt.can_accept_package(carried_package):
-			target_belt.add_package(carried_package)
-			carried_package = null 
-		else:
-			Logger.log_warning("No belt found for pickup call")
+		Logger.log_warning("No current package for place() call")
+		return
+	
+	var target_belt = find_target_belt(0)
+	if target_belt and target_belt.can_accept_package(carried_package):
+		target_belt.add_package(carried_package)
+		carried_package = null 
+	else:
+		Logger.log_warning("No belt found for place() call")
+	
 
 # Given a group string, returns the node which the robot's raycast is colliding with 
 # if it's in the group.
