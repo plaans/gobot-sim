@@ -89,9 +89,10 @@ func remove_package(package : Node):
 		
 
 func _unhandled_input(event):
-	# From GDQuest - Navigation 2D and Tilemaps
-	if event.is_action_pressed("ui_accept"):
-		_Robot.pickup()
+	if event.is_action_pressed("ui_up"):
+		_Robot.pick()
+	if event.is_action_pressed("ui_down"):
+		_Robot.place()
 		
 	if event.is_action_pressed("ui_left"):
 		_Robot.do_rotation(-PI/2, 2.0)
