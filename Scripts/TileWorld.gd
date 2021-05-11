@@ -45,12 +45,15 @@ func set_size(new_size: Vector2):
 func to_dict():
 	return {
 		"data": data, 
-		"offset": {
-			"x": offset.x, 
-			"y": offset.y
-		}, 
-		"size": {
-			"x": size.x, 
-			"y": size.y
-		}
+		"offset": [offset.x, offset.y], 
+		"size": [size.x, size.y]
 	}
+
+func from_dict(dict: Dictionary):
+	data = dict.get("data")
+	var temp_offset = dict.get("offset")
+	if temp_offset and typeof(temp_offset) == TYPE_ARRAY:
+		offset = Vector2(temp_offset[0], temp_offset[1])
+	var temp_size = dict.get("size")
+	if temp_size and typeof(temp_size) == TYPE_ARRAY:
+		size = Vector2(temp_size[0], temp_size[1])

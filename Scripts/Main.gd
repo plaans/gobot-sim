@@ -4,12 +4,10 @@ extends Node
 onready var _Package = $Package
 onready var _Navigation = $Navigation2D
 
-var _Robot 
+onready var _Robot = get_node("Robot")
 export (PackedScene) var RobotScene
 export (PackedScene) var PackageScene
 export (PackedScene) var MachineScene
-
-const color_palette : Array = ["cornflower", "crimson ", "yellow", "seagreen", "sandybrown", "skyblue ", "lightpink ", "palegreen ", "aquamarine", "saddlebrown"] #list of colorsto be used to represent processes
 
 var packages_list
 
@@ -17,6 +15,10 @@ var machines_list
 #each element of the array is a Machine node
 
 var robots_list
+
+var machines_nb : int = 0
+var robots_nb : int = 0
+var packages_nb : int = 0
 
 #var processes_list
 #each element of the array is an array of integers 
@@ -26,44 +28,29 @@ var robots_list
 
 var possible_tasks
 
-var pickup_radius 
-
-export var ROBOT_SPEED = 96 #px/s
-# Note:
-# 1m ~ 32px
-# so 3m/s = 96px/s
-
-var machines_nb : int = 0
-var robots_nb : int = 0
-var packages_nb : int = 0
-
-
-func _ready():		
-	
+func _ready():	
 	#initialization
-	initialization()
+	var test_templates = [ [[0,10],[1,5]], [[0,1],[1,8],[2,6]], [[2,3],[1,9]], [[2,7],[0,12],[5,4]] ]
+	var test_processes = [[Process.new(0,0), Process.new(1,0), Process.new(2,0)], [Process.new(2,0), Process.new(3,0), Process.new(4,0), Process.new(5,0)]]
+	var machine_nb := 0
+	for machine in get_tree().get_nodes_in_group("machines"):
+		if machine.is_in_group("input_machines"):
+			machine.packages_templates = test_templates
+			machine.create_time = 5.0
+		elif machine.is_in_group("output_machines"):
+			pass
+		else:
+			machine.processes.processes = test_processes[machine_nb]
+			machine_nb += 1
 	
-	for node in get_tree().get_nodes_in_group("stands"):
-		var shape_transform: Transform2D = node.get_node("CollisionShape2D").get_global_transform()
-		var shape: RectangleShape2D = node.get_node("CollisionShape2D").shape
-		var shape_poly := PoolVector2Array([
-			Vector2(-shape.extents.x, -shape.extents.y),
-			Vector2(-shape.extents.x, shape.extents.y),
-			Vector2(shape.extents.x, shape.extents.y),
-			Vector2(shape.extents.x, -shape.extents.y)
-		])
-		shape_poly = shape_transform.xform(shape_poly);
-		shape_poly = Geometry.offset_polygon_2d(shape_poly, _Navigation.nav_margin)[0]
-
-		_Navigation.set_navpoly(_Navigation.cut_poly(shape_poly, true))
-
-	
+	#initialization()
 
 	#values of arguments
 	
 	var arguments : Array = Array(OS.get_cmdline_args ())
-
 	
+	var pickup_radius = float(get_arg(arguments,"--pickup-radius",100 ))
+	_Robot.get_node("RayCast2D").set_cast_to(Vector2.RIGHT*pickup_radius)
 	
 	var rng_seed = int(get_arg(arguments,"--seed",0 ))
 	seed(rng_seed)
@@ -100,10 +87,6 @@ func get_arg(args, arg_name, default):
 		return args[index+1]
 	else:
 		return default
-		
-func get_color_palette():
-	return color_palette 		
-
 	
 func add_package(package : Node):
 	packages_list.append(package)
@@ -124,11 +107,6 @@ func initialization():
 		add_child(machine)
 		machine.position = Vector2(350 + 350*(k%2), 450 - 150*(k/2))
 		machines_list.append(machine)
-		
-	machines_list[0].set_buffer_sizes(5,2)
-	machines_list[1].set_buffer_sizes(2,5)
-	machines_list[2].set_buffer_sizes(3,3)
-	machines_list[3].set_buffer_sizes(5,2)
 	
 	load_scenario("res://scenarios/test_scenario.json")
 	
@@ -140,14 +118,14 @@ func load_scenario(file_path : String):
 	if open_error:
 		Logger.log_error("Error opening the scenario file (Error code %s)" % open_error)
 		return
-	
+		
 	var content = JSON.parse(file.get_as_text())
 	file.close()
 	
 	if content.get_error():
 		Logger.log_error("Error parsing the scenario file (Error code %s)" % content.get_error())
-		return
-
+		return	
+		
 	var scenario = content.get_result()
 	
 	if scenario.machines.size()!=machines_list.size():
@@ -162,8 +140,8 @@ func load_scenario(file_path : String):
 		var position = scenario.machines[k].position
 		var x = position[0]
 		var y = position[1]
-		
-		#find if there is a machine close enough to the position specified (for now search for distance <50)
+
+	#find if there is a machine close enough to the position specified (for now search for distance <50)
 		var closest_machine = null
 		var dist_min = 100
 		for machine in machines_list:
@@ -179,7 +157,7 @@ func load_scenario(file_path : String):
 				Logger.log_warning("No machine found at position specified (%s %s), so used instead the closest one at position (%s %s) " 
 				% [x,y,closest_machine.position.x,closest_machine.position.y])
 			
-			closest_machine.set_possible_processes(processes)
+			#closest_machine.set_possible_processes(processes)
 			
 	for k in range(scenario.robots.size()):
 		var new_robot = RobotScene.instance()
@@ -188,13 +166,10 @@ func load_scenario(file_path : String):
 		var new_position = scenario.robots[k].position
 		new_robot.position.x = new_position[0]
 		new_robot.position.y = new_position[1]
-		
 		robots_list.append(new_robot)
 		
-	$Arrival_Zone.set_next_packages(scenario.packages)
+	#$Arrival_Zone.set_next_packages(scenario.packages)
 	print( scenario)
-		
-	
 
 func _unhandled_input(event):
 	# From GDQuest - Navigation 2D and Tilemaps
@@ -202,29 +177,21 @@ func _unhandled_input(event):
 		_Robot.pickup()
 		
 	if event.is_action_pressed("ui_left"):
-		_Robot.do_rotation(-1,1.5)
+		_Robot.do_rotation(-PI/2, 2.0)
 	if event.is_action_pressed("ui_right"):
-		_Robot.do_rotation(1,1.5)
-		
-	if event is InputEventKey and event.pressed and event.scancode == KEY_D:	
-		Communication.disconnect_client()
+		_Robot.do_rotation(PI/2, 2.0)
 
 	if event is InputEventMouseButton and event.pressed:
 		match event.button_index:
 			BUTTON_LEFT:
 				_Robot.navigate_to(event.position)
 			BUTTON_RIGHT:
-				var temp_shape = PoolVector2Array([Vector2(-32,-32),Vector2(-32,32),Vector2(32,32),Vector2(32,-32)])
-				var temp_transform = Transform2D(0, event.position)
-			
+#				var temp_shape = PoolVector2Array([Vector2(-32,-32),Vector2(-32,32),Vector2(32,32),Vector2(32,-32)])
+#				var temp_transform = Transform2D(0, event.position)
 #				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.cut_poly(temp_transform.xform(temp_shape))
-#			BUTTON_MIDDLE:
+				var angle = _Robot.get_angle_to(event.position)
+				_Robot.do_rotation(angle, 2.0)
+			BUTTON_MIDDLE:
 #				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.static_poly
+				pass
 
-	if event.is_action_pressed("ui_down"):
-		#to simply generate a package (carried by the robot) with a simple key press for testing purposes
-		_Package = PackageScene.instance()
-		_Robot.add_package(_Package)
-		_Package.set_processes([[0,3],[1,7]])
-		packages_list.append(_Package)
-		

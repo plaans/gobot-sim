@@ -74,5 +74,21 @@ static func make_navigation_poly(polys: Array, outline: PoolVector2Array)->Navig
 	navigation_poly.make_polygons_from_outlines()
 	
 	return navigation_poly
-	
-	
+
+static func get_poly_from_collision_shape(col_shape: CollisionShape2D)->PoolVector2Array:
+	var new_poly = PoolVector2Array()
+	if col_shape:
+		match col_shape.shape.get_class():
+			"RectangleShape2D":
+				var shape_transform: Transform2D = col_shape.get_global_transform()
+				var shape: RectangleShape2D = col_shape.shape
+				new_poly = PoolVector2Array([
+					Vector2(-shape.extents.x, -shape.extents.y),
+					Vector2(-shape.extents.x, shape.extents.y),
+					Vector2(shape.extents.x, shape.extents.y),
+					Vector2(shape.extents.x, -shape.extents.y)
+				])
+				return shape_transform.xform(new_poly);
+			_:
+				pass
+	return new_poly

@@ -1,13 +1,30 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=8 format=2]
 
-[ext_resource path="res://Assets/robot/robot_v2-sheet.png" type="Texture" id=1]
+[ext_resource path="res://Assets/robot/progress_under.tres" type="Texture" id=1]
 [ext_resource path="res://Scripts/Robot.gd" type="Script" id=2]
+[ext_resource path="res://Assets/robot/progress_fill.tres" type="Texture" id=3]
+[ext_resource path="res://Assets/robot/progress_over.tres" type="Texture" id=4]
+[ext_resource path="res://Assets/robot/robot_texture.png" type="Texture" id=5]
 
 [sub_resource type="CircleShape2D" id=1]
 radius = 16.0
 
-[sub_resource type="CircleShape2D" id=2]
-radius = 32.8201
+[sub_resource type="Animation" id=2]
+resource_name = "charging"
+length = 2.0
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite:modulate")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 1, 2 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 1 ), Color( 2, 2, 0, 1 ), Color( 1, 1, 1, 1 ) ]
+}
 
 [node name="Robot" type="KinematicBody2D" groups=[
 "robots",
@@ -15,18 +32,34 @@ radius = 32.8201
 collision_mask = 0
 script = ExtResource( 2 )
 
-[node name="Sprite" type="Sprite" parent="."]
-position = Vector2( 6.19888e-06, 0 )
-texture = ExtResource( 1 )
-vframes = 3
-hframes = 10
-
 [node name="Collision_Sphere" type="CollisionShape2D" parent="."]
 shape = SubResource( 1 )
 
-[node name="Area2D" type="Area2D" parent="."]
-collision_layer = 2
-collision_mask = 2
+[node name="RayCast2D" type="RayCast2D" parent="."]
+enabled = true
+cast_to = Vector2( 100, 0 )
 
-[node name="Pickup_Sphere" type="CollisionShape2D" parent="Area2D"]
-shape = SubResource( 2 )
+[node name="Sprite" type="Sprite" parent="."]
+position = Vector2( 6.19888e-06, 0 )
+texture = ExtResource( 5 )
+
+[node name="TextureProgress" type="TextureProgress" parent="Sprite"]
+margin_left = -12.0
+margin_top = -12.0
+margin_right = -7.0
+margin_bottom = 12.0
+texture_under = ExtResource( 1 )
+texture_over = ExtResource( 4 )
+texture_progress = ExtResource( 3 )
+fill_mode = 3
+nine_patch_stretch = true
+stretch_margin_left = 2
+stretch_margin_top = 2
+stretch_margin_right = 2
+stretch_margin_bottom = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+anims/charging = SubResource( 2 )

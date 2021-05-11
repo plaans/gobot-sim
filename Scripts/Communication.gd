@@ -2,7 +2,6 @@ extends Node
 
 
 
-const Proto = preload("res://protobuf/proto.gd")
 var tcp_server #TCP_Server
 var client #StreamPeerTCP
 

@@ -17,27 +17,33 @@ var path_line: Line2D
 var following: bool = false
 var current_path_point: int = 0
 
+
 var robot_name
 
 signal action_done
 
-export var current_battery : float = 10.0
 export var max_battery : float = 10.0
-export var battery_drain_rate : float = 0.25
-export var battery_charge_rate : float = 1.5
-export var max_battery_frame : int = 20
-var current_battery_frame : int = 0
+export var battery_drain_rate : float = 0.1
+export var battery_charge_rate : float = 0.8
+var current_battery : float = 10.0
 
-var in_station : bool
+var in_station: bool setget set_in_station
+var in_interact: bool setget set_in_interact
 
-onready var raycast : RayCast2D = RayCast2D.new()
+
+onready var raycast : RayCast2D = $RayCast2D
+onready var _Progress = $Sprite/TextureProgress
+export var progress_gradient: Gradient = preload("res://Assets/robot/progress_gradient.tres")
+
+export var TEST_ROBOT_SPEED = 96 #px/s
+# Note:
+# 1m ~ 32px
+# so 3m/s = 96px/s
 
 func _ready():
-	add_child(raycast)
-	raycast.set_enabled(true)
-	raycast.set_cast_to(Vector2( 1500,0 ))
 	add_to_group("export_static")
 	add_to_group("export_dynamic")
+	current_battery = max_battery
 
 func _physics_process(delta):
 	if !moving && following:
@@ -49,7 +55,7 @@ func _physics_process(delta):
 			Communication.command_result(robot_name, "navigate_to", "Navigate_to command completed successfully")
 		else:
 			var dir_vec: Vector2 = (path[current_path_point] - position)
-			var speed = 96.0 # px/s
+			var speed = TEST_ROBOT_SPEED # px/s
 			var time = dir_vec.length()/speed # s
 			goto(dir_vec.angle(), speed, time)
 		
@@ -90,12 +96,8 @@ func _process(delta):
 		if current_battery>0 and new_battery==0:
 			Logger.log_info("Battery became empty for robot of id %s" % self.get_instance_id())
 		current_battery = new_battery
-		$Sprite.modulate = Color(1,1,1)
 	else:
 		current_battery = min(max_battery, current_battery + battery_charge_rate*delta)
-		var original_color = Color(1,1,1)
-		var new_color = Color(0.5,1,1)
-		$Sprite.modulate = original_color.linear_interpolate(new_color, 0.5+0.5*sin(-PI/2 + 5*OS.get_ticks_msec()/1000)) 
 
 	update_battery_display()
 
@@ -107,19 +109,25 @@ func get_name() -> String:
 	
 func set_in_station(state : bool):
 	in_station = state
+	if in_station:
+		$AnimationPlayer.play("charging")
+	else:
+		$AnimationPlayer.seek(0,true)
+		$AnimationPlayer.stop()
 	
 func get_in_station() -> bool:
 	return in_station
 	
 func get_battery_proportion():
 	return current_battery / max_battery
+	
+
+func set_in_interact(state : bool):
+	in_interact = state
 			
 func update_battery_display():
-	var display = $Sprite
-	var new_frame = int(max_battery_frame - (current_battery / max_battery) * max_battery_frame)
-	if new_frame != current_battery_frame:
-		current_battery_frame = new_frame
-		display.frame = new_frame
+	_Progress.value = current_battery/max_battery*100
+	_Progress.tint_progress = progress_gradient.interpolate(_Progress.value/100)
 			
 func is_moving():
 	return following
@@ -168,8 +176,8 @@ func stop_path():
 
 func add_package(Package : Node):
 	carried_package = Package
+	carried_package.position = Vector2(7, 0)
 	add_child(carried_package)
-	carried_package.position.x=7
 	
 func do_rotation(angle: float, speed: float):
 	# angle : rad
@@ -188,57 +196,44 @@ func stop_rotation():
 	rotate_time = 0.0
 	
 func pickup():
-	#Logger.log_info("%-12s" % "pickup")
-	if carried_package==null:
+	Logger.log_info("%-12s" % "pickup")
+	if !carried_package:
 		#no package carried so pick up function
 		
-		#first find the closest output stand
-		var closest_stand = find_closest_stand("output")
-		
-		if closest_stand !=null:
-			var machine = closest_stand.get_parent() #get machine corresponding to this output stand
-			#machine can actually also be a Delivery_Zone or Arrival_Zone but it will still have the functions needed
-				
-			if machine.is_output_available():
-				add_package(machine.take())
+		#first find the closest output belt
+		var target_belt = find_target_belt(1)
+		if target_belt and !target_belt.is_empty():
+			var package = target_belt.remove_package()
+			print(package)
+			add_package(package)
 		else:
-			Logger.log_warning("No stand found for pickup call")
+			Logger.log_warning("No belt found for pickup call")
 				
 	else: 
 		#already carrying a package so drop off function
 		
-		#first find the closest input stand
-		var closest_stand = find_closest_stand("input")
-		
-		if closest_stand !=null:
-			var machine = closest_stand.get_parent() #get machine corresponding to this input stand
-			if machine.can_accept_package(carried_package):
-				remove_child(carried_package)
-				carried_package.position.x=0
-				machine.add_package(carried_package)
-				carried_package = null 
+		#first find the closest input belt
+		var target_belt = find_target_belt(0)
+		if target_belt and target_belt.can_accept_package(carried_package):
+			target_belt.add_package(carried_package)
+			carried_package = null 
 		else:
-			Logger.log_warning("No stand found for pickup call")
-				
-func is_facing(body : Node) -> bool:
+			Logger.log_warning("No belt found for pickup call")
+
+# Given a group string, returns the node which the robot's raycast is colliding with 
+# if it's in the group.
+# If there is no node colliding, if the node is not in the given group,
+# or if the robot is not in an interaction area, returns null.
+func find_target_belt(type: int)->Node:
+	if !in_interact:
+		return null
 	
-	var collider = raycast.get_collider()
-	return collider == body
-	
-func find_closest_stand(group : String):
-	#if no stands in pickup radius returns null
-	#if multiple stands are in pickup radius returns the closest one
-	
-	var stands = $Area2D.get_overlapping_bodies()
-	var closest_stand = null
-	var dist_min=1000000
-	for stand in stands:
-		if stand.is_in_group(group) and is_facing(stand):
-			var distance = self.position.distance_to(stand.position)
-			if distance <= dist_min:
-				dist_min = distance
-				closest_stand = stand	
-	return closest_stand
+	var target_object = raycast.get_collider()
+	if target_object and target_object.is_in_group("belts") and target_object.belt_type == type:
+		return target_object
+		print("found belt")
+	else:
+		return null
 	
 func export_static():
 	return [["robot", robot_name]]
