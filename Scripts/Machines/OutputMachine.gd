@@ -8,6 +8,11 @@ export var delete_time: float = 20.0 setget set_delete_time
 
 func _ready():
 	process_time = delete_time
+	
+	add_to_group("export_static")
+	
+	#generate a name 
+	machine_name = ExportManager.new_name("output_machine")
 
 func set_delete_time(new_delete_time: float):
 	delete_time = new_delete_time

@@ -4,14 +4,15 @@
 [ext_resource path="res://Scripts/Navigation2D.gd" type="Script" id=2]
 [ext_resource path="res://Scripts/Main.gd" type="Script" id=3]
 [ext_resource path="res://Scenes/Robot.tscn" type="PackedScene" id=4]
-[ext_resource path="res://Scenes/Machines/Machine.tscn" type="PackedScene" id=5]
-[ext_resource path="res://Scenes/Package.tscn" type="PackedScene" id=7]
+[ext_resource path="res://Scenes/Package.tscn" type="PackedScene" id=5]
+[ext_resource path="res://Scenes/Machines/Machine.tscn" type="PackedScene" id=6]
 [ext_resource path="res://Scripts/WorldMap.gd" type="Script" id=14]
 
 [node name="Main" type="Node"]
 script = ExtResource( 3 )
-PackageScene = ExtResource( 7 )
-MachineScene = ExtResource( 5 )
+RobotScene = ExtResource( 4 )
+PackageScene = ExtResource( 5 )
+MachineScene = ExtResource( 6 )
 
 [node name="WorldMap" type="TileMap" parent="."]
 tile_set = ExtResource( 1 )

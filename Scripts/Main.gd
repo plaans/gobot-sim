@@ -5,6 +5,7 @@ onready var _Package = $Package
 onready var _Navigation = $Navigation2D
 
 onready var _Robot = get_node("Robot")
+export (PackedScene) var RobotScene
 export (PackedScene) var PackageScene
 export (PackedScene) var MachineScene
 
@@ -15,18 +16,15 @@ var machines_list
 
 var robots_list
 
-var processes_list
+var packages_nb : int = 0
+
+#var processes_list
 #each element of the array is an array of integers 
 #corresponding to the machines possible for the given process
 #example : if process no.3 can be done by machines 4 or 5, 
 #		   then the element at index 3 can be [4,5] (or [5,4])
 
 var possible_tasks
-
-const Proto = preload("res://protobuf/proto.gd")
-var tcp_server #TCP_Server
-var client #StreamPeerTCP
-
 
 func _ready():	
 	#initialization
@@ -42,14 +40,11 @@ func _ready():
 		else:
 			machine.processes.processes = test_processes[machine_nb]
 			machine_nb += 1
-	
-	
+
 	#values of arguments
 	
 	var arguments : Array = Array(OS.get_cmdline_args ())
-
-	var port = int(get_arg(arguments,"--port",10000 ))
-		
+	
 	var pickup_radius = float(get_arg(arguments,"--pickup-radius",100 ))
 	_Robot.get_node("RayCast2D").set_cast_to(Vector2.RIGHT*pickup_radius)
 	
@@ -64,13 +59,12 @@ func _ready():
 		if not(dir.dir_exists("logs")):
 			dir.make_dir("logs")
 	Logger.set_log_location(log_name)
-	
-	#launch TCP Server
-	tcp_server = TCP_Server.new();	
-	var listen_error = tcp_server.listen(port)
-	if listen_error:
-		Logger.log_error("Error trying to listen at port %s (Error code %s)" % [port,listen_error])
 
+	
+	#launch Communication Server
+	var port = int(get_arg(arguments,"--port",10000 ))
+	Communication.start_server(port)
+	
 	
 func get_arg(args, arg_name, default):
 	var index = args.find(arg_name)
@@ -87,6 +81,78 @@ func remove_package(package : Node):
 	if package_index >= 0 :
 		packages_list.remove(package_index)
 		
+func initialization():
+	
+	packages_list = []
+	robots_list = []
+	machines_list = []
+	for k in range(4):
+		var machine = MachineScene.instance()
+		add_child(machine)
+		machine.position = Vector2(350 + 350*(k%2), 450 - 150*(k/2))
+		machines_list.append(machine)
+	
+	load_scenario("res://scenarios/test_scenario.json")
+	
+	_Robot = robots_list[0]
+	
+func load_scenario(file_path : String):
+	var file = File.new()
+	var open_error = file.open(file_path, File.READ) 
+	if open_error:
+		Logger.log_error("Error opening the scenario file (Error code %s)" % open_error)
+		return
+		
+	var content = JSON.parse(file.get_as_text())
+	file.close()
+	
+	if content.get_error():
+		Logger.log_error("Error parsing the scenario file (Error code %s)" % content.get_error())
+		return	
+		
+	var scenario = content.get_result()
+	
+	if scenario.machines.size()!=machines_list.size():
+		Logger.log_error("Wrong number of machines : processes specified for %s machines but there are %s machines in the simulation" 
+						% [scenario.machines.size(),machines_list.size()])
+	
+	for k in range(machines_list.size()):
+		var processes = scenario.machines[k].possible_processes
+		for i in range (processes.size()):
+			processes[i] = int(processes[i])
+			
+		var position = scenario.machines[k].position
+		var x = position[0]
+		var y = position[1]
+
+	#find if there is a machine close enough to the position specified (for now search for distance <50)
+		var closest_machine = null
+		var dist_min = 100
+		for machine in machines_list:
+			var dist = machine.position.distance_to(Vector2(x,y))
+			if dist <=50 and dist<dist_min:
+				closest_machine = machine
+				dist_min = dist
+		if closest_machine == null:
+			Logger.log_error("Cannot identify the machine for position specified (%s %s)" % [x,y])
+		else:
+			#a machine was found close enough but if position was not exact still register a warning
+			if dist_min>0:
+				Logger.log_warning("No machine found at position specified (%s %s), so used instead the closest one at position (%s %s) " 
+				% [x,y,closest_machine.position.x,closest_machine.position.y])
+			
+			#closest_machine.set_possible_processes(processes)
+			
+	for k in range(scenario.robots.size()):
+		var new_robot = RobotScene.instance()
+		add_child(new_robot)
+		var new_position = scenario.robots[k].position
+		new_robot.position.x = new_position[0]
+		new_robot.position.y = new_position[1]
+		robots_list.append(new_robot)
+		
+	#$Arrival_Zone.set_next_packages(scenario.packages)
+	print( scenario)
 
 func _unhandled_input(event):
 	# From GDQuest - Navigation 2D and Tilemaps
@@ -111,75 +177,3 @@ func _unhandled_input(event):
 			BUTTON_MIDDLE:
 #				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.static_poly
 				pass
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
-	
-	if client!=null and !client.is_connected_to_host():
-		#if client was disconnected set variable to null again
-		client=null
-	
-	if client==null and tcp_server.is_connection_available():
-		client = tcp_server.take_connection() 
-
-	if client != null and client.is_connected_to_host():
-		
-		#then read if commands were received (read one at most)
-		if client.get_available_bytes() > 0:
-			var size= client.get_u32 ()
-			if size>0:
-				var response= client.get_data(size);
-				var error = response[0]
-				var msg = response[1]
-				if error != 0:
-					print( "Error : %s" % error)
-				else:
-					var Command = Proto.Command.new()
-					Command.from_bytes(msg)
-					
-					var command_type = Command.get_command()
-					if command_type == Proto.Command.Command_types.GOTO:
-						_Robot.goto(Command.get_dir(), Command.get_speed(), Command.get_time()) 
-					elif command_type == Proto.Command.Command_types.PICKUP :
-						_Robot.pickup()
-						
-		#first send data about state of world
-		var bytes_to_send = encode_current_state()
-		var size_bytes = bytes_to_send.size()
-		
-		client.put_32(size_bytes)
-		client.put_data(bytes_to_send)
-
-
-func encode_current_state():
-	#creates and serializes a protocol buffer containing the data about the current state of the simulation
-	
-	var state = Proto.State.new()
-	
-	#data about robots 
-	for robot in robots_list:
-		var new_robot = state.add_robots()
-		new_robot.set_x(robot.position.x)
-		new_robot.set_y(robot.position.y)
-		new_robot.set_is_moving(robot.is_moving())
-		
-	#data about packages 
-	for package in packages_list:
-		var new_package = state.add_packages()
-		
-	
-	var package_location = state.add_packages_locations()
-	if _Package.get_parent() is KinematicBody2D:
-		package_location.set_location_type(Proto.State.Location.Type.ROBOT)
-	else:
-		package_location.set_location_type(Proto.State.Location.Type.STAND)
-	package_location.set_location_id(_Package.get_parent().get_index())
-
-	#data about stands
-	var list_stands=$Stands.get_children()
-	state.set_nb_stands(list_stands.size())
-	for stand in list_stands:		
-		state.add_stands_x(stand.position.x)
-		state.add_stands_y(stand.position.y)
-		
-	return state.to_bytes()

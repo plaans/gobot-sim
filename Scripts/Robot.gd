@@ -8,7 +8,7 @@ var velocity: Vector2 = Vector2.ZERO
 
 export var max_rotation_speed : int = 500
 var target_angle : float #set when doing a rotation
-var rotation_speed
+var rotation_speed : float = 0.0
 var rotate_time: float = 0.0
 var rotating : bool
 
@@ -17,6 +17,11 @@ var path_line: Line2D
 var following: bool = false
 var current_path_point: int = 0
 
+
+var robot_name : String
+
+signal action_done
+
 export var max_battery : float = 10.0
 export var battery_drain_rate : float = 0.1
 export var battery_charge_rate : float = 0.8
@@ -24,6 +29,7 @@ var current_battery : float = 10.0
 
 var in_station: bool setget set_in_station
 var in_interact: Array = []
+
 
 onready var raycast : RayCast2D = $RayCast2D
 onready var _Progress = $Sprite/TextureProgress
@@ -35,7 +41,12 @@ export var TEST_ROBOT_SPEED = 96 #px/s
 # so 3m/s = 96px/s
 
 func _ready():
+	add_to_group("export_static")
+	add_to_group("export_dynamic")
 	current_battery = max_battery
+	
+	#generate a name 
+	robot_name = ExportManager.new_name("robot")
 
 func _physics_process(delta):
 	if !moving && following:
@@ -44,6 +55,7 @@ func _physics_process(delta):
 			
 		if current_path_point >= path.size():
 			stop_path()
+			Communication.command_result(robot_name, "navigate_to", "Navigate_to command completed successfully")
 		else:
 			var dir_vec: Vector2 = (path[current_path_point] - position)
 			var speed = TEST_ROBOT_SPEED # px/s
@@ -70,11 +82,13 @@ func _physics_process(delta):
 	if rotating:
 		if current_battery == 0:
 			stop_rotation()
+			Communication.command_result(robot_name, "do_rotation", "Could not complete rotation command because battery became empty")
 		else:
 			rotate_time -= delta
 			if rotate_time <= 0 :
 				self.rotation = target_angle
 				stop_rotation()
+				Communication.command_result(robot_name, "do_rotation", "do_rotation command completed successfully")
 			else:
 				self.rotate(rotation_speed * delta)
 
@@ -90,6 +104,9 @@ func _process(delta):
 
 	update_battery_display()
 	
+func get_name() -> String:
+	return robot_name
+	
 func set_in_station(state : bool):
 	in_station = state
 	if in_station:
@@ -97,19 +114,29 @@ func set_in_station(state : bool):
 	else:
 		$AnimationPlayer.seek(0,true)
 		$AnimationPlayer.stop()
+	
+func get_in_station() -> bool:
+	return in_station
+	
+func get_battery_proportion():
+	return current_battery / max_battery
+	
 			
 func update_battery_display():
 	_Progress.value = current_battery/max_battery*100
 	_Progress.tint_progress = progress_gradient.interpolate(_Progress.value/100)
 			
 func is_moving():
-	return moving
+	return following
+	
+func is_rotating():
+	return rotating
 
 func goto(dir:float, speed:float, time:float):
 	# dir : rad
 	# speed : px/s
 	# time : s
-	Logger.log_info("%-12s %8.3f;%8.3f;%8.3f" % ["goto", dir, speed, time])
+	#Logger.log_info("%-12s %8.3f;%8.3f;%8.3f" % ["goto", dir, speed, time])
 	move_time = time
 	velocity = speed * Vector2.RIGHT.rotated(dir) # already normalized
 	moving = true
@@ -127,9 +154,10 @@ func navigate_to(point: Vector2):
 		new_path_line.default_color = Color(1,1,1,0.5)
 		self.path_line = new_path_line
 		_nav.add_child(new_path_line)
-		
 		following = true
 		current_path_point = 0
+		
+	emit_signal("action_done")
 
 func stop():
 	move_time = 0.0
@@ -204,4 +232,19 @@ func find_target_belt(type: int)->Node:
 				return target_object
 	# If a condition has't been met, return null
 	return null
+	
+func export_static() -> Array:
+	return [["robot", robot_name]]
+	
+func export_dynamic() -> Array:
+	var export_data=[]
+	export_data.append(["coordinates", robot_name, ExportManager.pixels_to_meters(position)])
+	export_data.append(["rotation", robot_name, rotation])
+	export_data.append(["battery", robot_name, get_battery_proportion()])
+	export_data.append(["velocity", robot_name, ExportManager.pixels_to_meters(velocity)])
+	export_data.append(["rotation_speed", robot_name, rotation_speed])
+	export_data.append(["in_station", robot_name, in_station])
+	export_data.append(["in_interact", robot_name, in_interact])
+	return export_data
+		
 	

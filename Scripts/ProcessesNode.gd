@@ -35,6 +35,20 @@ func set_processes(new_processes: Array):
 	update_processes_display()
 func get_processes():
 	return processes #returns a reference so it will be editable
+	
+func get_processes_ids():
+	#used for machines, to get list of id of processes
+	var id_list = []
+	for process in processes:
+		id_list.append(process.get_id())
+	return id_list
+	
+func get_processes_ids_durations():
+	#used for packages, to get list of id and durations of processes
+	var id_duration_list = []
+	for process in processes:
+		id_duration_list.append(process.to_array())
+	return id_duration_list
 
 # Removes the process in the processes array at the given index, 
 # and returns the removed process
