@@ -50,20 +50,35 @@ func get_used_cells_by_group(group: Array)->Array:
 func get_connected_cells_by_ids(world: TileWorld, ids: Array)->Array:
 	var connected_cells = []
 	var cells = world.data.duplicate(true)
-	var cells_transform = Transform2D(0, world.offset)
 	
 	for i in range(world.size.x):
 		for j in range(world.size.y):
 			if cells[i][j] in ids:
 				# from world data coordinates to real coordinates
-				connected_cells.append( cells_transform.xform( fill_cells(cells, Vector2(i,j), world.size, ids)))
+				connected_cells.append( world.transform.xform( fill_cells(cells, Vector2(i,j), world.size, ids)))
 	return connected_cells
 
 # same as get_connected_cells_by_ids(), but using an array of tile names instead.
 func get_connected_cells_by_group(world: TileWorld, group: Array)->Array:
 	return get_connected_cells_by_ids(world, get_ids_from_group(group))
 
+# Cell groups are given in tilemap space
+func get_connected_cells_to_groups_by_ids(world: TileWorld, cell_groups: Array, ids: Array)->Array:
+	var cells: Array = world.data.duplicate(true)
+	var connected_groups = []
+	
+	for group in cell_groups:
+		for cell in group:
+			var cells_to_fill = fill_adjacent_cells(cells, world.transform.xform_inv(cell), world.size, ids)
+			for to_fill in cells_to_fill:
+				connected_groups.append(fill_cells(cells, to_fill, world.size, ids))
+	return connected_groups
 
+func get_connected_cells_to_groups_by_group(world: TileWorld, cell_groups: Array, group: Array)->Array:
+	return get_connected_cells_to_groups_by_ids(world, cell_groups, get_ids_from_group(group))
+
+
+# Pos is given in tilemap space
 func get_adjacent_cells_by_ids(pos: Vector2, ids: Array)->Array:
 	var adjacent_cells = []
 	for dir in DIRS_4:
@@ -85,7 +100,6 @@ func get_outline(world: TileWorld)->PoolVector2Array:
 
 # Given an array of cell position, returns an array of 2-values arrays.
 # This is used to transform a PoolVector2Array into a JSON-compatible structure
-# Note: not recommended for big arrays of Vector2
 func cells_to_arrays(cells: Array)->Array:
 	var new_array = []
 	for cell in cells:

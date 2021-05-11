@@ -112,13 +112,6 @@ func _unhandled_input(event):
 #				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.static_poly
 				pass
 
-	if event.is_action_pressed("ui_down"):
-		#to simply generate a package (carried by the robot) with a simple key press for testing purposes
-		_Package = PackageScene.instance()
-		_Robot.add_package(_Package)
-		_Package.set_processes([[0,3],[1,7]])
-
-
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	

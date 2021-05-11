@@ -8,6 +8,7 @@ class_name TileWorld
 var data: Array setget set_data, get_data
 var offset: Vector2 setget set_offset, get_offset
 var size: Vector2 setget set_size, get_size
+var transform: Transform2D 
 
 func _init(tilemap: TileMap = null):
 	# If no tilemap has been given, skip initialization
@@ -16,9 +17,9 @@ func _init(tilemap: TileMap = null):
 		
 	var used_rect = tilemap.get_used_rect()
 	
-	offset = used_rect.position
-	size = used_rect.size
-	data = []
+	set_offset(used_rect.position)
+	set_size(used_rect.size)
+	set_data([])
 	
 	for i in range(used_rect.position.x, used_rect.end.x):
 		var col = []
@@ -35,6 +36,7 @@ func get_offset()->Vector2:
 	return offset
 func set_offset(new_offset: Vector2):
 	offset = new_offset
+	transform = Transform2D(0, new_offset)
 
 func get_size()->Vector2:
 	return size
