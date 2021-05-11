@@ -23,12 +23,23 @@ var line_points: PoolVector2Array setget set_line_points
 onready var _PackagePath = $PackagePath
 onready var _VisualLine = $Line2D
 
+var belt_name : String
+
 func _ready():
 	# At the start of the simulation, make the line if there are points already set
 	if line_points:
 		setup_line()
 	
 	_VisualLine.material.set_shader_param("speed", visual_speed)
+	
+	add_to_group("export_static")
+	add_to_group("export_dynamic")
+	
+	#generate a name 
+	belt_name = ExportManager.new_name("belt")
+	
+func get_name() -> String:
+	return belt_name
 
 func set_size(new_size: int):
 	size = new_size
@@ -126,3 +137,37 @@ func move_package_offset(package: PathFollow2D, new_offset: float):
 	tween.interpolate_property(package, "unit_offset", package.unit_offset, new_offset, duration)
 	if !tween.is_active():
 		tween.start()
+		
+func get_packages_names() -> Array:
+	#returns Array containing name of all packages on the belt
+	var names_array = []
+	for package in packages:
+		names_array.append(package.get_name())
+	return names_array
+		
+func export_static() -> Array:
+	var export_data = []
+	export_data.append(["belt", belt_name])
+	export_data.append(["coordinates", belt_name, ExportManager.pixels_to_meters(position)])
+	
+	var belt_type_name 
+	if belt_type == BeltType.INPUT:
+		belt_type_name = "input"
+	else:
+		belt_type_name = "output"
+	export_data.append(["belt_type", belt_name, ExportManager.pixels_to_meters(position)])
+	
+	var collision_polygons = []
+	for child in  get_children():
+		if child is CollisionPolygon2D:
+			collision_polygons.append(ExportManager.convert_array_pixels_to_meters(child.get_polygon()))	
+	export_data.append(["polygon", belt_name, collision_polygons])
+
+	
+	return export_data
+	
+func export_dynamic() -> Array:
+	var export_data = []
+	export_data.append(["packages_list", belt_name, get_packages_names()])
+	
+	return export_data

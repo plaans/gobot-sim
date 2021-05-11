@@ -10,17 +10,19 @@ enum ProcessMode {
 }
 export(ProcessMode) var process_mode = ProcessMode.PROCESS_FIRST
 
-var package_name
+var package_name : String
 var location
 
-func set_name(name : String):
-	package_name = name
 	
 func get_name() -> String:
 	return package_name
 
 func _ready():
-	pass
+	add_to_group("export_static")
+	add_to_group("export_dynamic")
+	
+	#generate a name 
+	package_name = ExportManager.new_name("package")
 
 func set_delivery_limit(time : float):
 	delivery_limit = time
@@ -37,13 +39,17 @@ func get_location() -> Node:
 #func _process(delta):
 #	pass
 
-func export_static():
+func export_static() -> Array:
 	return [["package", package_name]]
 	
-func export_dynamic():
+func export_dynamic() -> Array:
 	var export_data=[]
-	export_data.append(["location", package_name, get_parent().get_name()])
-	export_data.append(["processes", package_name, processes])
+	
+	var location = get_parent()
+	if location is Path2D:
+		location = location.get_parent() #case of belt
+		
+	export_data.append(["location", package_name, location.get_name()])
+	export_data.append(["processes", package_name, processes.get_processes_ids_durations()])
 	
 	return export_data
-

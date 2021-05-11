@@ -8,7 +8,7 @@ var velocity: Vector2 = Vector2.ZERO
 
 export var max_rotation_speed : int = 500
 var target_angle : float #set when doing a rotation
-var rotation_speed
+var rotation_speed : float = 0.0
 var rotate_time: float = 0.0
 var rotating : bool
 
@@ -18,7 +18,7 @@ var following: bool = false
 var current_path_point: int = 0
 
 
-var robot_name
+var robot_name : String
 
 signal action_done
 
@@ -44,6 +44,9 @@ func _ready():
 	add_to_group("export_static")
 	add_to_group("export_dynamic")
 	current_battery = max_battery
+	
+	#generate a name 
+	robot_name = ExportManager.new_name("robot")
 
 func _physics_process(delta):
 	if !moving && following:
@@ -100,9 +103,6 @@ func _process(delta):
 		current_battery = min(max_battery, current_battery + battery_charge_rate*delta)
 
 	update_battery_display()
-
-func set_name(name : String):
-	robot_name = name
 	
 func get_name() -> String:
 	return robot_name
@@ -235,17 +235,18 @@ func find_target_belt(type: int)->Node:
 	else:
 		return null
 	
-func export_static():
+func export_static() -> Array:
 	return [["robot", robot_name]]
 	
-func export_dynamic():
+func export_dynamic() -> Array:
 	var export_data=[]
-	export_data.append(["coordinates", robot_name, [position.x, position.y]])
+	export_data.append(["coordinates", robot_name, ExportManager.pixels_to_meters(position)])
 	export_data.append(["rotation", robot_name, rotation])
 	export_data.append(["battery", robot_name, get_battery_proportion()])
-	export_data.append(["is_moving", robot_name, is_moving()])
-	export_data.append(["is_rotating", robot_name, is_rotating()])
+	export_data.append(["velocity", robot_name, ExportManager.pixels_to_meters(velocity)])
+	export_data.append(["rotation_speed", robot_name, rotation_speed])
 	export_data.append(["in_station", robot_name, in_station])
+	export_data.append(["in_interact", robot_name, in_interact])
 	return export_data
 		
 	

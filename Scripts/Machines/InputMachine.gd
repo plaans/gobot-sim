@@ -25,6 +25,11 @@ var packages_templates: Array = []
 
 func _ready():
 	process_time = create_time
+	
+	add_to_group("export_static")
+	
+	#generate a name 
+	machine_name = ExportManager.new_name("input_machine")
 
 func set_create_time(new_create_time: float):
 	create_time = new_create_time

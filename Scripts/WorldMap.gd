@@ -23,6 +23,9 @@ enum BeltType {
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	# Set the cell size property in export manager 
+	ExportManager.set_tile_size(cell_size)
+	
 	# Make ParkingArea
 	var new_park_area = park_area_scene.instance()
 	new_park_area.name = "ParkingArea "+str(new_park_area)
@@ -39,6 +42,8 @@ func _ready():
 	
 	# Make the machines
 	var machines = make_machines()
+	
+	
 
 # Creates machine. at the position of the cells in the group GROUP_MACHINE and returns all the machines.
 # Also creates the belts connected to each machine and links them.

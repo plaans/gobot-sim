@@ -20,9 +20,15 @@ onready var _Progress: TextureProgress = $MachineSprite/TextureProgress
 onready var processes = $ProcessesNode
 # List of processes and helper to display processes colors
 
+var machine_name : String
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	pass
+	add_to_group("export_static")
+	add_to_group("export_dynamic")
+	
+	#generate a name 
+	machine_name = ExportManager.new_name("machine")
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -34,6 +40,9 @@ func _process(delta):
 		var new_package = request_input()
 		if new_package:
 			start_process()
+			
+func get_name() -> String:
+	return machine_name
 
 func set_input_belt(belt: Node):
 	input_belt = belt
@@ -152,4 +161,33 @@ func request_input()->Node:
 		current_package = new_package
 	return new_package
 	
+func export_static() -> Array:
+	var export_data = []
+	export_data.append(["machine", machine_name])
+	
+	export_data.append(["coordinates", machine_name, ExportManager.pixels_to_meters(position)])
+	
+	if input_belt:
+		export_data.append(["input_belt", machine_name, input_belt.get_name()])
+	
+	if output_belt:
+		export_data.append(["output_belt", machine_name, output_belt.get_name()])
+
+	if processes:
+		export_data.append(["processes_list", machine_name, processes.get_processes_ids()])
+
+	return export_data
+	
+func export_dynamic() -> Array:
+	var export_data=[]
+	
+	var progress_rate 
+	if process_time !=0:
+		progress_rate= min(1, (process_time - remaining_process_time)/process_time)
+	else:
+		progress_rate = 0
+		
+	export_data.append(["progress_rate", machine_name, progress_rate])
+	
+	return export_data
  

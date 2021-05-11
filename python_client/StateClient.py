@@ -25,10 +25,9 @@ class StateClient(TCP_Client):
 	def listen_to_server(self):
 		while True:
 			data = self.read_data()
-			self.update(data)
+			self.update(data['data'])
 
 			pprint.pprint(self.state)
-			print(self.coordinates("robot1"))
 
 	def update(self, data):
 		for line in data:
@@ -46,41 +45,40 @@ class StateClient(TCP_Client):
 
 	# getter functions, that access the state and return some information
 	def coordinates(self, name):
-		return get_data("coordinates",name)
+		return self.get_data("coordinates",name)
 
 	def rotation(self, robot_name):
-		return get_data("rotation",robot_name)
+		return self.get_data("rotation",robot_name)
 
 	def battery(self, robot_name):
-		return get_data("battery",robot_name)
+		return self.get_data("battery",robot_name)
 
-	def is_moving(self, robot_name):
-		return get_data("is_moving",robot_name)
+	def velocity(self, robot_name):
+		return self.get_data("velocity",robot_name)
 
-	def is_rotating(self, robot_name):
-		return get_data("is_rotating",robot_name)
+	def rotation_speed(self, robot_name):
+		return self.get_data("rotation_speed",robot_name)
 
 	def in_station(self, robot_name):
-		return get_data("in_station",robot_name)
+		return self.get_data("in_station",robot_name)
+
+	def in_interact(self, robot_name):
+		return self.in_interact("in_station",robot_name)
 
 
+	def input_belt(self, machine_name):
+		return self.get_data("input_belt",machine_name)
 
-	def input_area(self, machine_name):
-		return get_data("input_area",machine_name)
-
-	def output_area(self, machine_name):
-		return get_data("output_area",machine_name)
-
-	def buffers_sizes(self, machine_name):
-		return get_data("buffers_sizes",machine_name)
+	def output_belt(self, machine_name):
+		return self.get_data("output_belt",machine_name)
 
 	def processes_list(self, name):
-		return get_data("processes_list", name)
+		return self.get_data("processes_list", name)
 
 
 
 	def package_location(self, package_name):
-		return get_data("batlocationtery",package_name)
+		return self.get_data("batlocationtery",package_name)
 
 	
 

@@ -16,8 +16,6 @@ var machines_list
 
 var robots_list
 
-var machines_nb : int = 0
-var robots_nb : int = 0
 var packages_nb : int = 0
 
 #var processes_list
@@ -42,8 +40,6 @@ func _ready():
 		else:
 			machine.processes.processes = test_processes[machine_nb]
 			machine_nb += 1
-	
-	#initialization()
 
 	#values of arguments
 	
@@ -69,17 +65,6 @@ func _ready():
 	var port = int(get_arg(arguments,"--port",10000 ))
 	Communication.start_server(port)
 	
-func new_machine_name():
-	machines_nb += 1
-	return "machine%s" % machines_nb
-	
-func new_robot_name():
-	robots_nb += 1
-	return "robot%s" % robots_nb
-	
-func new_package_name():
-	packages_nb += 1
-	return "package%s" % packages_nb
 	
 func get_arg(args, arg_name, default):
 	var index = args.find(arg_name)
@@ -103,7 +88,6 @@ func initialization():
 	machines_list = []
 	for k in range(4):
 		var machine = MachineScene.instance()
-		machine.set_name(new_machine_name())
 		add_child(machine)
 		machine.position = Vector2(350 + 350*(k%2), 450 - 150*(k/2))
 		machines_list.append(machine)
@@ -161,7 +145,6 @@ func load_scenario(file_path : String):
 			
 	for k in range(scenario.robots.size()):
 		var new_robot = RobotScene.instance()
-		new_robot.set_name(new_robot_name())
 		add_child(new_robot)
 		var new_position = scenario.robots[k].position
 		new_robot.position.x = new_position[0]
@@ -175,6 +158,7 @@ func _unhandled_input(event):
 	# From GDQuest - Navigation 2D and Tilemaps
 	if event.is_action_pressed("ui_accept"):
 		_Robot.pickup()
+		print( ExportManager.pixels_to_meters(_Robot.position))
 		
 	if event.is_action_pressed("ui_left"):
 		_Robot.do_rotation(-PI/2, 2.0)
