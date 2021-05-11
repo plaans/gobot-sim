@@ -28,7 +28,7 @@ export var battery_charge_rate : float = 0.8
 var current_battery : float = 10.0
 
 var in_station: bool setget set_in_station
-var in_interact: bool setget set_in_interact
+var in_interact: Array = []
 
 
 onready var raycast : RayCast2D = $RayCast2D
@@ -114,7 +114,7 @@ func set_in_station(state : bool):
 	else:
 		$AnimationPlayer.seek(0,true)
 		$AnimationPlayer.stop()
-	
+    
 func get_in_station() -> bool:
 	return in_station
 	
@@ -225,15 +225,16 @@ func pickup():
 # If there is no node colliding, if the node is not in the given group,
 # or if the robot is not in an interaction area, returns null.
 func find_target_belt(type: int)->Node:
-	if !in_interact:
+	if in_interact.size() == 0:
 		return null
 	
 	var target_object = raycast.get_collider()
 	if target_object and target_object.is_in_group("belts") and target_object.belt_type == type:
-		return target_object
-		print("found belt")
-	else:
-		return null
+		for interact_area in in_interact:
+			if interact_area.belt == target_object:
+				return target_object
+	# If a condition has't been met, return null
+	return null
 	
 func export_static() -> Array:
 	return [["robot", robot_name]]

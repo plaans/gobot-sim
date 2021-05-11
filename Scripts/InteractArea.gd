@@ -1,5 +1,6 @@
 extends Area2D
 
+var belt: Node = null
 var interact_area_name : String
 
 func _ready():
@@ -13,12 +14,13 @@ func get_name() -> String:
 
 func _on_InteractArea_body_entered(body):
 	if body.is_in_group("robots"):
-		body.set_in_interact(true)
+		print("belt: "+str(belt))
+		body.in_interact.append(self)
 
 func _on_InteractArea_body_exited(body):
 	if body.is_in_group("robots"):
-		body.set_in_interact(false)
-		
+		body.in_interact.erase(self)
+
 func export_static() -> Array:
 	var export_data = []
 	export_data.append(["interact_area", interact_area_name])

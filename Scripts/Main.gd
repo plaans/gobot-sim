@@ -178,4 +178,3 @@ func _unhandled_input(event):
 			BUTTON_MIDDLE:
 #				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.static_poly
 				pass
-
