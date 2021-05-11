@@ -21,10 +21,6 @@ func start_server(port : int):
 	if listen_error:
 		Logger.log_error("Error trying to listen at port %s (Error code %s)" % [port,listen_error])
 		
-	
-	#for tests
-	print( encode_static())
-	print( encode_dynamic())
 
 	
 # Called every frame. 'delta' is the elapsed time since the previous frame.

@@ -158,7 +158,6 @@ func _unhandled_input(event):
 	# From GDQuest - Navigation 2D and Tilemaps
 	if event.is_action_pressed("ui_accept"):
 		_Robot.pickup()
-		print( ExportManager.pixels_to_meters(_Robot.position))
 		
 	if event.is_action_pressed("ui_left"):
 		_Robot.do_rotation(-PI/2, 2.0)

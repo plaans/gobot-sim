@@ -114,16 +114,13 @@ func set_in_station(state : bool):
 	else:
 		$AnimationPlayer.seek(0,true)
 		$AnimationPlayer.stop()
-    
+	
 func get_in_station() -> bool:
 	return in_station
 	
 func get_battery_proportion():
 	return current_battery / max_battery
 	
-
-func set_in_interact(state : bool):
-	in_interact = state
 			
 func update_battery_display():
 	_Progress.value = current_battery/max_battery*100
