@@ -1,5 +1,5 @@
 # Import cache
-.import/
+simu/.import/
 
 # CSV files
 *.translation
@@ -19,7 +19,7 @@ lib/
 git_api.gdns
 git_api.gdnlib
 
-logs/
+*.log
 
 *.pyc
 
