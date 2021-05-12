@@ -47,6 +47,8 @@ func _ready():
 	
 	#generate a name 
 	robot_name = ExportManager.new_name("robot")
+	
+	ExportManager.add_new_robot(self)
 
 func _physics_process(delta):
 	if !moving && following:

@@ -12,6 +12,8 @@ var command_applied : bool = false
 
 var registered_commands = {}
 
+
+
 func start_server(port : int):	
 	#initialization
 	
@@ -21,7 +23,6 @@ func start_server(port : int):
 	if listen_error:
 		Logger.log_error("Error trying to listen at port %s (Error code %s)" % [port,listen_error])
 		
-
 	
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -57,57 +58,71 @@ func _process(delta):
 				
 				if content["type"] == "robot_command":
 					var command_info = content["data"]
-					if command_info[0] == "pickup":
+					if command_info[0] == "pick":
 						if command_info.size() != 2:
-							error_message = "Wrong number of arguments for pickup Command, expected 1 and got %s" % (command_info.size() -1)
+							error_message = "Wrong number of arguments for pick Command, expected 1 and got %s" % (command_info.size() -1)
 						else:
-							var robot_id = command_info[1]
-							var robot = instance_from_id(robot_id)
-							if not(robot.has_method("pickup")):#way to check if the instance is a Robot
-								error_message = "Instance specified for pickup command is not a robot (instance id %s)" % (robot_id)
+							var robot_name = command_info[1]
+							var robot = ExportManager.get_robot_from_name(robot_name)
+							if robot==null or not(robot.has_method("place")):#way to check if the instance is a Robot
+								error_message = "Instance specified for pick command is not a robot (name : %s)" % (robot_name)
 							else:
-								Logger.log_info("%-12s %8s" % ["pickup", robot_id])
-								robot.pickup()
-								registered_commands[robot.get_name()]["pickup"] = content["id"]
+								Logger.log_info("%-12s %8s" % ["pick", robot_name])
+								robot.pick()
+								#registered_commands[robot.get_name()]["pick"] = content["id"]
+					
+					elif command_info[0] == "place":
+						if command_info.size() != 2:
+							error_message = "Wrong number of arguments for place Command, expected 1 and got %s" % (command_info.size() -1)
+						else:
+							var robot_name = command_info[1]
+							var robot = ExportManager.get_robot_from_name(robot_name)
+							if robot==null or not(robot.has_method("place")):#way to check if the instance is a Robot
+								error_message = "Instance specified for place command is not a robot (name : %s)" % (robot_name)
+							else:
+								Logger.log_info("%-12s %8s" % ["place", robot_name])
+								robot.place()
+								#registered_commands[robot.get_name()]["place"] = content["id"]
 								
 					elif command_info[0] == "navigate_to":
 						if command_info.size() != 4:
 							error_message = "Wrong number of arguments for navigate_to Command, expected 3 and got %s" % (command_info.size() -1)
 						else:
-							var robot_id = command_info[1]
-							var robot = instance_from_id(robot_id)
+							var robot_name = command_info[1]
+							var robot = ExportManager.get_robot_from_name(robot_name)
 							var dest_x = command_info[2]
 							var dest_y = command_info[3]
 							var destination = ExportManager.meters_to_pixels([dest_x, dest_y])
 							
-							if not(robot.has_method("pickup")):#way to check if the instance is a Robot
-								Logger.log_warning("Instance specified for pickup command is not a robot (instance id %s)" % (robot_id))
+							if robot==null or not(robot.has_method("place")):#way to check if the instance is a Robot
+								error_message = "Instance specified for navigate_to command is not a robot (name : %s)" % (robot_name)
 							else:
-								Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["navigate_to", robot_id, dest_x, dest_y])
+								Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["navigate_to", robot_name, dest_x, dest_y])
 								robot.navigate_to(Vector2(destination.x,destination.y))
+								
 					elif command_info[0] == "do_rotation":
 						if command_info.size() != 4:
 							Logger.log_warning("Wrong number of arguments for do_rotation Command, expected 3 and got %s" % (command_info.size() -1))
 						else:
-							var robot_id = command_info[1]
-							var robot = instance_from_id(robot_id)
+							var robot_name = command_info[1]
+							var robot = ExportManager.get_robot_from_name(robot_name)
 							var angle = command_info[2]
 							var speed = command_info[3]
 							
-							if not(robot.has_method("pickup")):#way to check if the instance is a Robot
-								Logger.log_warning("Instance specified for pickup command is not a robot (instance id %s)" % (robot_id))
+							if robot==null or not(robot.has_method("place")):#way to check if the instance is a Robot
+								error_message = "Instance specified for do_rotation command is not a robot (name : %s)" % (robot_name)
 							else:
-								Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["do_rotation", robot_id, angle, speed])
+								Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["do_rotation", robot_name, angle, speed])
 								robot.do_rotation(angle, speed)
 								
-					var response_message = ""
-					if error_message != "":
-						Logger.log_warning(error_message)
-						response_message = error_message
-					else:
-						response_message = "Command succesfully applied"
-					var encoded = JSON.print({'type': 'response', 'id':content["id"], 'data':response_message})
-					client.put_string(encoded)
+#					var response_message = ""
+#					if error_message != "":
+#						Logger.log_warning(error_message)
+#						response_message = error_message
+#					else:
+#						response_message = "Command succesfully applied"
+#					var encoded = JSON.print({'type': 'response', 'id':content["id"], 'data':response_message})
+#					client.put_string(encoded)
 			
 			#then send state
 			var state_message = encode_dynamic()

@@ -6,7 +6,7 @@ var tile_size : Vector2 = Vector2(1,1) #size of a tile in pixel
 var nodes_count = {}
 #used to count how many instances of Robot, Machine, etc. have been created to create new names
 
-
+var robots_map = {} #used to know correspondance between robot names and instances
 
 func new_name(category : String) -> String:
 	if not(nodes_count.has(category)):
@@ -15,6 +15,13 @@ func new_name(category : String) -> String:
 		nodes_count[category] += 1
 	return category + str(nodes_count[category])
 
+func add_new_robot(robot : Node):
+	var name = robot.get_name()
+	robots_map[name] = robot
+	
+func get_robot_from_name(name : String):
+	if robots_map.has(name):
+		return  robots_map[name]
 
 func set_tile_size(size : Vector2):
 	tile_size = size

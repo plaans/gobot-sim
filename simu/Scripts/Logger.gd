@@ -35,6 +35,7 @@ func _ready():
 	popup.add_button("Quit", true, "text")
 	popup.connect("confirmed", self, "popup_continue_simulation")
 	popup.connect("custom_action", self, "popup_quit_simulation")
+	popup.connect("popup_hide", self, "popup_continue_simulation")
 	
 
 func trigger_save():
@@ -53,9 +54,7 @@ func save_to_file(_arg):
 	else:
 		error = file.open(log_location, File.WRITE) 
 		
-	if error:
-		display_error_message("Error trying to open file at path specified for logs : Error code %s" % error)
-	else:
+	if not(error):
 		file.store_string(copie)
 		file.close()
 
