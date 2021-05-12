@@ -1,7 +1,6 @@
 extends Node
 
 
-onready var _Package = $Package
 onready var _Navigation = $Navigation2D
 
 onready var _Robot = get_node("Robot")
@@ -51,13 +50,17 @@ func _ready():
 	var rng_seed = int(get_arg(arguments,"--seed",0 ))
 	seed(rng_seed)
 
-	var default_log_name = "res://logs/log"+str(OS.get_system_time_msecs())+".log"
+	
 	var log_name = get_arg(arguments,"--log", "")
 	if log_name == "":
-		log_name = default_log_name
+		var default_dir = OS.get_executable_path().get_base_dir()
+		var default_log_name = "log"+str(OS.get_system_time_msecs())+".log"
+		
 		var dir = Directory.new()
-		if not(dir.dir_exists("logs")):
-			dir.make_dir("logs")
+		dir.open(default_dir)
+		if not(dir.dir_exists("simu_logs")):
+			dir.make_dir("simu_logs")
+		log_name = default_dir + "/simu_logs/" + default_log_name
 	Logger.set_log_location(log_name)
 
 	

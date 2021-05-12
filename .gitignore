@@ -19,7 +19,7 @@ lib/
 git_api.gdns
 git_api.gdnlib
 
-simu/logs/
+*.log
 
 *.pyc
 

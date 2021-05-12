@@ -82,13 +82,8 @@ Below are listed the attributes and commands that can be sent.
 	 - Polygon (floats) : ['polygon', interact_area_name, [[x0, y0], [x1, y1], ...]]
 	 
 ## List of commands
-	
-*Static*
-
-	 - Declaration of element : ['robot', robot_name]
-
-*Dynamic*
 
 	- Navigate to : ['navigate_to', robot_name, destination_x, destination_y] 
-	- Pickup : ['pickup', robot_name] 
+	- Pick : ['pickup', robot_name] 
+	- Place : ['place', robot_name] 
 	- Rotation : ['do_rotation', robot_name, angle, speed] 

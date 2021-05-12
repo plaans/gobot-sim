@@ -53,7 +53,6 @@ func save_to_file(_arg):
 		error = file.open(log_location, File.READ_WRITE) #to open while keeping existing content
 	else:
 		error = file.open(log_location, File.WRITE) 
-		
 	if not(error):
 		file.store_string(copie)
 		file.close()
