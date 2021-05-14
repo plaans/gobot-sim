@@ -166,6 +166,7 @@ func export_static() -> Array:
 	export_data.append(["machine", machine_name])
 	
 	export_data.append(["coordinates", machine_name, ExportManager.pixels_to_meters(position)])
+	export_data.append(["coordinates_tile", machine_name, ExportManager.pixels_to_tiles(position)])
 	
 	if input_belt:
 		export_data.append(["input_belt", machine_name, input_belt.get_name()])

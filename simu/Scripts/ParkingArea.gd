@@ -1,7 +1,7 @@
 extends Area2D
 
 var parking_area_name : String
-
+var cells : Array #contains the cells of the parking_area
 func _ready():
 	add_to_group("export_static")
 	
@@ -22,6 +22,7 @@ func _on_ParkingArea_body_exited(body):
 func export_static() -> Array:
 	var export_data = []
 	export_data.append(["parking_area", parking_area_name])
+	export_data.append(["cells", parking_area_name, cells])
 	
 	if get_children().size()>0:
 		var collision_polygon = get_child(0)

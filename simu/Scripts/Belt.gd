@@ -23,6 +23,10 @@ var line_points: PoolVector2Array setget set_line_points
 onready var _PackagePath = $PackagePath
 onready var _VisualLine = $Line2D
 
+var cells : Array #contains the cells of the belt
+
+var interact_areas : Array
+
 var belt_name : String
 
 func _ready():
@@ -144,11 +148,17 @@ func get_packages_names() -> Array:
 	for package in packages:
 		names_array.append(package.get_name())
 	return names_array
+	
+func get_interact_areas_names() -> Array:
+	#returns Array containing name of all interact areas associated with this belt
+	var names_array = []
+	for interact_area in interact_areas:
+		names_array.append(interact_area.get_name())
+	return names_array	
 		
 func export_static() -> Array:
 	var export_data = []
-	export_data.append(["belt", belt_name])
-	export_data.append(["coordinates", belt_name, ExportManager.pixels_to_meters(position)])
+	#export_data.append(["belt", belt_name])convert_array_pixels_to_tiles
 	
 	var belt_type_name 
 	if belt_type == BeltType.INPUT:
@@ -158,10 +168,14 @@ func export_static() -> Array:
 	export_data.append(["belt_type", belt_name, ExportManager.pixels_to_meters(position)])
 	
 	var collision_polygons = []
+	var collision_polygons_tiles = []
 	for child in  get_children():
 		if child is CollisionPolygon2D:
 			collision_polygons.append(ExportManager.convert_array_pixels_to_meters(child.get_polygon()))	
 	export_data.append(["polygon", belt_name, collision_polygons])
+	export_data.append(["cells", belt_name, cells])
+	export_data.append(["interact_areas", belt_name, get_interact_areas_names()])
+	
 
 	
 	return export_data

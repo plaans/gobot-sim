@@ -160,6 +160,10 @@ func navigate_to(point: Vector2):
 		current_path_point = 0
 		
 	emit_signal("action_done")
+	
+func navigate_to_cell(tile_x, tile_y):
+	var position = ExportManager.tiles_to_pixels([tile_x, tile_y])
+	navigate_to(position)
 
 func stop():
 	move_time = 0.0
@@ -237,18 +241,30 @@ func find_target_belt(type: int)->Node:
 	# If a condition has't been met, return null
 	return null
 	
+func get_interact_areas_names() -> Array:
+	#returns Array containing name of all interact areas the robot is in
+	var names_array = []
+	for interact_area in in_interact:
+		names_array.append(interact_area.get_name())
+	return names_array	
+	
 func export_static() -> Array:
 	return [["robot", robot_name]]
 	
 func export_dynamic() -> Array:
 	var export_data=[]
 	export_data.append(["coordinates", robot_name, ExportManager.pixels_to_meters(position)])
+	export_data.append(["coordinates_tile", robot_name, ExportManager.pixels_to_tiles(position)])
+	
 	export_data.append(["rotation", robot_name, rotation])
+	
 	export_data.append(["battery", robot_name, get_battery_proportion()])
+	
 	export_data.append(["velocity", robot_name, ExportManager.pixels_to_meters(velocity)])
 	export_data.append(["rotation_speed", robot_name, rotation_speed])
+	
 	export_data.append(["in_station", robot_name, in_station])
-	export_data.append(["in_interact", robot_name, in_interact])
+	export_data.append(["in_interact_areas", robot_name, get_interact_areas_names()])
 	return export_data
 		
 	

@@ -127,6 +127,8 @@ func make_single_belt(start: Vector2, next: Vector2, id: int, type: int):
 	# Make the InteractAreas
 	make_interact_areas(belt_lines, new_belt)
 	
+	new_belt.cells = belt_lines
+	
 	add_child(new_belt)
 	return new_belt
 
@@ -135,12 +137,16 @@ func make_single_belt(start: Vector2, next: Vector2, id: int, type: int):
 func make_interact_areas(belt_lines: Array, belt: Node)->Array:
 	var new_groups = manager.get_connected_cells_to_groups_by_group(world, belt_lines, GROUP_INTERACT)
 	var col_polys = manager.collision_polys_from_cell_groups(new_groups)
+	print( "col_polys"+str(new_groups)+str(col_polys))
 	var interact_areas = []
 	
-	for col_poly in col_polys:
+	for k in range(col_polys.size()):
+		var col_poly = col_polys[k]
 		var new_interact_area = interact_area_scene.instance()
 		new_interact_area.add_child(col_poly)
 		new_interact_area.belt = belt
+		new_interact_area.cells = new_groups[k]
+		belt.interact_areas.append(new_interact_area)
 		
 		interact_areas.append(new_interact_area)
 		add_child(new_interact_area)
@@ -150,8 +156,15 @@ func make_interact_areas(belt_lines: Array, belt: Node)->Array:
 func make_parking_areas()->Array:
 	var parking_areas = []
 	
-	for col_poly in manager.collision_polys_from_group(world, GROUP_PARKING):
+	var cells_array = manager.get_connected_cells_by_group(world, GROUP_PARKING)
+	var col_polys = manager.collision_polys_from_cell_groups(cells_array)
+	print( "verif" + str(cells_array) + str(col_polys))
+	
+	#still need to fix case where number of polys different from number of cell groups
+	for k in range(col_polys.size()):
+		var col_poly = col_polys[k]
 		var new_park_area = park_area_scene.instance()
+		new_park_area.cells = cells_array[k]
 		new_park_area.add_child(col_poly)
 		
 		parking_areas.append(new_park_area)
