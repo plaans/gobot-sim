@@ -3,7 +3,7 @@ extends Area2D
 var parking_area_name : String
 var cells : Array #contains the cells of the parking_area
 func _ready():
-	add_to_group("export_static")
+	ExportManager.add_export_static(self)
 	
 	#generate a name 
 	parking_area_name = ExportManager.new_name("parking_area")

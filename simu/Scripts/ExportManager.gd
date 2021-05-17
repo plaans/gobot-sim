@@ -26,7 +26,6 @@ func get_robot_from_name(name : String):
 func set_tile_size(size : Vector2):
 	tile_size = size
 	
-	
 func pixels_to_meters(original_vector : Vector2) -> Array:
 	#convert a position in pixel to a position in meter (assuming a tile is 1mx1m)
 	#takes a position in Vector2 format 
@@ -57,6 +56,14 @@ func tiles_to_pixels(original_array : Array) -> Vector2:
 	#inverse of pixels_to_meters function
 	return Vector2(original_array[0]*tile_size.x + tile_size.x/2, original_array[1]*tile_size.y + tile_size.y / 2)
 	
-	
+func add_export_static(node : Node):
+	node.add_to_group("export_static")	
+	if not(node.has_method("export_static")):
+		Logger.log_error("Added node %s to export_static but it does not have export_static method" % str(node))
+		
+func add_export_dynamic(node : Node):
+	node.add_to_group("export_dynamic")	
+	if not(node.has_method("export_dynamic")):
+		Logger.log_error("Added node %s to export_dynamic but it does not have export_dynamic method" % str(node))
 
 

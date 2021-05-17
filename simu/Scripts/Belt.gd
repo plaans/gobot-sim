@@ -36,8 +36,8 @@ func _ready():
 	
 	_VisualLine.material.set_shader_param("speed", visual_speed)
 	
-	add_to_group("export_static")
-	add_to_group("export_dynamic")
+	ExportManager.add_export_static(self)
+	ExportManager.add_export_dynamic(self)
 	
 	#generate a name 
 	belt_name = ExportManager.new_name("belt")

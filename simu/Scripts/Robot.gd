@@ -41,8 +41,8 @@ export var TEST_ROBOT_SPEED = 96 #px/s
 # so 3m/s = 96px/s
 
 func _ready():
-	add_to_group("export_static")
-	add_to_group("export_dynamic")
+	ExportManager.add_export_static(self)
+	ExportManager.add_export_dynamic(self)
 	current_battery = max_battery
 	
 	#generate a name 

@@ -24,8 +24,8 @@ var machine_name : String
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	add_to_group("export_static")
-	add_to_group("export_dynamic")
+	ExportManager.add_export_static(self)
+	ExportManager.add_export_dynamic(self)
 	
 	#generate a name 
 	machine_name = ExportManager.new_name("machine")
