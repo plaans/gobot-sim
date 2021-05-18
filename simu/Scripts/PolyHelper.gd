@@ -100,7 +100,7 @@ static func get_poly_from_shape(shape: Shape2D)->PoolVector2Array:
 # Note: polys are given in global coordinates
 static func get_polys_from_collision_object(object: CollisionObject2D)->Array:
 	var polys: Array = []
-	var object_transform: Transform2D = object.get_transform()
+	var object_transform: Transform2D = object.get_global_transform()
 	var owners = object.get_shape_owners()
 	for owner_id in owners:
 		var owner_transform: Transform2D = object.shape_owner_get_transform(owner_id)
