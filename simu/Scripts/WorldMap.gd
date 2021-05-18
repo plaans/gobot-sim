@@ -128,6 +128,8 @@ func make_single_belt(start: Vector2, next: Vector2, id: int, type: int):
 	make_interact_area(belt_lines, new_belt)
 	
 	new_belt.cells = belt_lines
+	new_belt.polys = PolyHelper.get_polys_from_collision_object(new_belt)
+
 	
 	add_child(new_belt)
 	return new_belt
@@ -151,9 +153,7 @@ func make_interact_area(belt_lines: Array, belt: Node)->Array:
 	add_child(new_interact_area)
 	
 	new_interact_area.cells = manager.cell_groups_to_cells(new_groups)
-	#new_interact_area.polys = PolyHelper.get_polys_from_collision_object(new_interact_area)
-	
-	
+	new_interact_area.polys = PolyHelper.get_polys_from_collision_object(new_interact_area)
 	
 	interact_areas.append(new_interact_area)
 	return interact_areas
@@ -173,7 +173,7 @@ func make_parking_area()->Node2D:
 	add_child(new_park_area)
 	
 	new_park_area.cells = manager.cell_groups_to_cells(new_groups)
-	#new_park_area.polys = PolyHelper.get_polys_from_collision_object(new_park_area)
+	new_park_area.polys = PolyHelper.get_polys_from_collision_object(new_park_area)
 	
 	parking_area = new_park_area
 	return parking_area

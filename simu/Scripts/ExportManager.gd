@@ -45,12 +45,20 @@ func convert_array_pixels_to_meters(original_array : Array) -> Array:
 		new_array.append(pixels_to_meters(position))
 	return new_array
 	
+func convert_polys_list_to_meters(original_array : Array) -> Array:
+	#convert a list of position 
+	var new_array = []
+	for poly in original_array:
+		new_array.append(convert_array_pixels_to_meters(poly))
+	return new_array
+		
 func convert_array_pixels_to_tiles(original_array : Array) -> Array:
 	#convert a list of position 
 	var new_array = []
 	for position in original_array:
 		new_array.append(pixels_to_tiles(position))
 	return new_array
+
 	
 func tiles_to_pixels(original_array : Array) -> Vector2:
 	#inverse of pixels_to_meters function

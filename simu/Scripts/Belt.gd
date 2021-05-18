@@ -24,6 +24,7 @@ onready var _PackagePath = $PackagePath
 onready var _VisualLine = $Line2D
 
 var cells : Array #contains the cells of the belt
+var polys : Array
 
 var interact_areas : Array
 
@@ -158,23 +159,19 @@ func get_interact_areas_names() -> Array:
 		
 func export_static() -> Array:
 	var export_data = []
-	#export_data.append(["belt", belt_name])convert_array_pixels_to_tiles
+	export_data.append(["Belt.instance", belt_name])
 	
 	var belt_type_name 
 	if belt_type == BeltType.INPUT:
 		belt_type_name = "input"
 	else:
 		belt_type_name = "output"
-	export_data.append(["belt_type", belt_name, ExportManager.pixels_to_meters(position)])
+	export_data.append(["Belt.belt_type", belt_name, ExportManager.pixels_to_meters(position)])
 	
-	var collision_polygons = []
-	var collision_polygons_tiles = []
-	for child in  get_children():
-		if child is CollisionPolygon2D:
-			collision_polygons.append(ExportManager.convert_array_pixels_to_meters(child.get_polygon()))	
-	export_data.append(["polygon", belt_name, collision_polygons])
-	export_data.append(["cells", belt_name, cells])
-	export_data.append(["interact_areas", belt_name, get_interact_areas_names()])
+	export_data.append(["Belt.cells", belt_name, cells])
+	export_data.append(["Belt.polygons", belt_name, ExportManager.convert_polys_list_to_meters(polys)])
+	
+	export_data.append(["Belt.interact_areas", belt_name, get_interact_areas_names()])
 	
 
 	
@@ -182,6 +179,6 @@ func export_static() -> Array:
 	
 func export_dynamic() -> Array:
 	var export_data = []
-	export_data.append(["packages_list", belt_name, get_packages_names()])
+	export_data.append(["Belt.packages_list", belt_name, get_packages_names()])
 	
 	return export_data

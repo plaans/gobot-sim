@@ -18,14 +18,15 @@ Below are listed the attributes and commands that can be sent.
 Field | Exemple of format | Description
 --- | --- | --- 
 ***Static*** |  |
-Declaration of element | `['robot', robot_name]`
+Declaration of instance | `['Robot.instance', robot_name]`
 ***Dynamic*** |  |
-Coordinates | `['coordinates', robot_name, [x,y]]` | The coordinates (floats) are given in meters, with a conversion automatically done in the simulator so that one tile of the tilemap is always 1m x 1m in size.
-Battery  | `['battery', robot_name, battery_proportion]` |  The value is a float between 0 and 1.
-Movement speed  | `['velocity', robot_name, [velocity_x, velocity_y]]` |  floats in meters/s
-Rotation speed  | `['rotation_speed', robot_name, rotation_speed]` |  float in rads/s
-In station  | `['in_station', robot_name, in_station]` |  Bool indicating if the robot is currently in a charging station
-In interact  | `['in_interact', robot_name, in_interact]` |  Bool indicating if the robot is currently in an interact area
+Coordinates | `['Robot.coordinates', robot_name, [x,y]]` | The coordinates (floats) are given in meters, with a conversion automatically done in the simulator so that one tile of the tilemap is always 1m x 1m in size.
+Tiles Coordinates | `['Robot.coordinates_tile', robot_name, [x,y]]` | Coordinates in tiles (indexes of tile the robot is currently in)
+Battery  | `['Robot.battery', robot_name, battery_proportion]` |  The value is a float between 0 and 1.
+Movement speed  | `['Robot.velocity', robot_name, [velocity_x, velocity_y]]` |  floats in meters/s
+Rotation speed  | `['Robot.rotation_speed', robot_name, rotation_speed]` |  float in rads/s
+In station  | `['Robot.in_station', robot_name, in_station]` |  Bool indicating if the robot is currently in a charging station
+In interact areas  | `['Robot.in_interact_areas', robot_name, [interact_area0, interact_area1, ...]]` | Liste of names of interact areas the robot is currently in
  
 ## Machine 
 
@@ -33,13 +34,14 @@ In interact  | `['in_interact', robot_name, in_interact]` |  Bool indicating if 
 Field | Exemple of format | Description
 --- | --- | --- 
 ***Static*** |  |
-Declaration of element | `['machine', machine_name]`
-Coordinates | `['coordinates', machine_name, [x,y]]` | Coordinates in meters (floats)
-Input belt | `['input_belt', machine_name, input_belt_name]` | Name of the input belt connected to this machine (string)
-Output belt | `['output_belt', machine_name, output_belt_name]` | Name of the output belt connected to this machine (string)
-Processes | `['processes_list', machine_name, [id0, id1, ...]]` | List of the ids (ints) of each process the machine can do
+Declaration of instance | `['Machine.instance', machine_name]`
+Coordinates | `['Machine.coordinates', machine_name, [x,y]]` | Coordinates in meters (floats)
+Tiles Coordinates | `['Machine.coordinates_tile', machine_name, [x,y]]` | Coordinates in tiles (indexes of tile the machine is located at)
+Input belt | `['Machine.input_belt', machine_name, input_belt_name]` | Name of the input belt connected to this machine (string)
+Output belt | `['Machine.output_belt', machine_name, output_belt_name]` | Name of the output belt connected to this machine (string)
+Processes | `['Machine.processes_list', machine_name, [id0, id1, ...]]` | List of the ids (ints) of each process the machine can do
 ***Dynamic*** |  |
-Progress rate  | `['progress_rate', machine_name, progress_rate]` | Progress of current task between 0 and 1 
+Progress rate  | `['Machine.progress_rate', machine_name, progress_rate]` | Progress of current task between 0 and 1 
 
 
 ## Package
@@ -47,11 +49,11 @@ Progress rate  | `['progress_rate', machine_name, progress_rate]` | Progress of 
 Field | Exemple of format | Description
 --- | --- | --- 
 ***Static*** |  |
-Declaration of element | `['package', package_name]`
+Declaration of instance | `['Package.instance', package_name]`
 ***Dynamic*** |  |
-Location | `['location', package_name, location_name]` | String corresponding to the name of the location (robot, belt, ...)
-Processes  | `['processes_list', package_name, [[id0, duration0], [id1, duration1], ...]]` |  List of `[process_id, process_duration]` (int and float) for each process remaining to be done
-In interact areas  | `['in_interact_areas', package_name, [interact_area0, interact_area1, ...]]` | Liste of names of interact areas the robot is currently in
+Location | `['Package.location', package_name, location_name]` | String corresponding to the name of the location (robot, belt, ...)
+Processes  | `['Package.processes_list', package_name, [[id0, duration0], [id1, duration1], ...]]` |  List of `[process_id, process_duration]` (int and float) for each process remaining to be done
+
 
 ## Belt
 
@@ -59,26 +61,31 @@ In interact areas  | `['in_interact_areas', package_name, [interact_area0, inter
 Field | Exemple of format | Description
 --- | --- | --- 
 ***Static*** |  |
-Declaration of element | `['belt', belt_name]`
-Belt type | `['belt_type', belt_name, 'input' / 'output']` | Value is either 'input' or 'output'
-Polygons | `['polygons', belt_name, [polygon0, polygon1, ...]]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
-Interact areas  | `['interact_areas', belt_name, [interact_area0, interact_area1, ...]]` | List of names of interact areas associated with this belt
+Declaration of instance | `['Belt.instance', belt_name]`
+Belt type | `['Belt.belt_type', belt_name, 'input' / 'output']` | Value is either 'input' or 'output'
+Polygons | `['Belt.polygons', belt_name, [polygon0, polygon1, ...]]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
+Cells  | `['Belt.cells', belt_name, [[x0, y0], [x1, y1], ...]]` | List of indexes of cells that compose this Belt
+Interact areas  | `['Belt.interact_areas', belt_name, [interact_area0, interact_area1, ...]]` | List of names of interact areas associated with this Belt
+
 ***Dynamic*** |  |
-List of packages  | `['packages_list', belt_name, [package0, package1, ...]]` | List of the names of the packages currently on the belt
+List of packages  | `['Belt.packages_list', belt_name, [package0, package1, ...]]` | List of the names of the packages currently on the belt
  
 ## Parking area : 
 Field | Exemple of format | Description
 --- | --- | --- 
 ***Static*** |  |
-Declaration of element | `['parking_area', parking_area_name]`
-Polygon | `['polygon', parking_area_name, [[x0, y0], [x1, y1], ...]` | Description of the polygon corresponding to this area, as a list a points, which coordinates are given in meters
+Declaration of instance | `['Parking_area.instance', parking_area_name]`
+Polygon | `['Parking_area.polygons', parking_area_name, [[x0, y0], [x1, y1], ...]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
+Cells  | `['Parking_area.cells', parking_area_name, [[x0, y0], [x1, y1], ...]]` | List of indexes of cells that compose this Parking area
 	 
 ## Interact area : 
 Field | Exemple of format | Description
 --- | --- | --- 
 ***Static*** |  |
-Declaration of element | `['interact_area', interact_area_name]`
-Polygon | `['polygon', interact_area_name, [[x0, y0], [x1, y1], ...]]` | Description of the polygon corresponding to this area, as a list a points, which coordinates are given in meters
+Declaration of instance | `['Interact_area.instance', robot_name]`
+Polygon | `['Interact_area.polygons', interact_area_name, [[x0, y0], [x1, y1], ...]]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
+Cells  | `['Interact_area.cells', interact_area_name, [[x0, y0], [x1, y1], ...]]` | List of indexes of cells that compose this Interact area
+Belt  | `['Interact_area.Belt', interact_area_name, belt_name]` | Name of Belt this Interact area is associated with
 	 
 # List of commands
 

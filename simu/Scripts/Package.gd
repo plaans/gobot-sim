@@ -40,7 +40,7 @@ func get_location() -> Node:
 #	pass
 
 func export_static() -> Array:
-	return [["package", package_name]]
+	return [["Package.instance", package_name]]
 	
 func export_dynamic() -> Array:
 	var export_data=[]
@@ -49,7 +49,7 @@ func export_dynamic() -> Array:
 	if location is Path2D:
 		location = location.get_parent() #case of belt
 		
-	export_data.append(["location", package_name, location.get_name()])
-	export_data.append(["processes", package_name, processes.get_processes_ids_durations()])
+	export_data.append(["Package.location", package_name, location.get_name()])
+	export_data.append(["Package.processes", package_name, processes.get_processes_ids_durations()])
 	
 	return export_data
