@@ -176,6 +176,7 @@ func stop_path():
 	following = false
 	if path_line:
 		path_line.free()
+		path_line = null
 
 func add_package(Package : Node):
 	carried_package = Package
