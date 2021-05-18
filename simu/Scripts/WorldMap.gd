@@ -146,6 +146,10 @@ func make_interact_area(belt_lines: Array, belt: Node)->Array:
 		new_interact_area.add_child(col_poly)
 	add_child(new_interact_area)
 	
+	# TODO: export here
+	# var cells = manager.cell_groups_to_cells(new_groups)
+	# var polys = PolyHelper.get_polys_from_collision_object(new_interact_area)
+	
 	interact_areas.append(new_interact_area)
 	return interact_areas
 
@@ -162,6 +166,10 @@ func make_parking_area()->Node2D:
 	for col_poly in col_polys:
 		new_park_area.add_child(col_poly)
 	add_child(new_park_area)
+	
+	# TODO: export here
+	# var cells = manager.cell_groups_to_cells(new_groups)
+	# var polys = PolyHelper.get_polys_from_collision_object(new_park_area)
 	
 	parking_area = new_park_area
 	return parking_area
