@@ -127,7 +127,7 @@ func make_single_belt(start: Vector2, next: Vector2, id: int, type: int):
 	# Make the InteractAreas
 	make_interact_area(belt_lines, new_belt)
 	
-	new_belt.cells = belt_lines
+	new_belt.cells = manager.cell_groups_to_cells(belt_lines)
 	new_belt.polys = PolyHelper.get_polys_from_collision_object(new_belt)
 
 	
