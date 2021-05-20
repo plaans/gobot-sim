@@ -8,25 +8,11 @@ var _Robot
 export (PackedScene) var RobotScene = preload("res://Scenes/Robot.tscn")
 
 
-var possible_tasks
-
 func _ready():	
-	#initialization
-#	var test_templates = [ [[0,10],[1,5]], [[0,1],[1,8],[2,6]], [[2,3],[1,9]], [[2,7],[0,12],[5,4]] ]
-#	var test_processes = [[Process.new(0,0), Process.new(1,0), Process.new(2,0)], [Process.new(2,0), Process.new(3,0), Process.new(4,0), Process.new(5,0)]]
-#	var machine_nb := 0
-#	for machine in get_tree().get_nodes_in_group("machines"):
-#		if machine.is_in_group("input_machines"):
-#			machine.packages_templates = test_templates
-#			machine.create_time = 5.0
-#		elif machine.is_in_group("output_machines"):
-#			pass
-#		else:
-#			machine.processes.processes = test_processes[machine_nb]
-#			machine_nb += 1
 
 	_WorldMap.make_environment()
 	_Navigation.make_navigation()
+
 	#values of arguments
 	
 	var arguments : Array = Array(OS.get_cmdline_args ())
@@ -41,7 +27,9 @@ func _ready():
 	load_scenario(scenario_file)
 	
 	var pickup_radius = float(get_arg(arguments,"--pickup-radius",100 ))
-	_Robot.get_node("RayCast2D").set_cast_to(Vector2.RIGHT*pickup_radius)
+	var robots_list = get_tree().get_nodes_in_group("robots")
+	for robot in robots_list:
+		robot.get_node("RayCast2D").set_cast_to(Vector2.RIGHT*pickup_radius)
 	
 	
 	var log_name = get_arg(arguments,"--log", "")
@@ -70,11 +58,31 @@ func get_arg(args, arg_name, default):
 		return default
 	
 func load_scenario(file_path : String):
+	var absolute_scenario_path
 	
-	
+	if "res://" in file_path:
+		#in that case no need to convert path to absolute path
+		absolute_scenario_path = file_path
+	else:
+		#convert path to absolute path
+		var separated_path
+		if '/' in file_path:
+			separated_path = file_path.split('/')
+		else:
+			separated_path = file_path.split('\\')
+		var file_name = separated_path[-1]
+		separated_path.remove(separated_path.size()-1)
+		var directory_path = separated_path.join("/")
+		
+		var dir = Directory.new()
+		dir.open(OS.get_executable_path().get_base_dir())
+		dir.change_dir(directory_path)
+		
+		absolute_scenario_path = dir.get_current_dir() + "/" + file_name
+		
 	#load scenario file
 	var file = File.new()
-	var open_error = file.open(file_path, File.READ) 
+	var open_error = file.open(absolute_scenario_path, File.READ) 
 	if open_error:
 		Logger.log_error("Error opening the scenario file (Error code %s)" % open_error)
 		return
