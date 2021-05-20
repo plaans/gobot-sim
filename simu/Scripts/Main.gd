@@ -2,26 +2,11 @@ extends Node
 
 
 onready var _Navigation = $Navigation2D
+onready var _WorldMap = $WorldMap
 
 var _Robot
-export (PackedScene) var RobotScene
-export (PackedScene) var PackageScene
-export (PackedScene) var MachineScene
+export (PackedScene) var RobotScene = preload("res://Scenes/Robot.tscn")
 
-var packages_list
-
-var machines_list
-#each element of the array is a Machine node
-
-var robots_list
-
-var packages_nb : int = 0
-
-#var processes_list
-#each element of the array is an array of integers 
-#corresponding to the machines possible for the given process
-#example : if process no.3 can be done by machines 4 or 5, 
-#		   then the element at index 3 can be [4,5] (or [5,4])
 
 var possible_tasks
 
@@ -40,13 +25,17 @@ func _ready():
 #			machine.processes.processes = test_processes[machine_nb]
 #			machine_nb += 1
 
-
+	_WorldMap.make_environment()
+	_Navigation.make_navigation()
 	#values of arguments
 	
 	var arguments : Array = Array(OS.get_cmdline_args ())
 	
 	var rng_seed = int(get_arg(arguments,"--seed",0 ))
 	seed(rng_seed)
+	
+	var environment_file = get_arg(arguments,"--environment","res://scenarios/new_scenario.json" )
+	load_environment(environment_file)
 	
 	var scenario_file = get_arg(arguments,"--scenario","res://scenarios/new_scenario.json" )
 	load_scenario(scenario_file)
@@ -79,16 +68,6 @@ func get_arg(args, arg_name, default):
 		return args[index+1]
 	else:
 		return default
-	
-func add_package(package : Node):
-	packages_list.append(package)
-	
-func remove_package(package : Node):
-	var package_index = packages_list.find(package)
-	if package_index >= 0 :
-		packages_list.remove(package_index)
-
-	
 	
 func load_scenario(file_path : String):
 	
@@ -173,6 +152,10 @@ func load_scenario(file_path : String):
 		
 	#$Arrival_Zone.set_next_packages(scenario.packages)
 	print( scenario)
+
+func load_environment(file_path : String):
+	pass
+
 
 func _unhandled_input(event):
 	if event.is_action_pressed("ui_up"):
