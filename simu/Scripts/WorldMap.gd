@@ -27,7 +27,7 @@ func _ready():
 	ExportManager.set_tile_size(cell_size)
 	
 	# Make ParkingArea
-	var parking_areas = make_parking_areas()
+	var parking_area = make_parking_area()
 	# Make the machines
 	var machines = make_machines()
 	
@@ -125,35 +125,55 @@ func make_single_belt(start: Vector2, next: Vector2, id: int, type: int):
 		new_belt.add_child(col_poly)
 	
 	# Make the InteractAreas
-	make_interact_areas(belt_lines, new_belt)
+	make_interact_area(belt_lines, new_belt)
+	
+	new_belt.cells = manager.cell_groups_to_cells(belt_lines)
+	new_belt.polys = PolyHelper.get_polys_from_collision_object(new_belt)
+
 	
 	add_child(new_belt)
 	return new_belt
 
 # Given an array containing the cells of the belt, returns an array of InteractAreas.
 # 
-func make_interact_areas(belt_lines: Array, belt: Node)->Array:
-	var new_groups = manager.get_connected_cells_to_groups_by_group(world, belt_lines, GROUP_INTERACT)
-	var col_polys = manager.collision_polys_from_cell_groups(new_groups)
+func make_interact_area(belt_lines: Array, belt: Node)->Array:
 	var interact_areas = []
+	# Get the cell groups attached to the belt
+	var new_groups = manager.get_connected_cells_to_groups_by_group(world, belt_lines, GROUP_INTERACT)
+	# Create all the collision polys from the cell groups
+	var col_polys = manager.collision_polys_from_cell_groups(new_groups)
 	
+	var new_interact_area = interact_area_scene.instance()
+	new_interact_area.belt = belt
+	belt.interact_areas.append(new_interact_area)
+	
+	# Add multiple collision polys to the area
 	for col_poly in col_polys:
-		var new_interact_area = interact_area_scene.instance()
 		new_interact_area.add_child(col_poly)
-		new_interact_area.belt = belt
-		
-		interact_areas.append(new_interact_area)
-		add_child(new_interact_area)
+	add_child(new_interact_area)
+	
+	new_interact_area.cells = manager.cell_groups_to_cells(new_groups)
+	new_interact_area.polys = PolyHelper.get_polys_from_collision_object(new_interact_area)
+	
+	interact_areas.append(new_interact_area)
 	return interact_areas
 
-
-func make_parking_areas()->Array:
-	var parking_areas = []
+func make_parking_area()->Node2D:
+	var parking_area: Node2D = null
+	# Get cell groups of ParkingArea
+	var new_groups = manager.get_connected_cells_by_group(world, GROUP_PARKING)
+	# Create all the collision polys from the cell groups
+	var col_polys = manager.collision_polys_from_cell_groups(new_groups)
 	
-	for col_poly in manager.collision_polys_from_group(world, GROUP_PARKING):
-		var new_park_area = park_area_scene.instance()
+	# Create new ParkingArea
+	var new_park_area = park_area_scene.instance()
+	# Add multiple collision polys to the area
+	for col_poly in col_polys:
 		new_park_area.add_child(col_poly)
-		
-		parking_areas.append(new_park_area)
-		add_child(new_park_area)
-	return parking_areas
+	add_child(new_park_area)
+	
+	new_park_area.cells = manager.cell_groups_to_cells(new_groups)
+	new_park_area.polys = PolyHelper.get_polys_from_collision_object(new_park_area)
+	
+	parking_area = new_park_area
+	return parking_area

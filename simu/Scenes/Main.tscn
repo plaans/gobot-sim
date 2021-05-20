@@ -15,6 +15,7 @@ PackageScene = ExtResource( 5 )
 MachineScene = ExtResource( 6 )
 
 [node name="WorldMap" type="TileMap" parent="."]
+z_index = -1
 tile_set = ExtResource( 1 )
 cell_size = Vector2( 32, 32 )
 centered_textures = true
@@ -26,9 +27,6 @@ script = ExtResource( 14 )
 script = ExtResource( 2 )
 _WorldMapPath = NodePath("../WorldMap")
 nav_margin = 20.0
-
-[node name="Robot" parent="." instance=ExtResource( 4 )]
-position = Vector2( 256, 544 )
 
 [node name="Label" type="Label" parent="."]
 margin_left = 784.0

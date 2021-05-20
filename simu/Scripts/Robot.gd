@@ -41,8 +41,8 @@ export var TEST_ROBOT_SPEED = 96 #px/s
 # so 3m/s = 96px/s
 
 func _ready():
-	add_to_group("export_static")
-	add_to_group("export_dynamic")
+	ExportManager.add_export_static(self)
+	ExportManager.add_export_dynamic(self)
 	current_battery = max_battery
 	
 	#generate a name 
@@ -160,6 +160,10 @@ func navigate_to(point: Vector2):
 		current_path_point = 0
 		
 	emit_signal("action_done")
+	
+func navigate_to_cell(tile_x, tile_y):
+	var position = ExportManager.tiles_to_pixels([tile_x, tile_y])
+	navigate_to(position)
 
 func stop():
 	move_time = 0.0
@@ -238,18 +242,30 @@ func find_target_belt(type: int)->Node:
 	# If a condition has't been met, return null
 	return null
 	
+func get_interact_areas_names() -> Array:
+	#returns Array containing name of all interact areas the robot is in
+	var names_array = []
+	for interact_area in in_interact:
+		names_array.append(interact_area.get_name())
+	return names_array	
+	
 func export_static() -> Array:
-	return [["robot", robot_name]]
+	return [["Robot.instance", robot_name]]
 	
 func export_dynamic() -> Array:
 	var export_data=[]
-	export_data.append(["coordinates", robot_name, ExportManager.pixels_to_meters(position)])
-	export_data.append(["rotation", robot_name, rotation])
-	export_data.append(["battery", robot_name, get_battery_proportion()])
-	export_data.append(["velocity", robot_name, ExportManager.pixels_to_meters(velocity)])
-	export_data.append(["rotation_speed", robot_name, rotation_speed])
-	export_data.append(["in_station", robot_name, in_station])
-	export_data.append(["in_interact", robot_name, in_interact])
+	export_data.append(["Robot.coordinates", robot_name, ExportManager.pixels_to_meters(position)])
+	export_data.append(["Robot.coordinates_tile", robot_name, ExportManager.pixels_to_tiles(position)])
+	
+	export_data.append(["Robot.rotation", robot_name, rotation])
+	
+	export_data.append(["Robot.battery", robot_name, get_battery_proportion()])
+	
+	export_data.append(["Robot.velocity", robot_name, ExportManager.pixels_to_meters(velocity)])
+	export_data.append(["Robot.rotation_speed", robot_name, rotation_speed])
+	
+	export_data.append(["Robot.in_station", robot_name, in_station])
+	export_data.append(["Robot.in_interact_areas", robot_name, get_interact_areas_names()])
 	return export_data
 		
 	

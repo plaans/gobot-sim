@@ -24,8 +24,8 @@ var machine_name : String
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	add_to_group("export_static")
-	add_to_group("export_dynamic")
+	ExportManager.add_export_static(self)
+	ExportManager.add_export_dynamic(self)
 	
 	#generate a name 
 	machine_name = ExportManager.new_name("machine")
@@ -163,18 +163,19 @@ func request_input()->Node:
 	
 func export_static() -> Array:
 	var export_data = []
-	export_data.append(["machine", machine_name])
+	export_data.append(["Machine.instance", machine_name])
 	
-	export_data.append(["coordinates", machine_name, ExportManager.pixels_to_meters(position)])
+	export_data.append(["Machine.coordinates", machine_name, ExportManager.pixels_to_meters(position)])
+	export_data.append(["Machine.coordinates_tile", machine_name, ExportManager.pixels_to_tiles(position)])
 	
 	if input_belt:
-		export_data.append(["input_belt", machine_name, input_belt.get_name()])
+		export_data.append(["Machine.input_belt", machine_name, input_belt.get_name()])
 	
 	if output_belt:
-		export_data.append(["output_belt", machine_name, output_belt.get_name()])
+		export_data.append(["Machine.output_belt", machine_name, output_belt.get_name()])
 
 	if processes:
-		export_data.append(["processes_list", machine_name, processes.get_processes_ids()])
+		export_data.append(["Machine.processes_list", machine_name, processes.get_processes_ids()])
 
 	return export_data
 	
@@ -187,7 +188,7 @@ func export_dynamic() -> Array:
 	else:
 		progress_rate = 0
 		
-	export_data.append(["progress_rate", machine_name, progress_rate])
+	export_data.append(["Machine.progress_rate", machine_name, progress_rate])
 	
 	return export_data
  
