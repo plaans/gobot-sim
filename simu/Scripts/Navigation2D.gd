@@ -37,7 +37,7 @@ func make_navigation():
 		new_polys += manager.cells_to_polys(group)
 	# Add other collision shapes if needed
 	for node in get_tree().get_nodes_in_group("solid"):
-		new_polys.append_array(PolyHelper.get_polys_from_collision_object(node))
+		new_polys += PolyHelper.get_polys_from_collision_object(node)
 	# Step 2 - Grow polys with nav_margin
 	new_polys = PolyHelper.grow_polys(new_polys, nav_margin)
 	# Step 3 - Merge polys

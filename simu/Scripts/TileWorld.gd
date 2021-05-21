@@ -7,51 +7,57 @@ class_name TileWorld
 
 var data: Array = [] setget set_data
 var offset: Vector2 = Vector2.ZERO setget set_offset
-var size: Vector2 = Vector2.ZERO setget set_size
-var transform: Transform2D setget set_transform
+var size: Vector2
+var transform: Transform2D
 
-func _init(tilemap: TileMap = null):
-	# If no tilemap has been given, skip initialization
-	if !tilemap:
-		return
-		
-	var used_rect = tilemap.get_used_rect()
-	
-	set_offset(used_rect.position)
-	set_size(used_rect.size)
-	set_data([])
-	
-	for i in range(used_rect.position.x, used_rect.end.x):
-		var col = []
-		for j in range(used_rect.position.y, used_rect.end.y):
-			col.append(tilemap.get_cell(i,j))
-		data.append(col)
+func _init(init_object = null):
+	# Loads the world differently depending on the 
+	match typeof(init_object):
+		TYPE_DICTIONARY:
+			from_dict(init_object)
+		TYPE_OBJECT:
+			if init_object is TileMap:
+				from_tilemap(init_object)
 
 func set_data(new_data: Array):
+	# Set new data
 	data = new_data
-
-func set_offset(new_offset: Vector2):
-	offset = new_offset
-	transform = Transform2D(0, new_offset)
-
-func set_size(new_size: Vector2):
+	# Calculate new size
+	var new_size = Vector2()
+	new_size.x = new_data.size()
+	for col in new_data:
+		new_size.y = max(new_size.y, col.size())
 	size = new_size
 
-func set_transform(new_transform: Transform2D):
-	transform = new_transform
+func set_offset(new_offset: Vector2):
+	# Set new offset
+	offset = new_offset
+	# Calculate new tranform
+	transform = Transform2D(0, new_offset)
 
 # Returns a dictionnary compatible with JSON format for easier export
 func to_dict():
 	return {
 		"data": data, 
-		"offset": [offset.x, offset.y], 
-		"size": [size.x, size.y]
+		"offset": [offset.x, offset.y]
 	}
 
 # Setups an already initialized world from a dictionnary.
 # Warning: Considers the data is valid. Make sure it is beforehand, 
 # or you might end up crashing the simulation.
 func from_dict(dict: Dictionary):
-	data = dict.get("data")
-	offset = Vector2(dict["offset"][0], dict["offset"][1])
-	size = Vector2(dict["size"][0], dict["size"][1])
+	set_data(dict.get("data"))
+	set_offset(Vector2(dict["offset"][0], dict["offset"][1]))
+
+# Setups an already initialized world from a tilemap
+func from_tilemap(tilemap: TileMap):
+	var new_data = []
+	var used_rect = tilemap.get_used_rect()
+	for i in range(used_rect.position.x, used_rect.end.x):
+		var col = []
+		for j in range(used_rect.position.y, used_rect.end.y):
+			col.append(tilemap.get_cell(i,j))
+		new_data.append(col)
+	
+	set_data(new_data)
+	set_offset(used_rect.position)

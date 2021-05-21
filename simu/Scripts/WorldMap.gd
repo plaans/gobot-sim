@@ -31,6 +31,15 @@ func _ready():
 	# Set the cell size property in export manager 
 	ExportManager.set_tile_size(cell_size)
 	
+func update_tiles_from_world():
+	if !world:
+		return
+	
+	for x in world.size.x:
+		for y in world.size.y:
+			set_cellv(Vector2(x, y)+world.offset, world.data[x][y])
+	update_bitmask_region(world.offset, world.offset + world.size)
+			
 
 func make_environment():
 	# The function fails if there is no world defined

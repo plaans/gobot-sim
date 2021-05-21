@@ -19,18 +19,3 @@ script = ExtResource( 14 )
 
 [node name="Navigation2D" type="Navigation2D" parent="."]
 script = ExtResource( 2 )
-
-[node name="Label" type="Label" parent="."]
-margin_left = 784.0
-margin_top = 47.0
-margin_right = 976.0
-margin_bottom = 175.0
-text = "Controls:
-Left click - Move to position
-Right click - Turn to position
-
-Left / Right - Turn 90°
-Up / Down - Pick / Place"
-__meta__ = {
-"_edit_use_anchors_": false
-}
