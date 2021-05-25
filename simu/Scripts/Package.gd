@@ -22,7 +22,7 @@ func _ready():
 	ExportManager.add_export_dynamic(self)
 	
 	#generate a name 
-	package_name = ExportManager.new_name("package")
+	package_name = ExportManager.new_name(self, "package")
 
 func set_delivery_limit(time : float):
 	delivery_limit = time

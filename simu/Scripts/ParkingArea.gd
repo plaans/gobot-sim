@@ -8,7 +8,7 @@ func _ready():
 	ExportManager.add_export_static(self)
 	
 	#generate a name 
-	parking_area_name = ExportManager.new_name("parking_area")
+	parking_area_name = ExportManager.new_name(self, "parking_area")
 	
 func get_name() -> String:
 	return parking_area_name
@@ -24,7 +24,7 @@ func _on_ParkingArea_body_exited(body):
 func export_static() -> Array:
 	var export_data = []
 	export_data.append(["Parking_area.instance", parking_area_name])
-	export_data.append(["Parking_area.cells", parking_area_name, cells])
+	export_data.append(["Parking_area.cells", parking_area_name, ExportManager.convert_vector2s_array_to_arrays_array(cells)])
 	export_data.append(["Parking_area.polygons", parking_area_name, ExportManager.convert_polys_list_to_meters(polys)])
 
 	return export_data

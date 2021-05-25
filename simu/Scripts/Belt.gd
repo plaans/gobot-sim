@@ -41,7 +41,7 @@ func _ready():
 	ExportManager.add_export_dynamic(self)
 	
 	#generate a name 
-	belt_name = ExportManager.new_name("belt")
+	belt_name = ExportManager.new_name(self, "belt")
 	
 func get_name() -> String:
 	return belt_name
@@ -168,7 +168,7 @@ func export_static() -> Array:
 		belt_type_name = "output"
 	export_data.append(["Belt.belt_type", belt_name, ExportManager.pixels_to_meters(position)])
 	
-	export_data.append(["Belt.cells", belt_name, cells])
+	export_data.append(["Belt.cells", belt_name, ExportManager.convert_vector2s_array_to_arrays_array(cells)])
 	export_data.append(["Belt.polygons", belt_name, ExportManager.convert_polys_list_to_meters(polys)])
 	
 	export_data.append(["Belt.interact_areas", belt_name, get_interact_areas_names()])

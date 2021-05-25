@@ -66,7 +66,6 @@ Belt type | `['Belt.belt_type', belt_name, 'input' / 'output']` | Value is eithe
 Polygons | `['Belt.polygons', belt_name, [polygon0, polygon1, ...]]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
 Cells  | `['Belt.cells', belt_name, [[x0, y0], [x1, y1], ...]]` | List of indexes of cells that compose this Belt
 Interact areas  | `['Belt.interact_areas', belt_name, [interact_area0, interact_area1, ...]]` | List of names of interact areas associated with this Belt
-
 ***Dynamic*** |  |
 List of packages  | `['Belt.packages_list', belt_name, [package0, package1, ...]]` | List of the names of the packages currently on the belt
  
@@ -75,15 +74,15 @@ Field | Exemple of format | Description
 --- | --- | --- 
 ***Static*** |  |
 Declaration of instance | `['Parking_area.instance', parking_area_name]`
-Polygon | `['Parking_area.polygons', parking_area_name, [[x0, y0], [x1, y1], ...]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
+Polygon | `['Parking_area.polygons', parking_area_name, [polygon0, polygon1, ...]]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
 Cells  | `['Parking_area.cells', parking_area_name, [[x0, y0], [x1, y1], ...]]` | List of indexes of cells that compose this Parking area
 	 
 ## Interact area : 
 Field | Exemple of format | Description
 --- | --- | --- 
 ***Static*** |  |
-Declaration of instance | `['Interact_area.instance', robot_name]`
-Polygon | `['Interact_area.polygons', interact_area_name, [[x0, y0], [x1, y1], ...]]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
+Declaration of instance | `['Interact_area.instance', interact_area_name]`
+Polygon | `['Interact_area.polygons', interact_area_name, [polygon0, polygon1, ...]]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
 Cells  | `['Interact_area.cells', interact_area_name, [[x0, y0], [x1, y1], ...]]` | List of indexes of cells that compose this Interact area
 Belt  | `['Interact_area.Belt', interact_area_name, belt_name]` | Name of Belt this Interact area is associated with
 	 

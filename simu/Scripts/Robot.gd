@@ -46,9 +46,7 @@ func _ready():
 	current_battery = max_battery
 	
 	#generate a name 
-	robot_name = ExportManager.new_name("robot")
-	
-	ExportManager.add_new_robot(self)
+	robot_name = ExportManager.new_name(self, "robot")
 
 func _physics_process(delta):
 	if !moving && following:
@@ -161,10 +159,47 @@ func navigate_to(point: Vector2):
 		
 	emit_signal("action_done")
 	
-func navigate_to_cell(tile_x, tile_y):
-	var position = ExportManager.tiles_to_pixels([tile_x, tile_y])
+func navigate_to_cell(cell : Array):
+	#cell uses the format [tile_index_x, tile_index_y]
+	var position = ExportManager.tiles_to_pixels(cell)
 	navigate_to(position)
-
+	
+func navigate_to_area(area_name: String):
+	var area = ExportManager.get_node_from_name(area_name)
+	if area == null:
+		Communication.command_result(robot_name, "navigate_to_zone", "No node in the simulation has the name specified")
+		
+	elif not(area is Area2D):
+		Communication.command_result(robot_name, "navigate_to_zone", "The name specified does not correspond to an area")
+	else:
+		var destination_cell = find_closest_cell(area.cells)
+		navigate_to_cell([destination_cell.x, destination_cell.y])
+		
+func find_closest_cell(cells_list : Array) -> Array:
+	var dist_min
+	var closest_cell = null
+	
+	for cell in cells_list:
+		var new_dist = position.distance_to(ExportManager.tiles_to_pixels([cell.x, cell.y]))
+		if closest_cell == null or new_dist<dist_min:
+			dist_min = new_dist
+			closest_cell = cell
+	
+	return closest_cell
+	
+func find_closest_area(areas_list : Array) -> Array:
+	var dist_min
+	var closest_area = null
+	
+	for area in areas_list:
+		var closest_cell = find_closest_cell(area.cells)
+		var new_dist = position.distance_to(ExportManager.tiles_to_pixels(closest_cell))
+		if closest_area == null or new_dist<dist_min:
+			dist_min = new_dist
+			closest_area = area
+	
+	return closest_area
+		
 func stop():
 	move_time = 0.0
 	velocity = Vector2.ZERO
@@ -225,6 +260,7 @@ func place():
 	else:
 		Logger.log_warning("No belt found for place() call")
 	
+
 
 # Given a group string, returns the node which the robot's raycast is colliding with 
 # if it's in the group.

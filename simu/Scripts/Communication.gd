@@ -12,7 +12,7 @@ var command_applied : bool = false
 
 var registered_commands = {}
 
-
+var counter =0
 
 func start_server(port : int):	
 	#initialization
@@ -92,7 +92,7 @@ func _process(delta):
 								error_message = "Wrong number of arguments for navigate_to Command, expected 3 and got %s" % (command_info.size() -1)
 							else:
 								var robot_name = command_info[1]
-								var robot = ExportManager.get_robot_from_name(robot_name)
+								var robot = ExportManager.get_node_from_name(robot_name)
 								var dest_x = command_info[2]
 								var dest_y = command_info[3]
 								var destination = ExportManager.meters_to_pixels([dest_x, dest_y])
@@ -102,6 +102,35 @@ func _process(delta):
 								else:
 									Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["navigate_to", robot_name, dest_x, dest_y])
 									robot.navigate_to(Vector2(destination.x,destination.y))
+									
+						elif command_info[0] == "navigate_to_cell":
+							if command_info.size() != 4:
+								error_message = "Wrong number of arguments for navigate_to Command, expected 3 and got %s" % (command_info.size() -1)
+							else:
+								var robot_name = command_info[1]
+								var robot = ExportManager.get_node_from_name(robot_name)
+								var dest_cell_x = command_info[2]
+								var dest_cell_y = command_info[3]
+								
+								if robot==null or not(robot.has_method("place")):#way to check if the instance is a Robot
+									error_message = "Instance specified for navigate_to_cell command is not a robot (name : %s)" % (robot_name)
+								else:
+									Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["navigate_to_cell", robot_name, dest_cell_x, dest_cell_y])
+									robot.navigate_to_cell([dest_cell_x, dest_cell_y])
+									
+						elif command_info[0] == "navigate_to_area":
+							if command_info.size() != 3:
+								error_message = "Wrong number of arguments for navigate_to Command, expected 2 and got %s" % (command_info.size() -1)
+							else:
+								var robot_name = command_info[1]
+								var robot = ExportManager.get_node_from_name(robot_name)
+								var area_name = command_info[2]
+								
+								if robot==null or not(robot.has_method("place")):#way to check if the instance is a Robot
+									error_message = "Instance specified for navigate_to_area command is not a robot (name : %s)" % (robot_name)
+								else:
+									Logger.log_info("%-12s %8s;%8s" % ["navigate_to_area", robot_name, area_name])
+									robot.navigate_to_area(area_name)
 									
 						elif command_info[0] == "do_rotation":
 							if command_info.size() != 4:
@@ -118,19 +147,23 @@ func _process(delta):
 									Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["do_rotation", robot_name, angle, speed])
 									robot.do_rotation(angle, speed)
 									
-	#					var response_message = ""
-	#					if error_message != "":
-	#						Logger.log_warning(error_message)
-	#						response_message = error_message
-	#					else:
-	#						response_message = "Command succesfully applied"
-	#					var encoded = JSON.print({'type': 'response', 'id':content["id"], 'data':response_message})
-	#					client.put_string(encoded)
+						var response_message = ""
+						if error_message != "":
+							Logger.log_warning(error_message)
+							response_message = error_message
+						else:
+							response_message = "Command applied succesfully"
+						var encoded = JSON.print({'type': 'response', 'id':content["id"], 'data':response_message})
+						print( encoded)
+						client.put_string(encoded)
 				
-				#then send state
-				var state_message = encode_dynamic()
-				
-				client.put_string(state_message)
+				counter +=1
+				if counter>=0:
+					counter =0
+					#then send state
+					var state_message = encode_dynamic()
+					
+					client.put_string(state_message)
 
 
 		
@@ -140,6 +173,7 @@ func send_command_completed(result, command_id):
 	client.put_string(encoded)
 	
 func command_result(node_name, command_name, result):
+	print( result)
 	if registered_commands.has(node_name) and registered_commands[node_name].has(command_name):
 		var command_id = registered_commands[node_name][command_name]
 		send_command_completed(result, command_id)
