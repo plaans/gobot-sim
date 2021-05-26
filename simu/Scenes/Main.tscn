@@ -1,18 +1,12 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://Assets/tileset.tres" type="TileSet" id=1]
 [ext_resource path="res://Scripts/Navigation2D.gd" type="Script" id=2]
 [ext_resource path="res://Scripts/Main.gd" type="Script" id=3]
-[ext_resource path="res://Scenes/Robot.tscn" type="PackedScene" id=4]
-[ext_resource path="res://Scenes/Package.tscn" type="PackedScene" id=5]
-[ext_resource path="res://Scenes/Machines/Machine.tscn" type="PackedScene" id=6]
 [ext_resource path="res://Scripts/WorldMap.gd" type="Script" id=14]
 
 [node name="Main" type="Node"]
 script = ExtResource( 3 )
-RobotScene = ExtResource( 4 )
-PackageScene = ExtResource( 5 )
-MachineScene = ExtResource( 6 )
 
 [node name="WorldMap" type="TileMap" parent="."]
 z_index = -1
@@ -25,20 +19,3 @@ script = ExtResource( 14 )
 
 [node name="Navigation2D" type="Navigation2D" parent="."]
 script = ExtResource( 2 )
-_WorldMapPath = NodePath("../WorldMap")
-nav_margin = 20.0
-
-[node name="Label" type="Label" parent="."]
-margin_left = 784.0
-margin_top = 47.0
-margin_right = 976.0
-margin_bottom = 175.0
-text = "Controls:
-Left click - Move to position
-Right click - Turn to position
-
-Left / Right - Turn 90°
-Up / Down - Pick / Place"
-__meta__ = {
-"_edit_use_anchors_": false
-}

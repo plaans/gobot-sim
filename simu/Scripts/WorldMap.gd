@@ -1,7 +1,7 @@
 extends TileMap
 
-onready var manager = TileManager.new(self)
-onready var world = TileWorld.new(self)
+onready var manager: TileManager = TileManager.new(self)
+onready var world: TileWorld = TileWorld.new(self)
 
 export(PackedScene) var park_area_scene = preload("res://Scenes/ParkingArea.tscn")
 export(PackedScene) var interact_area_scene = preload("res://Scenes/InteractArea.tscn")
@@ -16,6 +16,11 @@ const GROUP_INTERACT = ["InteractionFloor"]
 const GROUP_BELT = ["InputBelt", "OutputBelt"]
 const GROUP_MACHINE = ["Machine", "InputMachine", "OutputMachine"]
 
+var machines = []
+var belts = []
+var interact_areas = []
+var parking_areas = []
+
 enum BeltType {
 	INPUT,
 	OUTPUT
@@ -26,17 +31,38 @@ func _ready():
 	# Set the cell size property in export manager 
 	ExportManager.set_tile_size(cell_size)
 	
-	# Make ParkingArea
-	var parking_area = make_parking_area()
-	# Make the machines
-	var machines = make_machines()
+func update_tiles_from_world():
+	if !world:
+		return
 	
+	for x in world.size.x:
+		for y in world.size.y:
+			set_cellv(Vector2(x, y)+world.offset, world.data[x][y])
+	update_bitmask_region(world.offset, world.offset + world.size)
+			
+
+func make_environment():
+	# The function fails if there is no world defined
+	if !world:
+		return
 	
+	# Cleanup the current environment
+	machines.empty()
+	belts.empty()
+	interact_areas.empty()
+	parking_areas.empty()
+	for child in get_children():
+		# Clear all children
+		child.queue_free()
+	
+	# Create ParkingAreas
+	make_parking_areas()
+	# Create Machines, Belts and InteractAreas
+	make_machines()
 
 # Creates machine. at the position of the cells in the group GROUP_MACHINE and returns all the machines.
 # Also creates the belts connected to each machine and links them.
-func make_machines()->Array:
-	var machines = []
+func make_machines():
 	for machine_cell in manager.get_used_cells_by_group(GROUP_MACHINE):
 		# Create the right type of machine
 		var new_machine
@@ -52,19 +78,18 @@ func make_machines()->Array:
 		add_child(new_machine)
 		
 		# Create the belts
-		var belts = make_belts(machine_cell)
-		new_machine.input_belt = belts[0]
-		new_machine.output_belt = belts[1]
+		var new_belts = make_belts(machine_cell)
+		new_machine.input_belt = new_belts[0]
+		new_machine.output_belt = new_belts[1]
 		
 		machines.append(new_machine)
-	return machines
 
 # Given a starting cell (machine_cell), returns an array of 2 belts: an input at index 0, an output at index 1.
 # The goal of this function is to provide a reliable way to get exactly 1 belt of each type - as such,
 # if there is more that 1 belt of a type connected to the machine, only the first one will be created.
 # A machine can have no belt of a type connected, in this case the corresponding index will be null.
 func make_belts(machine_cell: Vector2)->Array:
-	var belts = [null, null]
+	var new_belts = [null, null]
 	for belt_cell in manager.get_adjacent_cells_by_group(machine_cell, GROUP_BELT):
 		var id: int = get_cellv(belt_cell)
 		# Check for the type of the cell
@@ -75,9 +100,9 @@ func make_belts(machine_cell: Vector2)->Array:
 			"OutputBelt":
 				type = BeltType.OUTPUT
 		# If the type is invalid or alredy set, don't create a belt
-		if type != -1 and !belts[type]:
-			belts[type] = make_single_belt(machine_cell, belt_cell, id, type)
-	return belts
+		if type != -1 and !new_belts[type]:
+			new_belts[type] = make_single_belt(machine_cell, belt_cell, id, type)
+	return new_belts
 
 # Given a start position, the next position, the id of tile to fill and a belt type, returns a single belt.
 # The function uses the difference between the next and the start position as adirection to fill cells.
@@ -129,15 +154,15 @@ func make_single_belt(start: Vector2, next: Vector2, id: int, type: int):
 	
 	new_belt.cells = manager.cell_groups_to_cells(belt_lines)
 	new_belt.polys = PolyHelper.get_polys_from_collision_object(new_belt)
-
 	
 	add_child(new_belt)
+	
+	belts.append(new_belt)
 	return new_belt
 
 # Given an array containing the cells of the belt, returns an array of InteractAreas.
 # 
-func make_interact_area(belt_lines: Array, belt: Node)->Array:
-	var interact_areas = []
+func make_interact_area(belt_lines: Array, belt: Node):
 	# Get the cell groups attached to the belt
 	var new_groups = manager.get_connected_cells_to_groups_by_group(world, belt_lines, GROUP_INTERACT)
 	# Create all the collision polys from the cell groups
@@ -156,10 +181,8 @@ func make_interact_area(belt_lines: Array, belt: Node)->Array:
 	new_interact_area.polys = PolyHelper.get_polys_from_collision_object(new_interact_area)
 	
 	interact_areas.append(new_interact_area)
-	return interact_areas
 
-func make_parking_area()->Node2D:
-	var parking_area: Node2D = null
+func make_parking_areas():
 	# Get cell groups of ParkingArea
 	var new_groups = manager.get_connected_cells_by_group(world, GROUP_PARKING)
 	# Create all the collision polys from the cell groups
@@ -175,5 +198,4 @@ func make_parking_area()->Node2D:
 	new_park_area.cells = manager.cell_groups_to_cells(new_groups)
 	new_park_area.polys = PolyHelper.get_polys_from_collision_object(new_park_area)
 	
-	parking_area = new_park_area
-	return parking_area
+	parking_areas.append(new_park_area)

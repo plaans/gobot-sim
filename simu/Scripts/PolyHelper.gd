@@ -42,8 +42,9 @@ static func outline_exclude_polys(polys: Array, outline: PoolVector2Array)->Pool
 	
 	var i: int = 0
 	while i < polys.size():
-		if Geometry.clip_polygons_2d(polys[i], new_outline).size() > 0:
-			new_outline = Geometry.clip_polygons_2d(new_outline, polys[i])[0]
+		var test_poly = Geometry.clip_polygons_2d(new_outline, polys[i])
+		if test_poly.size() == 1:
+			new_outline = test_poly[0]
 			polys.remove(i)
 			i = 0
 		else:
@@ -100,7 +101,7 @@ static func get_poly_from_shape(shape: Shape2D)->PoolVector2Array:
 # Note: polys are given in global coordinates
 static func get_polys_from_collision_object(object: CollisionObject2D)->Array:
 	var polys: Array = []
-	var object_transform: Transform2D = object.get_global_transform()
+	var object_transform: Transform2D = object.get_transform()
 	var owners = object.get_shape_owners()
 	for owner_id in owners:
 		var owner_transform: Transform2D = object.shape_owner_get_transform(owner_id)

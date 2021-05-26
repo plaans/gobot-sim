@@ -2,31 +2,24 @@ extends Node
 
 
 onready var _Navigation = $Navigation2D
+onready var _WorldMap = $WorldMap
 
 var _Robot
-export (PackedScene) var RobotScene
-export (PackedScene) var PackageScene
-export (PackedScene) var MachineScene
+export (PackedScene) var RobotScene = preload("res://Scenes/Robot.tscn")
 
-var packages_list
-
-var machines_list
-#each element of the array is a Machine node
-
-var robots_list
-
-var packages_nb : int = 0
-
-var possible_tasks
 
 func _ready():	
 
 	#values of arguments
-	
 	var arguments : Array = Array(OS.get_cmdline_args ())
 	
 	var rng_seed = int(get_arg(arguments,"--seed",0 ))
 	seed(rng_seed)
+	
+	# Uses the tilemap defined in-engine if no environment is provided
+	# Note: current environment is also defined in res://environments/new_environment.json for test purposes
+	var environment_file = get_arg(arguments,"--environment","")
+	load_environment(environment_file)
 	
 	var scenario_file = get_arg(arguments,"--scenario","res://scenarios/new_scenario.json" )
 	load_scenario(scenario_file)
@@ -61,23 +54,13 @@ func get_arg(args, arg_name, default):
 		return args[index+1]
 	else:
 		return default
-	
-func add_package(package : Node):
-	packages_list.append(package)
-	
-func remove_package(package : Node):
-	var package_index = packages_list.find(package)
-	if package_index >= 0 :
-		packages_list.remove(package_index)
 
-	
-	
-func load_scenario(file_path : String):
-	var absolute_scenario_path
+func get_absolute_path(file_path: String)->String:
+	var absolute_path: String
 	
 	if "res://" in file_path:
 		#in that case no need to convert path to absolute path
-		absolute_scenario_path = file_path
+		absolute_path = file_path
 	else:
 		#convert path to absolute path
 		var separated_path
@@ -93,24 +76,30 @@ func load_scenario(file_path : String):
 		dir.open(OS.get_executable_path().get_base_dir())
 		dir.change_dir(directory_path)
 		
-		absolute_scenario_path = dir.get_current_dir() + "/" + file_name
-		
-	#load scenario file
+		absolute_path = dir.get_current_dir() + "/" + file_name
+	
+	return absolute_path
+
+func get_file_content(file_path: String):
+	# Load file
 	var file = File.new()
-	var open_error = file.open(absolute_scenario_path, File.READ) 
+	var open_error = file.open(file_path, File.READ) 
 	if open_error:
-		Logger.log_error("Error opening the scenario file (Error code %s)" % open_error)
+		Logger.log_error("Error opening file %s (Error code %s)" % [file_path, open_error])
 		return
 		
 	var content = JSON.parse(file.get_as_text())
 	file.close()
 	
 	if content.get_error():
-		Logger.log_error("Error parsing the scenario file (Error code %s)" % content.get_error())
+		Logger.log_error("Error parsing file %s (Error code %s)" % [file_path, content.get_error()])
 		return	
 		
-	var scenario = content.get_result()
-	
+	return content.get_result()
+
+func load_scenario(file_path : String):
+	var scenario_path = get_absolute_path(file_path)
+	var scenario = get_file_content(scenario_path)
 	
 	#machines
 	var all_machines_list = get_tree().get_nodes_in_group("machines")
@@ -173,8 +162,35 @@ func load_scenario(file_path : String):
 			machine.packages_templates = scenario.packages
 			machine.create_time = 5.0
 		
-	#$Arrival_Zone.set_next_packages(scenario.packages)
-	print( scenario)
+
+func load_environment(file_path : String):
+	if file_path != "":
+		var environment_path = get_absolute_path(file_path)
+		var environment = get_file_content(environment_path)
+
+		if typeof(environment) != TYPE_DICTIONARY:
+			Logger.log_error("Environment is not a dictionnary")
+		var fields = ["data", "offset"]
+		for field in fields:
+			# Check if the environment contains the fields needed
+			if !(field in environment):
+				Logger.log_error("No field %s found in environment file" % [field])
+			# Check if the field's type is correct 
+			elif typeof(environment[field]) != TYPE_ARRAY:
+				Logger.log_error("Field %s of environment is not an array" % [field])
+			# The data is supposed to be an array of arrays
+			if field == fields[0]:
+				for i in environment[field].size():
+					if typeof(environment[field][i]) != TYPE_ARRAY:
+						Logger.log_error("Row %s in %s field is not an array" % [i, field])
+		
+		# Sets the tilemap's TileWorld from the environment
+		_WorldMap.world = TileWorld.new(environment)
+		_WorldMap.update_tiles_from_world()
+	
+	_WorldMap.make_environment()
+	_Navigation.make_navigation()
+
 
 func _unhandled_input(event):
 	if event.is_action_pressed("ui_up"):
