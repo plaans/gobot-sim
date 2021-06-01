@@ -1,7 +1,7 @@
 extends TileMap
 
 onready var manager: TileManager = TileManager.new(self)
-onready var world: TileWorld = TileWorld.new(self)
+onready var world: TileWorld = null
 
 export(PackedScene) var park_area_scene = preload("res://Scenes/ParkingArea.tscn")
 export(PackedScene) var interact_area_scene = preload("res://Scenes/InteractArea.tscn")
@@ -44,6 +44,7 @@ func update_tiles_from_world():
 func make_environment():
 	# The function fails if there is no world defined
 	if !world:
+		Logger.log_error("No world has been defined for the WorldMap")
 		return
 	
 	# Cleanup the current environment

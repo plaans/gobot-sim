@@ -19,9 +19,10 @@ func _ready():
 	# Uses the tilemap defined in-engine if no environment is provided
 	# Note: current environment is also defined in res://environments/new_environment.json for test purposes
 	var environment_file = get_arg(arguments,"--environment","")
-	load_environment(environment_file)
+	if environment_file != "":
+		load_environment(environment_file)
 	
-	var scenario_file = get_arg(arguments,"--scenario","res://scenarios/new_scenario.json" )
+	var scenario_file = get_arg(arguments,"--scenario","res://scenarios/new_scenario_with_environment.json" )
 	load_scenario(scenario_file)
 	
 	var pickup_radius = float(get_arg(arguments,"--pickup-radius",100 ))
@@ -100,6 +101,19 @@ func get_file_content(file_path: String):
 func load_scenario(file_path : String):
 	var scenario_path = get_absolute_path(file_path)
 	var scenario = get_file_content(scenario_path)
+	
+	# Loading environment before everything else
+	if scenario.has("environment"):
+		if _WorldMap.world != null:
+			Logger.log_warning("Environment in scenario has been overridden by command-line argument")
+		else:
+			load_environment(scenario["environment"])
+	else:
+		if _WorldMap.world != null:
+			Logger.log_warning("No environment field in scenario, but environment has been overridden by command-line argument")
+		else:
+			Logger.log_error("No environment field in scenario")
+			return
 	
 	#machines
 	var all_machines_list = get_tree().get_nodes_in_group("machines")
@@ -187,10 +201,11 @@ func load_environment(file_path : String):
 		# Sets the tilemap's TileWorld from the environment
 		_WorldMap.world = TileWorld.new(environment)
 		_WorldMap.update_tiles_from_world()
-	
-	_WorldMap.make_environment()
-	_Navigation.make_navigation()
-
+		
+		_WorldMap.make_environment()
+		_Navigation.make_navigation()
+	else:
+		Logger.log_error("No path to environment given")
 
 func _unhandled_input(event):
 	if event.is_action_pressed("ui_up"):
