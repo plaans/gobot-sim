@@ -1,13 +1,14 @@
 import pprint
 from typing import Dict, List
-
+import threading 
 
 
 class StateClient():
 	def __init__(self):
 		self.state = {}
 		self.names_list_by_category = {}
-
+		
+		self.ready = threading.Event() #will be set when the StateClient has received its first state update
 
 	def update(self, message : Dict):
 		data = message['data']
@@ -30,8 +31,14 @@ class StateClient():
 				if name not in self.state:
 					self.state[name] = {}
 				self.state[name][attribute] = value
-		
+		if not(self.ready.is_set()):
+			self.ready.set()
 		#pprint.pprint(self.state)
+
+	def ready_event(self):
+		return self.ready
+
+
 
 	def get_data(self, key : str, name : str):
 		if name in self.state and key in self.state[name]:

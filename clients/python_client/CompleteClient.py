@@ -7,7 +7,7 @@ from ActionClient import ActionClient
 from TCP_Client import TCP_Client
 
 
-class CompleteClient(StateClient, ActionClient):
+class CompleteClient():
 	def __init__(self, address : str = 'localhost', port : int = 10000, frequency : float = 60):
 		self.address = address
 		self.port = port
@@ -17,10 +17,9 @@ class CompleteClient(StateClient, ActionClient):
 		self.MessageReader = MessageReader(self.TCP_Client)
 		self.ActionClient = ActionClient(self.TCP_Client)
 		self.StateClient = StateClient()
-		StateClient.__init__(self)
-		ActionClient.__init__(self, self.TCP_Client)
 
-		self.MessageReader.bind_function("response", self.receive_response)
+		self.MessageReader.bind_function("response", self.ActionClient.receive_response)
+		self.MessageReader.bind_function("result", self.ActionClient.receive_response)
 		self.MessageReader.bind_function("static", self.StateClient.update)
 		self.MessageReader.bind_function("dynamic", self.StateClient.update)
 
@@ -32,13 +31,16 @@ class CompleteClient(StateClient, ActionClient):
 
 	def kill(self):
 		self.stop_thread.set()
+		self.thread.join()
 		self.TCP_Client.kill()
 
 
 	def thread_action(self):
 		while not self.stop_thread.wait(self.wait_delay):
-			self.MessageReader.check_new_data()
-
+			#read all new messages
+			new_data_was_available = self.MessageReader.process_new_data()
+			while new_data_was_available and not(self.stop_thread.is_set()):
+				new_data_was_available = self.MessageReader.process_new_data()
 
 
 if __name__ == "__main__":

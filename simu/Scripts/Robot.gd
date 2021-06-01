@@ -30,6 +30,8 @@ var current_battery : float = 10.0
 var in_station: bool setget set_in_station
 var in_interact: Array = []
 
+var current_movement_command : String
+
 
 onready var raycast : RayCast2D = $RayCast2D
 onready var _Progress = $Sprite/TextureProgress
@@ -55,7 +57,7 @@ func _physics_process(delta):
 			
 		if current_path_point >= path.size():
 			stop_path()
-			Communication.command_result(robot_name, "navigate_to", "Navigate_to command completed successfully")
+			Communication.command_result(robot_name, "movement", "command completed successfully")
 		else:
 			var dir_vec: Vector2 = (path[current_path_point] - position)
 			var speed = TEST_ROBOT_SPEED # px/s
@@ -161,19 +163,36 @@ func navigate_to(point: Vector2):
 	
 func navigate_to_cell(cell : Array):
 	#cell uses the format [tile_index_x, tile_index_y]
-	var position = ExportManager.tiles_to_pixels(cell)
-	navigate_to(position)
+	if cell.size() != 2:
+		var error_message = "Wrong number of arguments for do_rotation Command, expected 2 and got %s" % (cell.size())
+		Logger.log_warning(error_message)
+		return error_message
+	else:
+		var position = ExportManager.tiles_to_pixels(cell)
+		navigate_to(position)
+		return "navigate_to_cell command applied successfully"
 	
 func navigate_to_area(area_name: String):
 	var area = ExportManager.get_node_from_name(area_name)
 	if area == null:
-		Communication.command_result(robot_name, "navigate_to_zone", "No node in the simulation has the name specified")
+		Communication.command_result(robot_name, "movement", "No node in the simulation has the name specified")
 		
 	elif not(area is Area2D):
-		Communication.command_result(robot_name, "navigate_to_zone", "The name specified does not correspond to an area")
+		Communication.command_result(robot_name, "movement", "The name specified does not correspond to an area")
 	else:
 		var destination_cell = find_closest_cell(area.cells)
 		navigate_to_cell([destination_cell.x, destination_cell.y])
+		
+func go_charge():
+	var parking_areas = get_tree().get_nodes_in_group("parking_areas")
+	var destination_cell = find_closest_cell(find_closest_area(parking_areas))
+	navigate_to_cell([destination_cell.x, destination_cell.y])
+	
+func face_object(node : Node2D, speed : float = 100):
+	var current_direction = Vector2.RIGHT.rotated(rotation)
+	var angle = current_direction.angle_to(node.position - position)
+	do_rotation([angle-rotation, speed])
+	
 		
 func find_closest_cell(cells_list : Array) -> Array:
 	var dist_min
@@ -218,16 +237,31 @@ func add_package(Package : Node):
 	carried_package.position = Vector2(7, 0)
 	add_child(carried_package)
 	
-func do_rotation(angle: float, speed: float):
+func do_rotation(params : Array) -> String:
 	# angle : rad
 	# speed : rad/s
-
-	rotation_speed = speed
-	if angle < 0:
-		rotation_speed *= -1
-	rotate_time = abs(angle/speed)
-	target_angle = self.rotation + angle
-	rotating = true 
+	
+	#command functions take the parameters as an Array and 
+	#return a message indicating if the command was applied or if there was an error
+	
+	if params.size() != 2:
+		var error_message = "Wrong number of arguments for do_rotation Command, expected 2 and got %s" % (params)
+		Logger.log_warning(error_message)
+		return error_message
+	else:
+		var angle = params[0]
+		var speed = params[1]
+		Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["do_rotation", robot_name, angle, speed])
+		
+		#then apply the command itself
+		rotation_speed = speed
+		if angle < 0:
+			rotation_speed *= -1
+		rotate_time = abs(angle/speed)
+		target_angle = self.rotation + angle
+		rotating = true 
+		
+		return "do_rotation command applied successfully"
 		
 func stop_rotation():
 	rotating = false 

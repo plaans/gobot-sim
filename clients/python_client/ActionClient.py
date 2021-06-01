@@ -26,7 +26,6 @@ class ActionClient():
 		self.TCP_Client.write(data_to_send)
 
 	def receive_response(self, response_message : Dict):
-		print(response_message)
 		response_type = response_message["type"]
 		response_data = response_message["data"]
 		action_id = response_message["id"]
@@ -36,23 +35,27 @@ class ActionClient():
 			if callable(function_to_call):
 				function_to_call(response_data)
 
-	def navigate_to(self, robot_name : str, dest_x : float, dest_y : float):
+	def navigate_to(self, robot_name : str, dest_x : float, dest_y : float, response_callback = None, result_callback = None):
 		command_to_send = ["navigate_to", robot_name, dest_x, dest_y]
-		self.send_command(command_to_send, print, print)
+		self.send_command(command_to_send, response_callback, result_callback)
 
-	def navigate_to_area(self, robot_name : str, area_name : str):
+	def navigate_to_cell(self, robot_name : str, dest_x : float, dest_y : float, response_callback = None, result_callback = None):
+		command_to_send = ["navigate_to_cell", robot_name, dest_x, dest_y]
+		self.send_command(command_to_send, response_callback, result_callback)
+
+	def navigate_to_area(self, robot_name : str, area_name : str, response_callback = None, result_callback = None):
 		command_to_send = ["navigate_to_area", robot_name, area_name]
-		self.send_command(command_to_send, print, print)
+		self.send_command(command_to_send, response_callback, result_callback)
 
-	def pick(self, robot_name : str):
+	def pick(self, robot_name : str, response_callback = None, result_callback = None):
 		command_to_send = ["pick", robot_name]
-		self.send_command(command_to_send, print, print)
+		self.send_command(command_to_send, response_callback, result_callback)
 
-	def place(self, robot_name : str):
+	def place(self, robot_name : str, response_callback = None, result_callback = None):
 		command_to_send = ["place", robot_name]
-		self.send_command(command_to_send, print, print)
+		self.send_command(command_to_send, response_callback, result_callback)
 
-	def do_rotation(self, robot_name : str, rotation : float, speed : float):
+	def do_rotation(self, robot_name : str, rotation : float, speed : float, response_callback = None, result_callback = None):
 		command_to_send = ["do_rotation", robot_name, rotation, speed]
-		self.send_command(command_to_send, print, print)
+		self.send_command(command_to_send, response_callback, result_callback)
 

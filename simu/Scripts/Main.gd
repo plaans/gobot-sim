@@ -99,7 +99,7 @@ func load_scenario(file_path : String):
 	var file = File.new()
 	var open_error = file.open(absolute_scenario_path, File.READ) 
 	if open_error:
-		Logger.log_error("Error opening the scenario file (Error code %s)" % open_error)
+		Logger.log_error("Error opening the scenario file at location %s " % absolute_scenario_path)
 		return
 		
 	var content = JSON.parse(file.get_as_text())

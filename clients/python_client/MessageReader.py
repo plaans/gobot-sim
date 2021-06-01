@@ -9,24 +9,16 @@ class MessageReader():
 		self.TCP_Client = TCP_Client
 		self.callbacks = {}
 	
-	def check_new_data(self):
+	def process_new_data(self) -> bool:
+		#reads and processes new data if available, and returns True if data was read and False if no data was available
 		data = self.TCP_Client.read()
-		while data != None:
+		if data==None:
+			return False
+		else:
 			key = data['type']
 			if key in self.callbacks:
 				self.callbacks[key](data)	
-			data = self.TCP_Client.read()
-
-	
-	def read_data(self) -> Dict:
-		data = self.TCP_Client.read(4)
-		if len(data)>0:
-			size = int.from_bytes(data,'little')
-			data = self.TCP_Client.read(size)
-			message = json.loads(data)
-			return message
-		else:
-			return None
+			return True
 
 	def bind_function(self, data_type : str, function : Callable):
 		self.callbacks[data_type] = function
