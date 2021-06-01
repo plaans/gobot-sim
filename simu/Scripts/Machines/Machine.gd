@@ -1,6 +1,6 @@
 extends Node2D
 
-export var progress_gradient: Gradient = preload("res://Assets/machine/progress_gradient.tres")
+export var progress_gradient: Gradient = preload("res://Assets/progress_gradient.tres")
 
 # Declare member variables here. Examples:
 var input_belt: Node = null setget set_input_belt

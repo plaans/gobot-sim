@@ -33,7 +33,10 @@ var in_interact: Array = []
 
 onready var raycast : RayCast2D = $RayCast2D
 onready var _Progress = $Sprite/TextureProgress
-export var progress_gradient: Gradient = preload("res://Assets/robot/progress_gradient.tres")
+export var progress_gradient: Gradient = preload("res://Assets/progress_gradient.tres")
+
+export(NodePath) var controller_path = "PFController"
+onready var _Controller: Node2D = get_node_or_null(controller_path)
 
 export var TEST_ROBOT_SPEED = 96 #px/s
 # Note:
@@ -47,6 +50,8 @@ func _ready():
 	
 	#generate a name 
 	robot_name = ExportManager.new_name("robot")
+	if !_Controller:
+		Logger.log_error("No controller defined for %s - local collision avoidance will be disabled"%robot_name)
 	
 	ExportManager.add_new_robot(self)
 
@@ -116,14 +121,10 @@ func set_in_station(state : bool):
 	else:
 		$AnimationPlayer.seek(0,true)
 		$AnimationPlayer.stop()
-	
-func get_in_station() -> bool:
-	return in_station
-	
+
 func get_battery_proportion():
 	return current_battery / max_battery
 	
-			
 func update_battery_display():
 	_Progress.value = current_battery/max_battery*100
 	_Progress.tint_progress = progress_gradient.interpolate(_Progress.value/100)
@@ -267,5 +268,3 @@ func export_dynamic() -> Array:
 	export_data.append(["Robot.in_station", robot_name, in_station])
 	export_data.append(["Robot.in_interact_areas", robot_name, get_interact_areas_names()])
 	return export_data
-		
-	

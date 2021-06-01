@@ -39,6 +39,7 @@ func update_tiles_from_world():
 		for y in world.size.y:
 			set_cellv(Vector2(x, y)+world.offset, world.data[x][y])
 	update_bitmask_region(world.offset, world.offset + world.size)
+	update_dirty_quadrants()
 			
 
 func make_environment():
