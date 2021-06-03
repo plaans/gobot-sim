@@ -1,10 +1,11 @@
 tool
 extends Node2D
 
-export(int, 1, 2000) var points_amount = 200 setget set_points_amount
-export(float, 0, 100) var effect_radius = 50.0 setget set_effect_radius # px
+export(int, 1, 2000) var points_amount = 100 setget set_points_amount
+export(float, 0, 500) var effect_radius = 100.0 setget set_effect_radius # px
+export(Vector2) var target = null # px, in global coordinates
 
-export(bool) var debug_draw = true setget set_debug_draw
+export(bool) var debug_draw = true
 export(Gradient) var debug_proximity_gradient = preload("res://Assets/progress_gradient.tres")
 
 var rays: Array = []
@@ -25,6 +26,10 @@ func _draw():
 		if rays[i].is_colliding():
 			dist = rays[i].get_collision_point() - self.global_position
 		draw_line(Vector2.ZERO, dist, debug_proximity_gradient.interpolate(dist.length()/effect_radius))
+	
+	if target:
+		draw_line(Vector2.ZERO, target - self.global_position, Color.blue)
+	
 
 func setup_rays():
 	# Clear the current rays
@@ -41,7 +46,6 @@ func setup_rays():
 		
 		rays.append(new_ray)
 		add_child(new_ray)
-	update()
 
 func set_points_amount(new_amount: int):
 	points_amount = new_amount
@@ -51,6 +55,3 @@ func set_effect_radius(new_radius: float):
 	effect_radius = new_radius
 	setup_rays()
 
-func set_debug_draw(new_state: bool):
-	debug_draw = new_state
-	update()
