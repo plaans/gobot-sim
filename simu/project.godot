@@ -9,6 +9,11 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "Node2D",
+"class": "Controller",
+"language": "GDScript",
+"path": "res://Scripts/Controller.gd"
+}, {
 "base": "Reference",
 "class": "PolyHelper",
 "language": "GDScript",
@@ -30,6 +35,7 @@ _global_script_classes=[ {
 "path": "res://Scripts/TileWorld.gd"
 } ]
 _global_script_class_icons={
+"Controller": "",
 "PolyHelper": "",
 "Process": "",
 "TileManager": "res://Assets/icons/TileManager.svg",

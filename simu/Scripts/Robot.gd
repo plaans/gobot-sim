@@ -17,12 +17,6 @@ var rotation_time : float = 0.0
 
 # Navigating
 var navigating : bool = false
-#var path: PoolVector2Array
-#var path_line: Line2D
-#var following: bool = false
-#var current_path_point: int = 0
-
-var velocity : Vector2 = Vector2.ZERO # Set when doing a movement, manipulated by the controller
 
 # Battery
 export var max_battery : float = 10.0
@@ -34,6 +28,8 @@ var in_station : bool setget set_in_station
 var in_interact : Array = []
 var carried_package : Node2D
 
+var velocity : Vector2 = Vector2.ZERO # Set when doing a movement, manipulated by the controller
+
 # Controller
 export(NodePath) var controller_path = "PFController"
 onready var _Controller: Node2D = get_node_or_null(controller_path)
@@ -42,7 +38,7 @@ onready var _Raycast : RayCast2D = $RayCast2D
 onready var _Progress = $Sprite/TextureProgress
 onready var _MoveTimer = $MoveTimer
 onready var _RotationTimer = $RotationTimer
-
+# Battery gradient
 export var progress_gradient: Gradient = preload("res://Assets/progress_gradient.tres")
 
 func _ready():
@@ -58,50 +54,48 @@ func _ready():
 	ExportManager.add_new_robot(self)
 
 func _physics_process(delta):
-#	if !moving && following:
-#		if move_time <= 0.0:
-#			current_path_point += 1
-#
-#		if current_path_point >= path.size():
-#			stop_path()
-#			Communication.command_result(robot_name, "navigate_to", "Navigate_to command completed successfully")
-#		else:
-#			var dir_vec: Vector2 = (path[current_path_point] - position)
-#			var speed = TEST_ROBOT_SPEED # px/s
-#			var time = dir_vec.length()/speed # s
-#			goto(dir_vec.angle(), speed, time)
-		
 	if is_moving():
-		pass
-#		if current_battery == 0:
-#			stop()
-#			stop_path()
-#		else:
-#			var collision = move_and_collide(velocity*delta)
-#			#if carried_package!=null:
-#				#carried_package.position = position
-#
-#			move_time -= delta
-#			if collision:
-#				stop()
-#				stop_path()
-#				# Send "collision"
-#			elif move_time <= 0.0:
-#				stop()
+		var move_type = ""
+		if navigating and has_controller():
+			# If navigating with a controller, velocity is set directly from it
+			if _Controller.reached_target():
+				# Stop moving once the target is reached
+				stop_navigate()
+				# Send "navigate_to finished"
+			# Use velocity given by the controller
+			else:
+				velocity = _Controller.get_velocity()
+		else:
+			# If moving but there is no controller, move in the given direction
+			move_time -= delta
+			if move_time <= 0.0:
+				stop_move()
+				# Send "do_move finished"
+			else:
+				# Calculate velocity from the direction and speed
+				velocity = move_dir * move_speed
+		
+		if current_battery <= 0:
+			stop_navigate()
+			# Send "battery depleted"
+		else:
+			var collision = move_and_collide(velocity * delta)
+			if collision:
+				stop_navigate()  # Stopping the navigation also stops the movement
+				# Send "collision during movement"
 	
 	if is_rotating():
-		pass
-#		if current_battery == 0:
-#			stop_rotation()
-#			Communication.command_result(robot_name, "do_rotation", "Could not complete rotation command because battery became empty")
-#		else:
-#			rotate_time -= delta
-#			if rotate_time <= 0 :
-#				self.rotation = target_angle
-#				stop_rotation()
-#				Communication.command_result(robot_name, "do_rotation", "do_rotation command completed successfully")
-#			else:
-#				self.rotate(rotation_speed * delta)
+		rotation_time -= delta
+		if rotation_time <= 0.0:
+			stop_rotation()
+			# Send "do_rotation finished"
+			Communication.command_result(robot_name, "do_rotation", "do_rotation command completed successfully")
+		elif current_battery <= 0.0:
+			stop_rotation()
+			# Send "battery depleted"
+			Communication.command_result(robot_name, "do_rotation", "Could not complete rotation command because battery became empty")
+		else:
+			rotate(rotation_speed * delta)
 
 func _process(delta):
 	if not(in_station):
@@ -152,10 +146,17 @@ func is_rotating()->bool:
 	return rotation_time > 0.0
 
 func stop_move():
+	velocity = Vector2.ZERO
 	move_time = 0.0
 
 func stop_rotation():
 	rotation_time = 0.0
+
+func stop_navigate():
+	if has_controller():
+		_Controller.target_point = null
+	navigating = false
+	stop_move()
 
 func rotate_to(angle: float, speed: float):
 	var new_rotation = wrapf(self.angle + angle, -PI, PI)
@@ -167,8 +168,14 @@ func move_to(point: Vector2, speed: float):
 	do_move(new_vector.angle(), speed, new_vector.length() / speed)
 
 func navigate_to(point: Vector2):
-	if !_Controller:
+	if has_controller():
+		_Controller.target_point = point
+		navigating = true
+		# Make sure the robot moves
+		move_time = 1.0
+	else:
 		Logger.log_warning("%s doesn't have a controller. Using move_to instead"%robot_name)
+		# given 1m = 32px, move at a speed of 3m/s
 		move_to(point, 96)
 	
 	emit_signal("action_done")

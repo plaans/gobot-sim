@@ -1,9 +1,8 @@
 tool
-extends Node2D
+extends Controller
 
 export(int, 1, 2000) var points_amount = 100 setget set_points_amount
 export(float, 0, 500) var effect_radius = 100.0 setget set_effect_radius # px
-export(Vector2) var target = null # px, in global coordinates
 
 export(bool) var debug_draw = true
 export(Gradient) var debug_proximity_gradient = preload("res://Assets/progress_gradient.tres")
@@ -20,16 +19,28 @@ func _process(delta):
 func _draw():
 	if !debug_draw:
 		return
-		
+	
+	# TODO: make debug draw work with rotation
+	
 	for i in rays.size():
 		var dist: Vector2 = rays[i].cast_to
 		if rays[i].is_colliding():
 			dist = rays[i].get_collision_point() - self.global_position
 		draw_line(Vector2.ZERO, dist, debug_proximity_gradient.interpolate(dist.length()/effect_radius))
 	
-	if target:
-		draw_line(Vector2.ZERO, target - self.global_position, Color.blue)
+	if target_point:
+		draw_line(Vector2.ZERO, target_point - self.global_position, Color.blue)
+
+
+func get_velocity()->Vector2:
+	var new_vel = Vector2.ZERO
 	
+	# TODO: calculate velocity from target and forces
+	
+	return new_vel
+
+func reached_target()->bool:
+	return (target_point - self.global_position).length() < target_margin
 
 func setup_rays():
 	# Clear the current rays
@@ -54,4 +65,3 @@ func set_points_amount(new_amount: int):
 func set_effect_radius(new_radius: float):
 	effect_radius = new_radius
 	setup_rays()
-

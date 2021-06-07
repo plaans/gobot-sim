@@ -32,6 +32,7 @@ tracks/0/keys = {
 ]]
 collision_mask = 0
 script = ExtResource( 2 )
+controller_path = NodePath("")
 
 [node name="Collision_Sphere" type="CollisionShape2D" parent="."]
 shape = SubResource( 1 )
