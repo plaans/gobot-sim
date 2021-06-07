@@ -8,19 +8,38 @@ var nodes_count = {}
 
 var named_nodes_map = {} #used to know correspondance between robot names and instances
 
-func new_name(node : Node, category : String) -> String:
+var robot_interfaces_map = {}
+
+var command_id = 0 #counter used to generate command ids
+
+func register_new_node(node : Node, category : String) -> String:
 	#attributes a new name to the given node, and registers it in named_nodes_map to be able to acces it later by name
 	if not(nodes_count.has(category)):
 		nodes_count[category] = 0
 	else:
 		nodes_count[category] += 1
 	var new_name = 	category + str(nodes_count[category])	
+	
 	named_nodes_map[new_name] = node	
+	
+	#if robot nodes creates a corresponding robot interface
+	if category == "robot":
+		var new_robot_interface = RobotInterface.new(node)
+		robot_interfaces_map[new_name] = new_robot_interface
+		node.add_child(new_robot_interface)
+	
 	return new_name
 	
 func get_node_from_name(name : String):
 	if named_nodes_map.has(name):
 		return named_nodes_map[name]
+		
+func get_robot_interface(robot_name : String):
+	if robot_interfaces_map.has(robot_name):
+		return robot_interfaces_map[robot_name]
+		
+func get_all_robot_interfaces() -> Array:
+	return robot_interfaces_map.values()
 		
 func set_tile_size(size : Vector2):
 	tile_size = size
@@ -72,13 +91,21 @@ func tiles_to_pixels(original_array : Array) -> Vector2:
 	return Vector2(original_array[0]*tile_size.x + tile_size.x/2, original_array[1]*tile_size.y + tile_size.y / 2)
 	
 func add_export_static(node : Node):
-	node.add_to_group("export_static")	
 	if not(node.has_method("export_static")):
-		Logger.log_error("Added node %s to export_static but it does not have export_static method" % str(node))
+		Logger.log_error("Cannot add node %s to export_static because it does not have export_static method" % str(node))
+	else:
+		node.add_to_group("export_static")	
+		#it is necessary to send at the time of initialization the static information to clients
+		Communication.send_message(JSON.print({'type' : 'static', 'data' :node.call("export_static")}))
 		
 func add_export_dynamic(node : Node):
-	node.add_to_group("export_dynamic")	
 	if not(node.has_method("export_dynamic")):
-		Logger.log_error("Added node %s to export_dynamic but it does not have export_dynamic method" % str(node))
+		Logger.log_error("Cannot add node %s to export_static because it does not have export_dynamic method" % str(node))
+	else:
+		node.add_to_group("export_dynamic")	
+		
+func generate_new_command_id():
+	command_id+=1
+	return command_id
 
 

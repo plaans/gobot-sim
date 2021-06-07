@@ -29,7 +29,7 @@ func _ready():
 	add_to_group("export_static")
 	
 	#generate a name 
-	machine_name = ExportManager.new_name(self, "input_machine")
+	machine_name = ExportManager.register_new_node(self, "input_machine")
 
 func set_create_time(new_create_time: float):
 	create_time = new_create_time

@@ -22,13 +22,14 @@ onready var processes = $ProcessesNode
 
 var machine_name : String
 
+
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	#generate a name 
+	machine_name = ExportManager.register_new_node(self, "machine")
 	ExportManager.add_export_static(self)
 	ExportManager.add_export_dynamic(self)
-	
-	#generate a name 
-	machine_name = ExportManager.new_name(self, "machine")
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):

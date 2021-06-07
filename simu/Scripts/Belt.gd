@@ -36,12 +36,12 @@ func _ready():
 		setup_line()
 	
 	_VisualLine.material.set_shader_param("speed", visual_speed)
+
+	#generate a name 
+	belt_name = ExportManager.register_new_node(self, "belt")
 	
 	ExportManager.add_export_static(self)
 	ExportManager.add_export_dynamic(self)
-	
-	#generate a name 
-	belt_name = ExportManager.new_name(self, "belt")
 	
 func get_name() -> String:
 	return belt_name

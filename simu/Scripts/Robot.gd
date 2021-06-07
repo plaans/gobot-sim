@@ -43,12 +43,13 @@ export var TEST_ROBOT_SPEED = 96 #px/s
 # so 3m/s = 96px/s
 
 func _ready():
-	ExportManager.add_export_static(self)
-	ExportManager.add_export_dynamic(self)
 	current_battery = max_battery
 	
 	#generate a name 
-	robot_name = ExportManager.new_name(self, "robot")
+	robot_name = ExportManager.register_new_node(self, "robot")
+	
+	ExportManager.add_export_static(self)
+	ExportManager.add_export_dynamic(self)
 
 func _physics_process(delta):
 	if !moving && following:
@@ -57,7 +58,6 @@ func _physics_process(delta):
 			
 		if current_path_point >= path.size():
 			stop_path()
-			Communication.command_result(robot_name, "movement", "command completed successfully")
 		else:
 			var dir_vec: Vector2 = (path[current_path_point] - position)
 			var speed = TEST_ROBOT_SPEED # px/s
@@ -84,13 +84,13 @@ func _physics_process(delta):
 	if rotating:
 		if current_battery == 0:
 			stop_rotation()
-			Communication.command_result(robot_name, "do_rotation", "Could not complete rotation command because battery became empty")
+			#ActionServer.command_result(robot_name, "do_rotation", "Could not complete rotation command because battery became empty")
 		else:
 			rotate_time -= delta
 			if rotate_time <= 0 :
 				self.rotation = target_angle
 				stop_rotation()
-				Communication.command_result(robot_name, "do_rotation", "do_rotation command completed successfully")
+				#ActionServer.command_result(robot_name, "do_rotation", "do_rotation command completed successfully")
 			else:
 				self.rotate(rotation_speed * delta)
 
@@ -175,10 +175,12 @@ func navigate_to_cell(cell : Array):
 func navigate_to_area(area_name: String):
 	var area = ExportManager.get_node_from_name(area_name)
 	if area == null:
-		Communication.command_result(robot_name, "movement", "No node in the simulation has the name specified")
+		#ActionServer.command_result(robot_name, "movement", "No node in the simulation has the name specified")
+		pass
 		
 	elif not(area is Area2D):
-		Communication.command_result(robot_name, "movement", "The name specified does not correspond to an area")
+		#ActionServer.command_result(robot_name, "movement", "The name specified does not correspond to an area")
+		pass
 	else:
 		var destination_cell = find_closest_cell(area.cells)
 		navigate_to_cell([destination_cell.x, destination_cell.y])
@@ -272,27 +274,31 @@ func pick():
 	Logger.log_info("%-12s" % "pickup")
 	if carried_package:
 		Logger.log_warning("Already carrying a package for pick() call")
-		return
+		return false
 	
 	var target_belt = find_target_belt(1)
 	if target_belt and !target_belt.is_empty():
 		var package = target_belt.remove_package()
 		add_package(package)
+		return true
 	else:
 		Logger.log_warning("No belt found for pick() call")
+		return false
 
 func place():
 	Logger.log_info("%-12s" % "pickup")
 	if !carried_package:
 		Logger.log_warning("No current package for place() call")
-		return
+		return false
 	
 	var target_belt = find_target_belt(0)
 	if target_belt and target_belt.can_accept_package(carried_package):
 		target_belt.add_package(carried_package)
 		carried_package = null 
+		return true
 	else:
 		Logger.log_warning("No belt found for place() call")
+		return false
 	
 
 

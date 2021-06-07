@@ -6,7 +6,6 @@ from StateClient import StateClient
 from ActionClient import ActionClient
 from TCP_Client import TCP_Client
 
-
 class CompleteClient():
 	def __init__(self, address : str = 'localhost', port : int = 10000, frequency : float = 60):
 		self.address = address
@@ -18,15 +17,29 @@ class CompleteClient():
 		self.ActionClient = ActionClient(self.TCP_Client)
 		self.StateClient = StateClient()
 
-		self.MessageReader.bind_function("response", self.ActionClient.receive_response)
-		self.MessageReader.bind_function("result", self.ActionClient.receive_response)
+		self.MessageReader.bind_function("action_response", self.ActionClient.receive_response)
+		self.MessageReader.bind_function("action_feedback", self.ActionClient.receive_feedback)
+		self.MessageReader.bind_function("action_result", self.ActionClient.receive_result)
+		self.MessageReader.bind_function("action_cancel", self.ActionClient.receive_cancel_response)
 		self.MessageReader.bind_function("static", self.StateClient.update)
 		self.MessageReader.bind_function("dynamic", self.StateClient.update)
 
 		self.thread = threading.Thread(target=self.thread_action)
 		self.stop_thread = threading.Event()
 		self.thread.daemon = True
-		self.thread.start()
+
+	
+	def wait_for_server(self, timeout = 20): #timeout in seconds
+		start_time = time.time() 
+		connected = self.TCP_Client.connect()
+		while not(connected):
+			time.sleep(0.050)
+			if time.time() - start_time > timeout:
+				return False
+			connected = self.TCP_Client.connect()
+
+		self.thread.start()	
+		return connected
 		
 
 	def kill(self):
@@ -45,7 +58,7 @@ class CompleteClient():
 
 if __name__ == "__main__":
 	client = CompleteClient("localhost",10000)
-
+	client.wait_for_server(5)
 	
 
 	#client.ActionClient.navigate_to('robot0', 15, 15)

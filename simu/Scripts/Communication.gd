@@ -11,8 +11,8 @@ var env_sent : bool
 var command_applied : bool = false
 
 var registered_commands = {}
+var clients_list = []
 
-var counter =0
 
 func start_server(port : int):	
 	#initialization
@@ -31,204 +31,62 @@ func _process(delta):
 	
 	if tcp_server!=null:
 			
-		if client!=null and !client.is_connected_to_host():
-			#if client was disconnected set variable to null again
-			client=null
-		
-		if client==null and tcp_server.is_connection_available():
-			env_sent = false #new connection so has not yet received information about environment
-			client = tcp_server.take_connection() 
-			client_counter +=1
-		
-		if client != null and client.is_connected_to_host():
-
-			if not(env_sent):
-				#if info about the environment not yet sent to client first sent this before other transmissions
-				#response with a message containing description of the enviroment for test
-				var env_message = encode_static()
-				
-				client.put_string(env_message)
-				env_sent = true
-			else:
-				
-				#then read if commands were received (read one at most)
-				if client.get_available_bytes() > 0:
-						
-					var response= client.get_string(-1);
-					var json = JSON.parse(response)
-					var content = json.get_result()
-					
-					#apply_command(content['data'],content['id'])
-					
-					var error_message = ""
-					
-					if content["type"] == "robot_command":
-						var command_info = content["data"]
-						if command_info[0] == "pick":
-							if command_info.size() != 2:
-								error_message = "Wrong number of arguments for pick Command, expected 1 and got %s" % (command_info.size() -1)
-							else:
-								var robot_name = command_info[1]
-								var robot = ExportManager.get_node_from_name(robot_name)
-								if robot==null or not(robot.has_method("place")):#way to check if the instance is a Robot
-									error_message = "Instance specified for pick command is not a robot (name : %s)" % (robot_name)
-								else:
-									Logger.log_info("%-12s %8s" % ["pick", robot_name])
-									robot.pick()
-									if not registered_commands.has(robot_name):
-										registered_commands[robot_name]={}
-									registered_commands[robot_name]["pick"] = content["id"]
-						
-						elif command_info[0] == "place":
-							if command_info.size() != 2:
-								error_message = "Wrong number of arguments for place Command, expected 1 and got %s" % (command_info.size() -1)
-							else:
-								var robot_name = command_info[1]
-								var robot = ExportManager.get_node_from_name(robot_name)
-								if robot==null or not(robot.has_method("place")):#way to check if the instance is a Robot
-									error_message = "Instance specified for place command is not a robot (name : %s)" % (robot_name)
-								else:
-									Logger.log_info("%-12s %8s" % ["place", robot_name])
-									robot.place()
-									if not registered_commands.has(robot_name):
-										registered_commands[robot_name]={}
-									registered_commands[robot_name]["place"] = content["id"]
-									
-						elif command_info[0] == "navigate_to":
-							#apply_command(content['data'],content['id'])
-							if command_info.size() != 4:
-								error_message = "Wrong number of arguments for navigate_to Command, expected 3 and got %s" % (command_info.size() -1)
-							else:
-								var robot_name = command_info[1]
-								var robot = ExportManager.get_node_from_name(robot_name)
-								var dest_x = command_info[2]
-								var dest_y = command_info[3]
-								var destination = ExportManager.meters_to_pixels([dest_x, dest_y])
-
-								if robot==null or not(robot.has_method("place")):#way to check if the instance is a Robot
-									error_message = "Instance specified for navigate_to command is not a robot (name : %s)" % (robot_name)
-								else:
-									Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["navigate_to", robot_name, dest_x, dest_y])
-									robot.navigate_to(Vector2(destination.x,destination.y))
-									if not registered_commands.has(robot_name):
-										registered_commands[robot_name]={}
-									registered_commands[robot_name]["movement"] = content["id"]
-									
-						elif command_info[0] == "navigate_to_cell":
-							#apply_command(content['data'],content['id'])
-							if command_info.size() != 4:
-								error_message = "Wrong number of arguments for navigate_to Command, expected 3 and got %s" % (command_info.size() -1)
-							else:
-								var robot_name = command_info[1]
-								var robot = ExportManager.get_node_from_name(robot_name)
-								var dest_cell_x = command_info[2]
-								var dest_cell_y = command_info[3]
-
-								if robot==null or not(robot.has_method("place")):#way to check if the instance is a Robot
-									error_message = "Instance specified for navigate_to_cell command is not a robot (name : %s)" % (robot_name)
-								else:
-									Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["navigate_to_cell", robot_name, dest_cell_x, dest_cell_y])
-									robot.navigate_to_cell([dest_cell_x, dest_cell_y])
-									if not registered_commands.has(robot_name):
-										registered_commands[robot_name]={}
-									registered_commands[robot_name]["movement"] = content["id"]
-									
-						elif command_info[0] == "navigate_to_area":
-							if command_info.size() != 3:
-								error_message = "Wrong number of arguments for navigate_to Command, expected 2 and got %s" % (command_info.size() -1)
-							else:
-								var robot_name = command_info[1]
-								var robot = ExportManager.get_node_from_name(robot_name)
-								var area_name = command_info[2]
-								
-								if robot==null or not(robot.has_method("place")):#way to check if the instance is a Robot
-									error_message = "Instance specified for navigate_to_area command is not a robot (name : %s)" % (robot_name)
-								else:
-									Logger.log_info("%-12s %8s;%8s" % ["navigate_to_area", robot_name, area_name])
-									robot.navigate_to_area(area_name)
-									if not registered_commands.has(robot_name):
-										registered_commands[robot_name]={}
-									registered_commands[robot_name]["movement"] = content["id"]
-									
-						elif command_info[0] == "do_rotation":
-							if command_info.size() != 4:
-								Logger.log_warning("Wrong number of arguments for do_rotation Command, expected 3 and got %s" % (command_info.size() -1))
-							else:
-								var robot_name = command_info[1]
-								var robot = ExportManager.get_node_from_name(robot_name)
-								var angle = command_info[2]
-								var speed = command_info[3]
-								
-								if robot==null or not(robot.has_method("place")):#way to check if the instance is a Robot
-									error_message = "Instance specified for do_rotation command is not a robot (name : %s)" % (robot_name)
-								else:
-									Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["do_rotation", robot_name, angle, speed])
-									robot.do_rotation(angle, speed)
-									if not registered_commands.has(robot_name):
-										registered_commands[robot_name]={}
-									registered_commands[robot_name]["do_rotation"] = content["id"]
-									
-						var response_message = ""
-						if error_message != "":
-							Logger.log_warning(error_message)
-							response_message = error_message
-						else:
-							response_message = "Command applied succesfully"
-						var encoded = JSON.print({'type': 'response', 'id':content["id"], 'data':response_message})
-						client.put_string(encoded)
-				
-				counter +=1
-				if counter>=0:
-					counter =0
-					#then send state
-					var state_message = encode_dynamic()
-					
-					client.put_string(state_message)
-
-func apply_command(parameters_list : Array, command_id : int):
-	var command_info = parameters_list
-	var error_message
-	
-	var command_name = command_info[0]
-	var robot_name = command_info[1]
-	var robot = ExportManager.get_node_from_name(robot_name)
-	var function_parameters = command_info
-	function_parameters.remove(1)
-	function_parameters.remove(0)
-	
-	if robot==null:
-		error_message = "No instance found corresponding to name specified (%s)" % (robot_name)
-		Logger.log_warning(error_message)
-
-	elif not(robot.has_method(command_name)):
-		error_message = "Instance specified has no %s command" % (command_name)
-		Logger.log_warning(error_message)
-	else:
-		#Logger.log_info("%-12s %8s;%8.3f;%8.3f" % [command_name, robot_name, angle, speed])
-		print( "test_command")
-		error_message = robot.call(command_name,function_parameters)
-		if not registered_commands.has(robot_name):
-			registered_commands[robot_name]={}
-		var command_category = ""
-		if ["navigate_to","navigate_to_cell","navigate_to_area"].has(command_name):
-			command_category = "movement"
-		else :
-			command_category = command_name
-		registered_commands[command_category]["do_rotation"] = command_id
+		#first check if new client is available
+		if tcp_server.is_connection_available():
+			var new_client = tcp_server.take_connection() 
+			clients_list.append(new_client)
 			
-
-	var encoded = JSON.print({'type': 'response', 'id':command_id, 'data':error_message})
-	client.put_string(encoded)
+			#at time of connection, send all static information about static nodes already instanciated before the client connected
+			new_client.put_string(encode_static())
+			
+			
+		#then process for every client currently connected
 		
-func send_command_completed(result, command_id):
-	var encoded = JSON.print({'type': 'result', 'id':command_id, 'data':result})
-	if client!=null and client.is_connected_to_host():
-		client.put_string(encoded)
+		for client in clients_list:
+				
+			if client==null or !client.is_connected_to_host():
+				#if client was disconnected remove from map
+				clients_list.erase(client)
+			else:
+				read_data(client)
+				#then send state
+				var state_message = encode_dynamic()
+				
+				client.put_string(state_message)
+				
+func read_data(client):
+	#read if commands were received (read one at most)
+	if client.get_available_bytes() > 0:
+			
+		var response= client.get_string(-1);
+		var json = JSON.parse(response)
+		var content = json.get_result()
+		
+		if content["type"] == "robot_command":
+			var command_info = content["data"] 
+			var command_name = command_info[0]
+			var robot_name = command_info[1]
+			var function_parameters = command_info
+			function_parameters.remove(1)
+			function_parameters.remove(0)
+			
+			var robot_interface = ExportManager.get_robot_interface(robot_name)
+			if robot_interface != null:
+				robot_interface.receive_command(command_name, function_parameters, content['temp_id'])
+			
+		elif content["type"] == "cancel_request":
+			for robot_interface in ExportManager.get_all_robot_interfaces() :
+				robot_interface.cancel_command(content["command_id"])
 	
-func command_result(node_name, command_name, result):
-	if registered_commands.has(node_name) and registered_commands[node_name].has(command_name):
-		var command_id = registered_commands[node_name][command_name]
-		send_command_completed(result, command_id)
+					
+
+func send_message(message):
+	for client in clients_list:
+		if client!=null and client.is_connected_to_host():
+			client.put_string(message)
+		
+	
+
 
 			
 func set_area_parameters(area, stand : Node):

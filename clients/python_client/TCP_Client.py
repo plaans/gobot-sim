@@ -8,7 +8,13 @@ class TCP_Client:
 		self.port = port
 
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.sock.connect((self.address, self.port))
+
+	def connect(self) -> bool:
+		try:
+			self.sock.connect((self.address, self.port))
+			return True
+		except:
+			return False
 
 	def write(self, data):
 		message = json.dumps(data)

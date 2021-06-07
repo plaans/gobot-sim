@@ -8,11 +8,16 @@ class StateClient():
 		self.state = {}
 		self.names_list_by_category = {}
 		
-		self.ready = threading.Event() #will be set when the StateClient has received its first state update
+		self.waited_token = None 
+		self.wait_event = threading.Event() #will be set when the StateClient when the token is received
 
 	def update(self, message : Dict):
+		# if message['type']=='static':
+		# 	pprint.pprint( message['data'])
 		data = message['data']
 		for line in data:
+			self.check_waited_token(line)
+
 			if len(line)==2:#declaration of instance
 				name = line[1]
 				type = line[0]
@@ -31,19 +36,28 @@ class StateClient():
 				if name not in self.state:
 					self.state[name] = {}
 				self.state[name][attribute] = value
-		if not(self.ready.is_set()):
-			self.ready.set()
+
+
 		#pprint.pprint(self.state)
+	
 
-	def ready_event(self):
-		return self.ready
-
+	def check_waited_token(self, line):
+		if self.waited_token != None and self.waited_token in line:
+			self.waited_token = None
+			self.wait_event.set()
 
 
 	def get_data(self, key : str, name : str):
 		if name in self.state and key in self.state[name]:
 			return self.state[name][key]
 
+	def wait_for_message(self, token, timeout = 60):
+		#waits until the StateClient receives a message containing token 
+		#for example to wait until a robot instance is declared token would be Robot.instance
+		self.wait_event.clear()
+		self.waited_token = token
+		return self.wait_event.wait(timeout)
+		
 
 	# getter functions, that access the state and return some information
 	def robot_coordinates(self, name : str) -> List[float]:

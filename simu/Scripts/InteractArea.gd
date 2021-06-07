@@ -6,10 +6,10 @@ var cells : Array #contains the cells of the interact_area
 var polys : Array
 
 func _ready():
-	ExportManager.add_export_static(self)
-	
 	#generate a name 
-	interact_area_name = ExportManager.new_name(self, "interact_area")
+	interact_area_name = ExportManager.register_new_node(self, "interact_area")
+	
+	ExportManager.add_export_static(self)
 	
 func get_name() -> String:
 	return interact_area_name
