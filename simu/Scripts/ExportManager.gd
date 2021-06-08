@@ -26,13 +26,17 @@ func get_robot_from_name(name : String):
 func set_tile_size(size : Vector2):
 	tile_size = size
 	
-func pixels_to_meters(original_vector : Vector2) -> Array:
+func pixel_to_meter(original_value : float) : 
+	#supposes that tiles are always squared
+	return original_value/tile_size.x
+	
+func vector_pixels_to_meters(original_vector : Vector2) -> Array:
 	#convert a position in pixel to a position in meter (assuming a tile is 1mx1m)
 	#takes a position in Vector2 format 
 	#and outputs the position as an [x,y] Array format which is the format used for transmission of data
 	return [original_vector.x/tile_size.x, original_vector.y/tile_size.y]
 	
-func pixels_to_tiles(original_vector : Vector2) -> Array:
+func vector_pixels_to_tiles(original_vector : Vector2) -> Array:
 	#convert a position in pixel to a position in meter (assuming a tile is 1mx1m)
 	#takes a position in Vector2 format 
 	#and outputs the position as an [x,y] Array format which is the format used for transmission of data
@@ -42,7 +46,7 @@ func convert_array_pixels_to_meters(original_array : Array) -> Array:
 	#convert a list of position 
 	var new_array = []
 	for position in original_array:
-		new_array.append(pixels_to_meters(position))
+		new_array.append(vector_pixels_to_meters(position))
 	return new_array
 	
 func convert_polys_list_to_meters(original_array : Array) -> Array:
@@ -56,7 +60,7 @@ func convert_array_pixels_to_tiles(original_array : Array) -> Array:
 	#convert a list of position 
 	var new_array = []
 	for position in original_array:
-		new_array.append(pixels_to_tiles(position))
+		new_array.append(vector_pixels_to_tiles(position))
 	return new_array
 
 	

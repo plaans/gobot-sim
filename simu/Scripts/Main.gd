@@ -138,7 +138,7 @@ func load_scenario(file_path : String):
 			var closest_machine_x = 0
 			var closest_machine_y = 0
 			for machine in machines_list:
-				var position_machine_pixels = ExportManager.pixels_to_meters(machine.position)
+				var position_machine_pixels = ExportManager.vector_pixels_to_meters(machine.position)
 				var machine_x = floor(position_machine_pixels[0])
 				var machine_y = floor(position_machine_pixels[1])
 				if abs(machine_x-x)<=1 and abs(machine_y-y)<=1:
