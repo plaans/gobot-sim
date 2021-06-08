@@ -158,8 +158,8 @@ func stop_navigate():
 	navigating = false
 	stop_move()
 
-func rotate_to(angle: float, speed: float):
-	var new_rotation = wrapf(self.angle + angle, -PI, PI)
+func rotate_to(target_angle: float, speed: float):
+	var new_rotation = wrapf(target_angle - self.rotation, -PI, PI)
 	var new_speed = speed * sign(new_rotation)
 	do_rotation(new_speed, new_rotation / new_speed)
 
