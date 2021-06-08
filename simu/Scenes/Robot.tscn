@@ -32,7 +32,6 @@ tracks/0/keys = {
 ]]
 collision_mask = 0
 script = ExtResource( 2 )
-controller_path = NodePath("")
 
 [node name="Collision_Sphere" type="CollisionShape2D" parent="."]
 shape = SubResource( 1 )
@@ -42,6 +41,7 @@ enabled = true
 cast_to = Vector2( 100, 0 )
 
 [node name="PFController" parent="." instance=ExtResource( 6 )]
+effect_offset = 10.0
 
 [node name="Sprite" type="Sprite" parent="."]
 position = Vector2( 6.19888e-06, 0 )

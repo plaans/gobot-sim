@@ -4,3 +4,5 @@
 
 [node name="PFController" type="Node2D"]
 script = ExtResource( 1 )
+target_margin = 0.2
+points_amount = 100
