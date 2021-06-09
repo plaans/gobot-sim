@@ -23,7 +23,7 @@ func _on_ParkingArea_body_exited(body):
 
 func export_static() -> Array:
 	var export_data = []
-	export_data.append(["Parking_area.instance", parking_area_name])
+	export_data.append(["Parking_area.instance", parking_area_name, "parking_area"])
 	export_data.append(["Parking_area.cells", parking_area_name, cells])
 	export_data.append(["Parking_area.polygons", parking_area_name, ExportManager.convert_polys_list_to_meters(polys)])
 

@@ -24,7 +24,7 @@ func _on_InteractArea_body_exited(body):
 
 func export_static() -> Array:
 	var export_data = []
-	export_data.append(["Interact_area.instance", interact_area_name])
+	export_data.append(["Interact_area.instance", interact_area_name, "interact_area"])
 	
 	export_data.append(["Interact_area.cells", interact_area_name, cells])
 	export_data.append(["Interact_area.polygons", interact_area_name, ExportManager.convert_polys_list_to_meters(polys)])

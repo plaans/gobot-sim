@@ -250,7 +250,7 @@ func get_interact_areas_names() -> Array:
 	return names_array	
 	
 func export_static() -> Array:
-	return [["Robot.instance", robot_name]]
+	return [["Robot.instance", robot_name, "robot"]]
 	
 func export_dynamic() -> Array:
 	var export_data=[]

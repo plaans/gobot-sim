@@ -159,7 +159,7 @@ func get_interact_areas_names() -> Array:
 		
 func export_static() -> Array:
 	var export_data = []
-	export_data.append(["Belt.instance", belt_name])
+	export_data.append(["Belt.instance", belt_name, "belt"])
 	
 	var belt_type_name 
 	if belt_type == BeltType.INPUT:

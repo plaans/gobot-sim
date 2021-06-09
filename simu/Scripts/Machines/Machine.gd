@@ -163,7 +163,7 @@ func request_input()->Node:
 	
 func export_static() -> Array:
 	var export_data = []
-	export_data.append(["Machine.instance", machine_name])
+	export_data.append(["Machine.instance", machine_name, "machine"])
 	
 	export_data.append(["Machine.coordinates", machine_name, ExportManager.vector_pixels_to_meters(position)])
 	export_data.append(["Machine.coordinates_tile", machine_name, ExportManager.vector_pixels_to_tiles(position)])
