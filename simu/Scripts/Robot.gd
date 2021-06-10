@@ -6,7 +6,7 @@ signal action_done
 var robot_name : String
 
 # Moving
-# Note: 1m ~ 32px so 3m/s = 96px/s
+# Note: move_speed is in px/s but should be adapted from m/s
 var move_speed : float = 0.0 # px/s - set when using do_move
 var move_dir : Vector2 # px - should be normalized, set when using do_move
 var move_time : float = 0.0
@@ -129,10 +129,10 @@ func update_battery_display():
 func has_controller()->bool:
 	return _Controller != null
 
-
+# Note: speed is in m/s and will be converted in px/s
 func do_move(angle: float, speed: float, duration: float):
 	move_dir = Vector2(cos(angle), sin(angle))
-	move_speed = speed
+	move_speed = ExportManager.meter_to_pixel(speed)
 	move_time = duration
 
 func do_rotation(speed: float, duration: float):
@@ -163,11 +163,13 @@ func rotate_to(target_angle: float, speed: float):
 	var new_speed = speed * sign(new_rotation)
 	do_rotation(new_speed, new_rotation / new_speed)
 
+# Note: speed is in m/s
 func move_to(point: Vector2, speed: float):
 	var new_vector = point - self.global_position
-	do_move(new_vector.angle(), speed, new_vector.length() / speed)
+	do_move(new_vector.angle(), speed, new_vector.length() / ExportManager.meter_to_pixel(speed))
 
-func navigate_to(point: Vector2):
+# Note: speed is in m/s
+func navigate_to(point: Vector2, speed: float):
 	if has_controller():
 		_Controller.target_point = point
 		navigating = true
@@ -176,13 +178,13 @@ func navigate_to(point: Vector2):
 	else:
 		Logger.log_warning("%s doesn't have a controller. Using move_to instead"%robot_name)
 		# given 1m = 32px, move at a speed of 3m/s
-		move_to(point, 96)
+		move_to(point, speed)
 	
 	emit_signal("action_done")
 	
-func navigate_to_cell(tile_x, tile_y):
+func navigate_to_cell(tile_x, tile_y, speed: float):
 	var target_position = ExportManager.tiles_to_pixels([tile_x, tile_y])
-	navigate_to(target_position)
+	navigate_to(target_position, speed)
 
 func add_package(Package : Node):
 	carried_package = Package

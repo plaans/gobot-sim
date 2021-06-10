@@ -29,7 +29,11 @@ func set_tile_size(size : Vector2):
 func pixel_to_meter(original_value : float) : 
 	#supposes that tiles are always squared
 	return original_value/tile_size.x
-	
+
+func meter_to_pixel(original_value : float) : 
+	#supposes that tiles are always squared
+	return original_value*tile_size.x
+
 func vector_pixels_to_meters(original_vector : Vector2) -> Array:
 	#convert a position in pixel to a position in meter (assuming a tile is 1mx1m)
 	#takes a position in Vector2 format 

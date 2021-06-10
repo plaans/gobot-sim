@@ -2,7 +2,7 @@ tool
 extends Controller
 
 export(int, 1, 2000) var points_amount = 200 setget set_points_amount
-export(float, 0, 2000) var effect_radius = 500.0 setget set_effect_radius # px
+export(float, 0, 100) var effect_radius = 20 setget set_effect_radius # m
 
 export(bool) var debug_draw = true
 export(Gradient) var debug_proximity_gradient = preload("res://Assets/progress_gradient.tres")
@@ -26,7 +26,7 @@ func _draw():
 		var dist: Vector2 = rays[i].cast_to
 		if rays[i].is_colliding():
 			dist = (rays[i].get_collision_point() - global_position).rotated(-global_rotation)
-		draw_line(Vector2.ZERO, dist, debug_proximity_gradient.interpolate(dist.length()/effect_radius))
+		draw_line(Vector2.ZERO, dist, debug_proximity_gradient.interpolate(dist.length()/ExportManager.meter_to_pixel(effect_radius)))
 	
 	if target_point:
 		draw_line(Vector2.ZERO, (target_point - global_position).rotated(-global_rotation), Color.blue)
@@ -64,7 +64,8 @@ func setup_rays():
 	var angle_step = 2*PI / points_amount
 	for i in points_amount:
 		var new_ray = RayCast2D.new()
-		new_ray.cast_to = Vector2.RIGHT.rotated(i*angle_step) * effect_radius
+		# effect_radius was given in meters
+		new_ray.cast_to = Vector2.RIGHT.rotated(i*angle_step) * ExportManager.meter_to_pixel(effect_radius)
 		new_ray.enabled = true
 		
 		rays.append(new_ray)
