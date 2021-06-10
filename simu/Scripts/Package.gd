@@ -40,7 +40,7 @@ func get_location() -> Node:
 #	pass
 
 func export_static() -> Array:
-	return [["Package.instance", package_name]]
+	return [["Package.instance", package_name, "package"]]
 	
 func export_dynamic() -> Array:
 	var export_data=[]

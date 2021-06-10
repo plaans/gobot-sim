@@ -260,18 +260,18 @@ func get_interact_areas_names() -> Array:
 	return names_array	
 	
 func export_static() -> Array:
-	return [["Robot.instance", robot_name]]
+	return [["Robot.instance", robot_name, "robot"]]
 	
 func export_dynamic() -> Array:
 	var export_data=[]
-	export_data.append(["Robot.coordinates", robot_name, ExportManager.pixels_to_meters(position)])
-	export_data.append(["Robot.coordinates_tile", robot_name, ExportManager.pixels_to_tiles(position)])
+	export_data.append(["Robot.coordinates", robot_name, ExportManager.vector_pixels_to_meters(position)])
+	export_data.append(["Robot.coordinates_tile", robot_name, ExportManager.vector_pixels_to_tiles(position)])
 	
 	export_data.append(["Robot.rotation", robot_name, rotation])
 	
 	export_data.append(["Robot.battery", robot_name, get_battery_proportion()])
 	
-	export_data.append(["Robot.velocity", robot_name, ExportManager.pixels_to_meters(velocity)])
+	export_data.append(["Robot.velocity", robot_name, ExportManager.vector_pixels_to_meters(velocity)])
 	export_data.append(["Robot.rotation_speed", robot_name, rotation_speed])
 	
 	export_data.append(["Robot.in_station", robot_name, in_station])
