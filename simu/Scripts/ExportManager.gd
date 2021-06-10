@@ -30,10 +30,6 @@ func pixel_to_meter(original_value : float) :
 	#supposes that tiles are always squared
 	return original_value/tile_size.x
 
-func meter_to_pixel(original_value : float) : 
-	#supposes that tiles are always squared
-	return original_value*tile_size.x
-
 func vector_pixels_to_meters(original_vector : Vector2) -> Array:
 	#convert a position in pixel to a position in meter (assuming a tile is 1mx1m)
 	#takes a position in Vector2 format 
@@ -67,10 +63,18 @@ func convert_array_pixels_to_tiles(original_array : Array) -> Array:
 		new_array.append(vector_pixels_to_tiles(position))
 	return new_array
 
-	
+
+func meter_to_pixel(original_value : float) : 
+	#supposes that tiles are always squared
+	return original_value*tile_size.x
+
 func tiles_to_pixels(original_array : Array) -> Vector2:
-	#inverse of pixels_to_meters function
-	return Vector2(original_array[0]*tile_size.x + tile_size.x/2, original_array[1]*tile_size.y + tile_size.y / 2)
+	#inverse of vector_pixels_to_tiles 
+	return meters_to_pixels(original_array) + tile_size/2
+
+func meters_to_pixels(original_array : Array) -> Vector2:
+	# inverse of vector_pixels_to_meters
+	return Vector2(original_array[0]*tile_size.x, original_array[1]*tile_size.y)
 	
 func add_export_static(node : Node):
 	node.add_to_group("export_static")	

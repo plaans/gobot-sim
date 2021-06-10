@@ -41,7 +41,6 @@ enabled = true
 cast_to = Vector2( 100, 0 )
 
 [node name="PFController" parent="." instance=ExtResource( 6 )]
-target_point = null
 
 [node name="Sprite" type="Sprite" parent="."]
 position = Vector2( 6.19888e-06, 0 )

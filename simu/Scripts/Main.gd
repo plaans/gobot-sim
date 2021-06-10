@@ -221,7 +221,7 @@ func _unhandled_input(event):
 	if event is InputEventMouseButton and event.pressed:
 		match event.button_index:
 			BUTTON_LEFT:
-				_Robot.navigate_to(event.position, 3)
+				_Robot.navigate_to(event.position, 96)
 			BUTTON_RIGHT:
 #				var temp_shape = PoolVector2Array([Vector2(-32,-32),Vector2(-32,32),Vector2(32,32),Vector2(32,-32)])
 #				var temp_transform = Transform2D(0, event.position)

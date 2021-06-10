@@ -17,6 +17,11 @@ var rotation_time : float = 0.0
 
 # Navigating
 var navigating : bool = false
+var nav_path: PoolVector2Array
+var real_nav_path: PoolVector2Array
+var current_nav_point: int = 0
+export(float) var nav_margin = 20 # px
+export(float) var nav_end_margin = 5 # px
 
 # Battery
 export var max_battery : float = 10.0
@@ -36,10 +41,14 @@ onready var _Controller: Node2D = get_node_or_null(controller_path)
 # Other Nodes
 onready var _Raycast : RayCast2D = $RayCast2D
 onready var _Progress = $Sprite/TextureProgress
-onready var _MoveTimer = $MoveTimer
-onready var _RotationTimer = $RotationTimer
+onready var _Navigation = get_tree().get_nodes_in_group("navigation").front()
 # Battery gradient
 export var progress_gradient: Gradient = preload("res://Assets/progress_gradient.tres")
+
+# Debug
+export(float) var points_spacing = 3 # px
+export(bool) var debug_draw = true
+export(Array, Color) var debug_colors = [Color.white, Color.purple]
 
 func _ready():
 	ExportManager.add_export_static(self)
@@ -48,25 +57,47 @@ func _ready():
 	
 	#generate a name 
 	robot_name = ExportManager.new_name("robot")
+	if !_Navigation:
+		Logger.log_error("No navigation available for %s - global motion planning will be disabled"%robot_name)
 	if !_Controller:
 		Logger.log_error("No controller defined for %s - local collision avoidance will be disabled"%robot_name)
 	
 	ExportManager.add_new_robot(self)
 
 func _physics_process(delta):
-	if is_moving():
-		var move_type = ""
-		if navigating and has_controller():
-			# If navigating with a controller, velocity is set directly from it
-			if _Controller.reached_target():
-				# Stop moving once the target is reached
+	if navigating:
+		if real_nav_path.size() > 0 and global_position.distance_to(real_nav_path[0]) > points_spacing:
+			real_nav_path.append(global_position)
+		
+		# The robot either just started navigating or reached a point
+		if !is_moving():
+			# Reached the end of the path
+			if current_nav_point < nav_path.size()-1:
+				current_nav_point += 1
+				move_to(nav_path[current_nav_point],move_speed)
+			else:
 				stop_navigate()
-				# Send "navigate_to finished"
-			# Use velocity given by the controller
+			
+			if has_controller():
+				if current_nav_point == nav_path.size()-1:
+					_Controller.target_margin = nav_end_margin
+				else:
+					_Controller.target_margin = nav_margin
+#		else:
+#			Logger.log_warning("%s doesn't have a controller. Using move_to instead"%robot_name)
+#			# given 1m = 32px, move at a speed of 3m/s
+#			move_to(point, speed)
+	
+	# Movement
+	if is_moving():
+		# If navigating with a controller, velocity is set directly from it
+		if has_controller():
+			if _Controller.reached_target():
+				stop_move()
 			else:
 				velocity = _Controller.get_velocity()
+		# If moving but there is no controller, move in the given direction
 		else:
-			# If moving but there is no controller, move in the given direction
 			move_time -= delta
 			if move_time <= 0.0:
 				stop_move()
@@ -84,6 +115,7 @@ func _physics_process(delta):
 				stop_navigate()  # Stopping the navigation also stops the movement
 				# Send "collision during movement"
 	
+	# Rotation
 	if is_rotating():
 		rotation_time -= delta
 		if rotation_time <= 0.0:
@@ -98,6 +130,9 @@ func _physics_process(delta):
 			rotate(rotation_speed * delta)
 
 func _process(delta):
+	if debug_draw:
+		update()
+	
 	if not(in_station):
 		var new_battery = max(0, current_battery - battery_drain_rate*delta)
 		if current_battery>0 and new_battery==0:
@@ -107,7 +142,16 @@ func _process(delta):
 		current_battery = min(max_battery, current_battery + battery_charge_rate*delta)
 
 	update_battery_display()
+
+func _draw():
+	if !debug_draw:
+		return
 	
+	if nav_path.size() >= 2:
+		draw_polyline(transform.xform_inv(nav_path), debug_colors[0], 2.0)
+	if real_nav_path.size() >= 2:
+		draw_polyline(transform.xform_inv(real_nav_path), debug_colors[1], 2.0)
+
 func get_name() -> String:
 	return robot_name
 	
@@ -129,10 +173,10 @@ func update_battery_display():
 func has_controller()->bool:
 	return _Controller != null
 
-# Note: speed is in m/s and will be converted in px/s
+# Note: speed is in px/s
 func do_move(angle: float, speed: float, duration: float):
 	move_dir = Vector2(cos(angle), sin(angle))
-	move_speed = ExportManager.meter_to_pixel(speed)
+	move_speed = speed
 	move_time = duration
 
 func do_rotation(speed: float, duration: float):
@@ -165,21 +209,27 @@ func rotate_to(target_angle: float, speed: float):
 
 # Note: speed is in m/s
 func move_to(point: Vector2, speed: float):
-	var new_vector = point - self.global_position
-	do_move(new_vector.angle(), speed, new_vector.length() / ExportManager.meter_to_pixel(speed))
-
-# Note: speed is in m/s
-func navigate_to(point: Vector2, speed: float):
+	# In the case the robot has local collision avoidance,
+	# let the controller handle the motion
 	if has_controller():
 		_Controller.target_point = point
-		navigating = true
-		# Make sure the robot moves
-		move_time = 1.0
-	else:
-		Logger.log_warning("%s doesn't have a controller. Using move_to instead"%robot_name)
-		# given 1m = 32px, move at a speed of 3m/s
-		move_to(point, speed)
-	
+	var new_vector = point - self.global_position
+	do_move(new_vector.angle(), speed, new_vector.length() / speed)
+
+func navigate_to(point: Vector2, speed: float):
+	if !_Navigation:
+		Logger.log_warning("No navigation available - cancelling command")
+		Communication.command_result(robot_name, "navigate_to", "Could not complete navigate_to command because no navigation is available")
+		return
+	# Stop current navigation
+	stop_navigate()
+	# Setup path variables
+	nav_path = _Navigation.get_simple_path(global_position, point)
+	real_nav_path = PoolVector2Array([global_position])
+	# Start navigating
+	navigating = true
+	current_nav_point = 0
+	move_speed = speed
 	emit_signal("action_done")
 	
 func navigate_to_cell(tile_x, tile_y, speed: float):

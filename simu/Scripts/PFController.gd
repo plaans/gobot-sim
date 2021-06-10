@@ -2,9 +2,9 @@ tool
 extends Controller
 
 export(int, 1, 2000) var points_amount = 200 setget set_points_amount
-export(float, 0, 100) var effect_radius = 20 setget set_effect_radius # m
+export(float, 0, 1000) var effect_radius = 500 setget set_effect_radius # px
 
-export(bool) var debug_draw = true
+export(bool) var debug_draw = true setget set_debug_draw
 export(Gradient) var debug_proximity_gradient = preload("res://Assets/progress_gradient.tres")
 
 var rays: Array = []
@@ -20,19 +20,17 @@ func _draw():
 	if !debug_draw:
 		return
 	
-	# TODO: make debug draw work with rotation
-	
 	for i in rays.size():
 		var dist: Vector2 = rays[i].cast_to
 		if rays[i].is_colliding():
 			dist = (rays[i].get_collision_point() - global_position).rotated(-global_rotation)
-		draw_line(Vector2.ZERO, dist, debug_proximity_gradient.interpolate(dist.length()/ExportManager.meter_to_pixel(effect_radius)))
+		draw_line(Vector2.ZERO, dist, debug_proximity_gradient.interpolate(dist.length()/effect_radius))
 	
 	if target_point:
 		draw_line(Vector2.ZERO, (target_point - global_position).rotated(-global_rotation), Color.blue)
 
 # From Springer Handbook of Robotics, chap. 35.9.1 - Potential Fields method
-const REP_CONST: float = -100.0
+const REP_CONST: float = -50.0
 const ATT_CONST: float = 100.0
 
 func get_velocity()->Vector2:
@@ -43,7 +41,9 @@ func get_velocity()->Vector2:
 	var rep_force: Vector2 = Vector2.ZERO
 	for ray in rays:
 		var ray_dist = ray.get_collision_point() - self.global_position
-		if ray_dist.length() < ray.cast_to.length():
+		if ray_dist.length() <= 0:
+			rep_force += (ray_dist).normalized() * REP_CONST
+		elif ray_dist.length() < ray.cast_to.length():
 			rep_force += (ray_dist).normalized() * (1/ray_dist.length() - 1/ray.cast_to.length()) * REP_CONST
 	
 	return att_force + rep_force
@@ -65,11 +65,13 @@ func setup_rays():
 	for i in points_amount:
 		var new_ray = RayCast2D.new()
 		# effect_radius was given in meters
-		new_ray.cast_to = Vector2.RIGHT.rotated(i*angle_step) * ExportManager.meter_to_pixel(effect_radius)
+		new_ray.cast_to = Vector2.RIGHT.rotated(i*angle_step) * effect_radius
 		new_ray.enabled = true
 		
 		rays.append(new_ray)
 		add_child(new_ray)
+	
+	update()
 
 func set_points_amount(new_amount: int):
 	points_amount = new_amount
@@ -78,3 +80,7 @@ func set_points_amount(new_amount: int):
 func set_effect_radius(new_radius: float):
 	effect_radius = new_radius
 	setup_rays()
+
+func set_debug_draw(new_state: bool):
+	debug_draw = new_state
+	update()
