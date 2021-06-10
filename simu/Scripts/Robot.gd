@@ -190,20 +190,40 @@ func add_package(Package : Node):
 	add_child(carried_package)
 	
 func pick():
-	Logger.log_info("%-12s" % "pickup")
+	Logger.log_info("%-12s" % "pick")
 	if carried_package:
 		Logger.log_warning("Already carrying a package for pick() call")
 		return
 	
 	var target_belt = get_target_belt(1)
 	if target_belt and !target_belt.is_empty():
-		var package = target_belt.remove_package()
-		add_package(package)
+		var new_package = target_belt.remove_package()
+		add_package(new_package)
 	else:
-		Logger.log_warning("No belt found for pick() call")
+		Logger.log_warning("Invalid belt for pick() call")
+
+func pick_package(package: Node):
+	Logger.log_info("%-12s" % "pick_package")
+	if carried_package:
+		Logger.log_warning("Already carrying a package for pick_package() call")
+		return
+	if !package:
+		Logger.log_warning("No package specified for pick_package() call")
+		return
+	
+	var target_belt = get_target_belt(1)
+	if target_belt and !target_belt.is_empty():
+		var target_index: int = target_belt.packages.find(package)
+		if target_index >= 0:
+			var new_package = target_belt.remove_package(target_index)
+			add_package(new_package)
+		else:
+			Logger.log_warning("No package %s in target belt for pick_package() call"%package.package_name)
+	else:
+		Logger.log_warning("Invalid target belt for pick_package() call")
 
 func place():
-	Logger.log_info("%-12s" % "pickup")
+	Logger.log_info("%-12s" % "place")
 	if !carried_package:
 		Logger.log_warning("No current package for place() call")
 		return

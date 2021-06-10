@@ -25,11 +25,11 @@ func _draw():
 	for i in rays.size():
 		var dist: Vector2 = rays[i].cast_to
 		if rays[i].is_colliding():
-			dist = rays[i].get_collision_point() - self.global_position
+			dist = (rays[i].get_collision_point() - global_position).rotated(-global_rotation)
 		draw_line(Vector2.ZERO, dist, debug_proximity_gradient.interpolate(dist.length()/effect_radius))
 	
 	if target_point:
-		draw_line(Vector2.ZERO, target_point - self.global_position, Color.blue)
+		draw_line(Vector2.ZERO, (target_point - global_position).rotated(-global_rotation), Color.blue)
 
 # From Springer Handbook of Robotics, chap. 35.9.1 - Potential Fields method
 const REP_CONST: float = -100.0
