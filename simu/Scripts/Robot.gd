@@ -20,7 +20,9 @@ var navigating : bool = false
 var nav_path: PoolVector2Array
 var real_nav_path: PoolVector2Array
 var current_nav_point: int = 0
-export(float) var nav_margin = 20 # px
+var distance_to_path: Vector2 = Vector2.ZERO
+var nav_margin = 0 # px
+export(float) var nav_running_margin = 20 # px
 export(float) var nav_end_margin = 5 # px
 
 # Battery
@@ -48,7 +50,7 @@ export var progress_gradient: Gradient = preload("res://Assets/progress_gradient
 # Debug
 export(float) var points_spacing = 3 # px
 export(bool) var debug_draw = true
-export(Array, Color) var debug_colors = [Color.white, Color.purple]
+export(Array, Color) var debug_colors = [Color.white, Color.purple, Color.white]
 
 func _ready():
 	ExportManager.add_export_static(self)
@@ -69,24 +71,26 @@ func _physics_process(delta):
 		if real_nav_path.size() > 0 and global_position.distance_to(real_nav_path[0]) > points_spacing:
 			real_nav_path.append(global_position)
 		
+		if current_nav_point > 0:
+			var current_dist = nav_path[current_nav_point-1] - global_position
+			var target_dist = (nav_path[current_nav_point-1] - nav_path[current_nav_point])
+			distance_to_path = current_dist - current_dist.project(target_dist)
 		# The robot either just started navigating or reached a point
 		if !is_moving():
 			# Reached the end of the path
 			if current_nav_point < nav_path.size()-1:
 				current_nav_point += 1
+				nav_margin = 0
 				move_to(nav_path[current_nav_point],move_speed)
 			else:
 				stop_navigate()
 			
 			if has_controller():
 				if current_nav_point == nav_path.size()-1:
-					_Controller.target_margin = nav_end_margin
+					nav_margin = nav_end_margin
 				else:
-					_Controller.target_margin = nav_margin
-#		else:
-#			Logger.log_warning("%s doesn't have a controller. Using move_to instead"%robot_name)
-#			# given 1m = 32px, move at a speed of 3m/s
-#			move_to(point, speed)
+					nav_margin = nav_running_margin
+				_Controller.target_margin = nav_margin
 	
 	# Movement
 	if is_moving():
@@ -151,6 +155,7 @@ func _draw():
 		draw_polyline(transform.xform_inv(nav_path), debug_colors[0], 2.0)
 	if real_nav_path.size() >= 2:
 		draw_polyline(transform.xform_inv(real_nav_path), debug_colors[1], 2.0)
+		draw_line(Vector2.ZERO, distance_to_path, debug_colors[2])
 
 func get_name() -> String:
 	return robot_name

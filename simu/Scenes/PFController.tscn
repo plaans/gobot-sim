@@ -3,6 +3,6 @@
 [ext_resource path="res://Scripts/PFController.gd" type="Script" id=1]
 
 [node name="PFController" type="Node2D"]
+z_as_relative = false
 script = ExtResource( 1 )
 target_point = null
-debug_draw = false
