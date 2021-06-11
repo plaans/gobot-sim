@@ -9,6 +9,11 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "Node2D",
+"class": "Controller",
+"language": "GDScript",
+"path": "res://Scripts/Controller.gd"
+}, {
 "base": "Reference",
 "class": "PolyHelper",
 "language": "GDScript",
@@ -30,6 +35,7 @@ _global_script_classes=[ {
 "path": "res://Scripts/TileWorld.gd"
 } ]
 _global_script_class_icons={
+"Controller": "",
 "PolyHelper": "",
 "Process": "",
 "TileManager": "res://Assets/icons/TileManager.svg",
@@ -92,7 +98,5 @@ texture={
 
 quality/intended_usage/framebuffer_allocation=0
 quality/intended_usage/framebuffer_allocation.mobile=1
-2d/snapping/use_gpu_pixel_snap=true
 batching/precision/uv_contract=true
 environment/default_environment="res://default_env.tres"
-quality/2d/use_pixel_snap=true

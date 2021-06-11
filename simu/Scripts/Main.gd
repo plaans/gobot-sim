@@ -214,20 +214,19 @@ func _unhandled_input(event):
 		_Robot.place()
 		
 	if event.is_action_pressed("ui_left"):
-		_Robot.do_rotation(-PI/2, 2.0)
+		_Robot.rotate_to(_Robot.rotation-PI/2, 2.0)
 	if event.is_action_pressed("ui_right"):
-		_Robot.do_rotation(PI/2, 2.0)
+		_Robot.rotate_to(_Robot.rotation+PI/2, 2.0)
 
 	if event is InputEventMouseButton and event.pressed:
 		match event.button_index:
 			BUTTON_LEFT:
-				_Robot.navigate_to(event.position)
+				_Robot.navigate_to(event.position, 96)
 			BUTTON_RIGHT:
 #				var temp_shape = PoolVector2Array([Vector2(-32,-32),Vector2(-32,32),Vector2(32,32),Vector2(32,-32)])
 #				var temp_transform = Transform2D(0, event.position)
 #				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.cut_poly(temp_transform.xform(temp_shape))
-				var angle = _Robot.get_angle_to(event.position)
-				_Robot.do_rotation(angle, 2.0)
+				_Robot.rotate_to((event.position - _Robot.position).angle(), 2.0)
 			BUTTON_MIDDLE:
 #				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.static_poly
 				pass

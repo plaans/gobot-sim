@@ -16,5 +16,7 @@ centered_textures = true
 format = 1
 script = ExtResource( 14 )
 
-[node name="Navigation2D" type="Navigation2D" parent="."]
+[node name="Navigation2D" type="Navigation2D" parent="." groups=[
+"navigation",
+]]
 script = ExtResource( 2 )

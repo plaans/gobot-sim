@@ -1,44 +1,56 @@
 extends KinematicBody2D
 
-var carried_package;
-
-var moving: bool = false
-var move_time: float = 0.0
-var velocity: Vector2 = Vector2.ZERO
-
-export var max_rotation_speed : int = 500
-var target_angle : float #set when doing a rotation
-var rotation_speed : float = 0.0
-var rotate_time: float = 0.0
-var rotating : bool
-
-var path: PoolVector2Array
-var path_line: Line2D
-var following: bool = false
-var current_path_point: int = 0
-
-
-var robot_name : String
 
 signal action_done
 
+var robot_name : String
+
+# Moving
+# Note: move_speed is in px/s but should be adapted from m/s
+var move_speed : float = 0.0 # px/s - set when using do_move
+var move_dir : Vector2 # px - should be normalized, set when using do_move
+var move_time : float = 0.0
+
+# Rotating
+var rotation_speed : float = 0.0 # rad/s - set when using do_rotation
+var rotation_time : float = 0.0
+
+# Navigating
+var navigating : bool = false
+var nav_path: PoolVector2Array
+var real_nav_path: PoolVector2Array
+var current_nav_point: int = 0
+var distance_to_path: Vector2 = Vector2.ZERO
+var nav_margin = 0 # px
+export(float) var nav_running_margin = 20 # px
+export(float) var nav_end_margin = 5 # px
+
+# Battery
 export var max_battery : float = 10.0
 export var battery_drain_rate : float = 0.1
 export var battery_charge_rate : float = 0.8
 var current_battery : float = 10.0
 
-var in_station: bool setget set_in_station
-var in_interact: Array = []
+var in_station : bool setget set_in_station
+var in_interact : Array = []
+var carried_package : Node2D
 
+var velocity : Vector2 = Vector2.ZERO # Set when doing a movement, manipulated by the controller
 
-onready var raycast : RayCast2D = $RayCast2D
+# Controller
+export(NodePath) var controller_path = "PFController"
+onready var _Controller: Node2D = get_node_or_null(controller_path)
+# Other Nodes
+onready var _Raycast : RayCast2D = $RayCast2D
 onready var _Progress = $Sprite/TextureProgress
-export var progress_gradient: Gradient = preload("res://Assets/robot/progress_gradient.tres")
+onready var _Navigation = get_tree().get_nodes_in_group("navigation").front()
+# Battery gradient
+export var progress_gradient: Gradient = preload("res://Assets/progress_gradient.tres")
 
-export var TEST_ROBOT_SPEED = 96 #px/s
-# Note:
-# 1m ~ 32px
-# so 3m/s = 96px/s
+# Debug
+export(float) var points_spacing = 3 # px
+export(bool) var debug_draw = true
+export(Array, Color) var debug_colors = [Color.white, Color.purple, Color.white]
 
 func _ready():
 	ExportManager.add_export_static(self)
@@ -47,55 +59,84 @@ func _ready():
 	
 	#generate a name 
 	robot_name = ExportManager.new_name("robot")
+	if !_Navigation:
+		Logger.log_error("No navigation available for %s - global motion planning will be disabled"%robot_name)
+	if !_Controller:
+		Logger.log_error("No controller defined for %s - local collision avoidance will be disabled"%robot_name)
 	
 	ExportManager.add_new_robot(self)
 
 func _physics_process(delta):
-	if !moving && following:
-		if move_time <= 0.0:
-			current_path_point += 1
-			
-		if current_path_point >= path.size():
-			stop_path()
-			Communication.command_result(robot_name, "navigate_to", "Navigate_to command completed successfully")
-		else:
-			var dir_vec: Vector2 = (path[current_path_point] - position)
-			var speed = TEST_ROBOT_SPEED # px/s
-			var time = dir_vec.length()/speed # s
-			goto(dir_vec.angle(), speed, time)
+	if navigating:
+		if real_nav_path.size() > 0 and global_position.distance_to(real_nav_path[0]) > points_spacing:
+			real_nav_path.append(global_position)
 		
-	if moving:
-		if current_battery == 0:
-			stop()
-			stop_path()
-		else:
-			var collision = move_and_collide(velocity*delta)
-			#if carried_package!=null:
-				#carried_package.position = position
+		if current_nav_point > 0:
+			var current_dist = nav_path[current_nav_point-1] - global_position
+			var target_dist = (nav_path[current_nav_point-1] - nav_path[current_nav_point])
+			distance_to_path = current_dist - current_dist.project(target_dist)
+		# The robot either just started navigating or reached a point
+		if !is_moving():
+			# Reached the end of the path
+			if current_nav_point < nav_path.size()-1:
+				current_nav_point += 1
+				nav_margin = 0
+				move_to(nav_path[current_nav_point],move_speed)
+			else:
+				stop_navigate()
 			
-			move_time -= delta
-			if collision:
-				stop()
-				stop_path()
-				# Send "collision"
-			elif move_time <= 0.0:
-				stop()
+			if has_controller():
+				if current_nav_point == nav_path.size()-1:
+					nav_margin = nav_end_margin
+				else:
+					nav_margin = nav_running_margin
+				_Controller.target_margin = nav_margin
 	
-	if rotating:
-		if current_battery == 0:
+	# Movement
+	if is_moving():
+		# If navigating with a controller, velocity is set directly from it
+		if has_controller():
+			if _Controller.reached_target():
+				stop_move()
+			else:
+				velocity = _Controller.get_velocity()
+		# If moving but there is no controller, move in the given direction
+		else:
+			move_time -= delta
+			if move_time <= 0.0:
+				stop_move()
+				# Send "do_move finished"
+			else:
+				# Calculate velocity from the direction and speed
+				velocity = move_dir * move_speed
+		
+		if current_battery <= 0:
+			stop_navigate()
+			# Send "battery depleted"
+		else:
+			var collision = move_and_collide(velocity * delta)
+			if collision:
+				stop_navigate()  # Stopping the navigation also stops the movement
+				# Send "collision during movement"
+	
+	# Rotation
+	if is_rotating():
+		rotation_time -= delta
+		if rotation_time <= 0.0:
 			stop_rotation()
+			# Send "do_rotation finished"
+			Communication.command_result(robot_name, "do_rotation", "do_rotation command completed successfully")
+		elif current_battery <= 0.0:
+			stop_rotation()
+			# Send "battery depleted"
 			Communication.command_result(robot_name, "do_rotation", "Could not complete rotation command because battery became empty")
 		else:
-			rotate_time -= delta
-			if rotate_time <= 0 :
-				self.rotation = target_angle
-				stop_rotation()
-				Communication.command_result(robot_name, "do_rotation", "do_rotation command completed successfully")
-			else:
-				self.rotate(rotation_speed * delta)
+			rotate(rotation_speed * delta)
 
 func _process(delta):
-	#is_facing(get_node("../Machine/Input_Belt"))
+	if debug_draw:
+		update()
+	
 	if not(in_station):
 		var new_battery = max(0, current_battery - battery_drain_rate*delta)
 		if current_battery>0 and new_battery==0:
@@ -105,7 +146,17 @@ func _process(delta):
 		current_battery = min(max_battery, current_battery + battery_charge_rate*delta)
 
 	update_battery_display()
+
+func _draw():
+	if !debug_draw:
+		return
 	
+	if nav_path.size() >= 2:
+		draw_polyline(transform.xform_inv(nav_path), debug_colors[0], 2.0)
+	if real_nav_path.size() >= 2:
+		draw_polyline(transform.xform_inv(real_nav_path), debug_colors[1], 2.0)
+		draw_line(Vector2.ZERO, distance_to_path, debug_colors[2])
+
 func get_name() -> String:
 	return robot_name
 	
@@ -116,109 +167,125 @@ func set_in_station(state : bool):
 	else:
 		$AnimationPlayer.seek(0,true)
 		$AnimationPlayer.stop()
-	
-func get_in_station() -> bool:
-	return in_station
-	
+
 func get_battery_proportion():
 	return current_battery / max_battery
 	
-			
 func update_battery_display():
-	_Progress.value = current_battery/max_battery*100
-	_Progress.tint_progress = progress_gradient.interpolate(_Progress.value/100)
-			
-func is_moving():
-	return following
+	_Progress.value = get_battery_proportion()*100
+	_Progress.tint_progress = progress_gradient.interpolate(get_battery_proportion())
+
+func has_controller()->bool:
+	return _Controller != null
+
+# Note: speed is in px/s
+func do_move(angle: float, speed: float, duration: float):
+	move_dir = Vector2(cos(angle), sin(angle))
+	move_speed = speed
+	move_time = duration
+
+func do_rotation(speed: float, duration: float):
+	rotation_speed = speed
+	rotation_time = duration
+
+func is_moving()->bool:
+	return move_time > 0.0
 	
-func is_rotating():
-	return rotating
+func is_rotating()->bool:
+	return rotation_time > 0.0
 
-func goto(dir:float, speed:float, time:float):
-	# dir : rad
-	# speed : px/s
-	# time : s
-	#Logger.log_info("%-12s %8.3f;%8.3f;%8.3f" % ["goto", dir, speed, time])
-	move_time = time
-	velocity = speed * Vector2.RIGHT.rotated(dir) # already normalized
-	moving = true
-	# Send "started"
+func stop_move():
+	velocity = Vector2.ZERO
+	move_time = 0.0
 
-func navigate_to(point: Vector2):
-	stop()
-	stop_path()
-	var _nav: Navigation2D = get_node("../Navigation2D")
-	if _nav:
-		path = _nav.get_simple_path(position, point, true)
-		var new_path_line = Line2D.new()
-		new_path_line.points = path
-		new_path_line.width = 2
-		new_path_line.default_color = Color(1,1,1,0.5)
-		self.path_line = new_path_line
-		_nav.add_child(new_path_line)
-		following = true
-		current_path_point = 0
-		
+func stop_rotation():
+	rotation_time = 0.0
+
+func stop_navigate():
+	if has_controller():
+		_Controller.target_point = null
+	navigating = false
+	stop_move()
+
+func rotate_to(target_angle: float, speed: float):
+	var new_rotation = wrapf(target_angle - self.rotation, -PI, PI)
+	var new_speed = speed * sign(new_rotation)
+	do_rotation(new_speed, new_rotation / new_speed)
+
+# Note: speed is in m/s
+func move_to(point: Vector2, speed: float):
+	# In the case the robot has local collision avoidance,
+	# let the controller handle the motion
+	if has_controller():
+		_Controller.target_point = point
+	var new_vector = point - self.global_position
+	do_move(new_vector.angle(), speed, new_vector.length() / speed)
+
+func navigate_to(point: Vector2, speed: float):
+	if !_Navigation:
+		Logger.log_warning("No navigation available - cancelling command")
+		Communication.command_result(robot_name, "navigate_to", "Could not complete navigate_to command because no navigation is available")
+		return
+	# Stop current navigation
+	stop_navigate()
+	# Setup path variables
+	nav_path = _Navigation.get_simple_path(global_position, point)
+	real_nav_path = PoolVector2Array([global_position])
+	# Start navigating
+	navigating = true
+	current_nav_point = 0
+	move_speed = speed
 	emit_signal("action_done")
 	
-func navigate_to_cell(tile_x, tile_y):
-	var position = ExportManager.tiles_to_pixels([tile_x, tile_y])
-	navigate_to(position)
-
-func stop():
-	move_time = 0.0
-	velocity = Vector2.ZERO
-	moving = false
-	# Send "stopped"
-	
-
-func stop_path():
-	following = false
-	if path_line:
-		path_line.free()
-		path_line = null
+func navigate_to_cell(tile_x, tile_y, speed: float):
+	var target_position = ExportManager.tiles_to_pixels([tile_x, tile_y])
+	navigate_to(target_position, speed)
 
 func add_package(Package : Node):
 	carried_package = Package
 	carried_package.position = Vector2(7, 0)
 	add_child(carried_package)
 	
-func do_rotation(angle: float, speed: float):
-	# angle : rad
-	# speed : rad/s
-
-	rotation_speed = speed
-	if angle < 0:
-		rotation_speed *= -1
-	rotate_time = abs(angle/speed)
-	target_angle = self.rotation + angle
-	rotating = true 
-		
-func stop_rotation():
-	rotating = false 
-	rotation_speed = 0
-	rotate_time = 0.0
-	
 func pick():
-	Logger.log_info("%-12s" % "pickup")
+	Logger.log_info("%-12s" % "pick")
 	if carried_package:
 		Logger.log_warning("Already carrying a package for pick() call")
 		return
 	
-	var target_belt = find_target_belt(1)
+	var target_belt = get_target_belt(1)
 	if target_belt and !target_belt.is_empty():
-		var package = target_belt.remove_package()
-		add_package(package)
+		var new_package = target_belt.remove_package()
+		add_package(new_package)
 	else:
-		Logger.log_warning("No belt found for pick() call")
+		Logger.log_warning("Invalid belt for pick() call")
+
+func pick_package(package: Node):
+	Logger.log_info("%-12s" % "pick_package")
+	if carried_package:
+		Logger.log_warning("Already carrying a package for pick_package() call")
+		return
+	if !package:
+		Logger.log_warning("No package specified for pick_package() call")
+		return
+	
+	var target_belt = get_target_belt(1)
+	if target_belt and !target_belt.is_empty():
+		var target_index: int = target_belt.packages.find(package)
+		if target_index >= 0:
+			var new_package = target_belt.remove_package(target_index)
+			add_package(new_package)
+		else:
+			Logger.log_warning("No package %s in target belt for pick_package() call"%package.package_name)
+	else:
+		Logger.log_warning("Invalid target belt for pick_package() call")
 
 func place():
-	Logger.log_info("%-12s" % "pickup")
+	Logger.log_info("%-12s" % "place")
 	if !carried_package:
 		Logger.log_warning("No current package for place() call")
 		return
 	
-	var target_belt = find_target_belt(0)
+	var target_belt = get_target_belt(0)
 	if target_belt and target_belt.can_accept_package(carried_package):
 		target_belt.add_package(carried_package)
 		carried_package = null 
@@ -230,11 +297,11 @@ func place():
 # if it's in the group.
 # If there is no node colliding, if the node is not in the given group,
 # or if the robot is not in an interaction area, returns null.
-func find_target_belt(type: int)->Node:
+func get_target_belt(type: int)->Node:
 	if in_interact.size() == 0:
 		return null
 	
-	var target_object = raycast.get_collider()
+	var target_object = _Raycast.get_collider()
 	if target_object and target_object.is_in_group("belts") and target_object.belt_type == type:
 		for interact_area in in_interact:
 			if interact_area.belt == target_object:
@@ -267,5 +334,3 @@ func export_dynamic() -> Array:
 	export_data.append(["Robot.in_station", robot_name, in_station])
 	export_data.append(["Robot.in_interact_areas", robot_name, get_interact_areas_names()])
 	return export_data
-		
-	
