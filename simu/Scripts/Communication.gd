@@ -27,7 +27,7 @@ func start_server(port : int):
 		
 	
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
+func _process(_delta):
 	
 	if tcp_server!=null:
 			
@@ -76,7 +76,7 @@ func read_data(client):
 			
 		elif content["type"] == "cancel_request":
 			for robot_interface in ExportManager.get_all_robot_interfaces() :
-				robot_interface.cancel_command(content["command_id"])
+				robot_interface.cancel_command(content["action_id"])
 	
 					
 

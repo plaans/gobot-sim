@@ -174,7 +174,6 @@ func load_scenario(file_path : String):
 			machine.create_time = 5.0
 		
 	#$Arrival_Zone.set_next_packages(scenario.packages)
-	print( scenario)
 
 func _unhandled_input(event):
 	if event.is_action_pressed("ui_up"):

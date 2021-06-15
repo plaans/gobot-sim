@@ -1,91 +1,92 @@
-from typing import Dict, List
-import uuid
+from typing import Callable, Dict, List
+import threading 
+from enum import Enum, auto
 
-from TCP_Client import TCP_Client
-from ActionServer import ActionServer
+class States(Enum):
+	PENDING = auto()
+	ACTIVE = auto()
+	RECALLED = auto()
+	REJECTED = auto()
+	PREEMPTED = auto()
+	ABORTED = auto()
+	SUCCEEDED = auto()
 
 
 class ActionClient():
-	def __init__(self, TCP_Client : TCP_Client):
-		self.state = {}
-		self.TCP_Client = TCP_Client
+	def __init__(self, client, id):
+		self.id = id
+		self.id_attributed = threading.Event()
 
-		self.actions = {}
+		self.client = client #used to have access to the client to send cancel requests
 
-	def send_command(self, command : List) -> ActionServer:
-		#format of command is a list containing name of command and arguments, for example ['navigate_to','robot1',50,100]
-		temp_id = str(uuid.uuid4())
-		data_to_send = {'type': 'robot_command'}
-		data_to_send['data'] = command
-		data_to_send['temp_id'] = temp_id
+		self.feed_back_callback = None
+
+		self.result = None
+		self.result_received = threading.Event()
+		self.result_callback = None
+
+		self.cancel_callback = None
+
+		self.current_state = States.PENDING
+
+	
+	def wait_id_attributed(self, timeout=10):
+		if self.id_attributed.wait(timeout):
+			return self.id
+		else:
+			return None
+
+	def set_feedback_callback(self, callback : Callable):
+		self.feed_back_callback = callback
+
+	def set_result_callback(self, callback : Callable):
+		self.result_callback = callback
+
+	def accept(self, command_id):
+		self.id = command_id
+		self.current_state = States.ACTIVE
+		self.id_attributed.set()
+
+	def get_state(self):
+		return self.current_state
+
+	def reject(self):
+		self.current_state = States.REJECTED
+		self.result = False
+		self.result_received.set()
+	
+	def receive_feedback(self, feedback):
+		if callable(self.feed_back_callback):
+			self.feed_back_callback(feedback)
+
+	def receive_result(self, result):
+		self.result = result
+		if result:
+			self.current_state = States.ABORTED
+		else:
+			self.current_state = States.SUCCEEDED
+		self.result_received.set()
+
+		if callable(self.result_callback):
+			self.result_callback(result)
+
+	def cancel(self, callback_function : Callable):
+		self.cancel_callback = callback_function
+
+		self.client.send_cancel_request(self.id)
 		
+	def preempted(self, cancelled):
+		self.current_state = States.PREEMPTED
+		self.receive_result(False)
 
-		new_action = ActionServer(self, temp_id)
-		self.actions[temp_id] = new_action
+	def preempted(self, cancelled):
+		self.current_state = States.RECALLED
+		if callable(self.cancel_callback):
+			self.cancel_callback(cancelled)
+		self.receive_result(False)
 
-		self.TCP_Client.write(data_to_send)
-
-		return new_action
-
-	def receive_response(self, response_message : Dict):
-		temp_id = response_message["temp_id"]
-		new_command_id = response_message["command_id"]
-
-		if temp_id in self.actions:
-			action = self.actions[temp_id]
-
-			if new_command_id == -1:
-				action.reject()
-			else:
-				self.actions[new_command_id] = action
-				action.set_id(new_command_id)
-
-			del self.actions[temp_id]
-
-	def receive_feedback(self, response_message : Dict):
-		action_id = response_message["action_id"]
-		feedback = response_message["feedback"]
-		if action_id in self.actions:
-			self.actions[action_id].receive_feedback(feedback)
-
-	def receive_result(self, response_message : Dict):
-		action_id = response_message["action_id"]
-		result = response_message["result"]
-		if action_id in self.actions:
-			self.actions[action_id].receive_result(result)
-
-	def send_cancel_request(self, command_id):
-		data_to_send = {'type': 'cancel_request'}
-		data_to_send['command_id'] = command_id
-		self.TCP_Client.write(data_to_send)
-
-	def receive_cancel_response(self, response_message : Dict):
-		action_id = response_message["action_id"]
-		cancelled = response_message["cancelled"]
-		if action_id in self.actions:
-			self.actions[action_id].receive_cancel_response(cancelled)
-
-	def navigate_to(self, robot_name : str, dest_x : float, dest_y : float):
-		command_to_send = ["navigate_to", robot_name, dest_x, dest_y]
-		return self.send_command(command_to_send)
-
-	def navigate_to_cell(self, robot_name : str, dest_x : float, dest_y : float):
-		command_to_send = ["navigate_to_cell", robot_name, dest_x, dest_y]
-		return self.send_command(command_to_send)
-
-	def navigate_to_area(self, robot_name : str, area_name : str):
-		command_to_send = ["navigate_to_area", robot_name, area_name]
-		return self.send_command(command_to_send)
-
-	def pick(self, robot_name : str):
-		command_to_send = ["pick", robot_name]
-		return self.send_command(command_to_send)
-
-	def place(self, robot_name : str):
-		command_to_send = ["place", robot_name]
-		return self.send_command(command_to_send)
-
-	def do_rotation(self, robot_name : str, rotation : float, speed : float):
-		command_to_send = ["do_rotation", robot_name, rotation, speed]
-		return self.send_command(command_to_send)
-
+	def wait_result(self, timeout : float):
+		if self.result_received.wait(timeout):
+			return self.result
+		else:
+			return False

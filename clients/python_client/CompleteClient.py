@@ -3,7 +3,7 @@ import threading
 
 from MessageReader import MessageReader
 from StateClient import StateClient
-from ActionClient import ActionClient
+from ActionClientManager import ActionClientManager
 from TCP_Client import TCP_Client
 
 class CompleteClient():
@@ -14,13 +14,14 @@ class CompleteClient():
 
 		self.TCP_Client =TCP_Client(address, port)
 		self.MessageReader = MessageReader(self.TCP_Client)
-		self.ActionClient = ActionClient(self.TCP_Client)
+		self.ActionClientManager = ActionClientManager(self.TCP_Client)
 		self.StateClient = StateClient()
 
-		self.MessageReader.bind_function("action_response", self.ActionClient.receive_response)
-		self.MessageReader.bind_function("action_feedback", self.ActionClient.receive_feedback)
-		self.MessageReader.bind_function("action_result", self.ActionClient.receive_result)
-		self.MessageReader.bind_function("action_cancel", self.ActionClient.receive_cancel_response)
+		self.MessageReader.bind_function("action_response", self.ActionClientManager.receive_response)
+		self.MessageReader.bind_function("action_feedback", self.ActionClientManager.receive_feedback)
+		self.MessageReader.bind_function("action_result", self.ActionClientManager.receive_result)
+		self.MessageReader.bind_function("action_preempt", self.ActionClientManager.receive_preempt)
+		self.MessageReader.bind_function("action_cancel", self.ActionClientManager.receive_cancel_response)
 		self.MessageReader.bind_function("static", self.StateClient.update)
 		self.MessageReader.bind_function("dynamic", self.StateClient.update)
 

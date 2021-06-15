@@ -14,7 +14,7 @@ func _init(robot_node : Node):
 	robot = robot_node
 	action_server = ActionServer.new()
 	
-func _process(delta):
+func _process(_delta):
 	
 	if action_server.current_state == action_server.states.ACTIVE:
 		#if command currently in progress check progress to send feedback / result
@@ -73,8 +73,7 @@ func verify_command(command_name : String, parameters : Array) :
 			
 		
 func apply_command(command_name : String, function_parameters : Array):
-
-	#robot.call(command_name,function_parameters)		
+	
 		if command_name == "pick":
 			apply_pick()
 

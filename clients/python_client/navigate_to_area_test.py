@@ -4,6 +4,7 @@ import threading
 import sys
 
 from CompleteClient import CompleteClient
+from NavClient import NavClient
 
 # start simulation
 sim = subprocess.Popen(["../../godot", "--path", " ../../simu", " --scenario simu/scenarios/new_scenario.json"])
@@ -11,6 +12,7 @@ sim = subprocess.Popen(["../../godot", "--path", " ../../simu", " --scenario sim
 try:
     # start client
     client = CompleteClient("localhost",10000)
+    navClient = NavClient(client.ActionClientManager)
     
     if not(client.wait_for_server(10)):
             sys.exit("timeout")
@@ -20,16 +22,16 @@ try:
                 sys.exit("timeout")
             target_parking_area = client.StateClient.parking_areas_list()[0]
 
-            command = client.ActionClient.navigate_to_area('robot0', target_parking_area)
-            if not(command.wait_result(10)):
+            navClient.navigate_to_area('robot0', target_parking_area)
+            if not(navClient.wait_result(10)):
                 sys.exit("timeout")
             else:
                 assert client.StateClient.robot_in_station('robot0')
             
             target_interact_area = client.StateClient.interact_areas_list()[0]
 
-            command = client.ActionClient.navigate_to_area('robot0', target_interact_area)
-            if not(command.wait_result(10)):
+            navClient.navigate_to_area('robot0', target_interact_area)
+            if not(navClient.wait_result(10)):
                 sys.exit("timeout")
             else:
                 assert target_interact_area in client.StateClient.robot_in_interact_areas('robot0')

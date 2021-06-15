@@ -2,10 +2,8 @@
 
 The messages sent between the server (run by the simulation) and the client which connects use JSON format.
 
-From the client to the server, the command to send are formatted as a list which first element contains the name of the command and the elements coming afterwards are the arguments. This is encapsulated to contain information about the type of data sent. For example if sending a command to navigate 'robot1' to position (50,100), the message format would be :
+## State of the simulation
 
-	{'type':'robot_command',
-	'data':['navigate_to','robot1',50,100]}
 
 From the server to the client, the data about the state of the simulation is sent as a concatenation of facts with a format such as `['coordinates','robot1',[300,350]]` for example in the case of the coordinates. The message format is the same as presented before, with 'type' = 'static' or 'dynamic' and 'data' containing the concatenation of all data to sent.
 
@@ -86,11 +84,64 @@ Polygon | `['Interact_area.polygons', interact_area_name, [polygon0, polygon1, .
 Cells  | `['Interact_area.cells', interact_area_name, [[x0, y0], [x1, y1], ...]]` | List of indexes of cells that compose this Interact area
 Belt  | `['Interact_area.Belt', interact_area_name, belt_name]` | Name of Belt this Interact area is associated with
 	 
+## Commands sent to the simulation 
+
+For commands to apply to the robot, the command to send are formatted as a list which first element contains the name of the command and the elements coming afterwards are the arguments. The JSON message must also specify that the type is 'robot_command' and have a field 'temp_id'. This field contains the ID attributed to the action temporarily by the client, and the first response from the server will contain the permanent ID attributed to the action. After that, other types of message are exchanged, from the server to give information about the state of the action and from the client to cancel an action. Here is a list of the messages types concerning actions :
+
+
+### Examples of possible message types 
+
+- Sending a new command to the server
+
+		{'type':'robot_command', 
+		 'temp_id':0,
+		 'data':['navigate_to','robot1',50,100]}
+
+	'temp_id' corresponds to the temporary id attributed by the client until the first response from the server which attributes an id to the action
+- Response from the server when a new command is received
+
+		{'type':'action_response',
+		'temp_id':0,
+		'command_id':10]}
+	If the command was not accepted (wrong syntax, wrong number of arguments, ...), the 'command_id' will be -1
+	
+- Server sending feedback about the action progress 
+
+		{'type':'action_feedback',
+		'action_id':10],
+		'feedback':0.5}
+
+- Server sending result of an action (completed or failed)
+
+		{'type':'action_result',
+		'action_id':10],
+		'result': True}
+
+- Server sending information that an action was preempted
+
+		{'type':'action_preempt',
+		'action_id':10]}
+
+- Client sending request to cancel an action
+
+		{'type':'cancel_request',
+		'action_id':10]}
+
+- Server sending confirmation that an action was cancelled (or not)
+
+		{'type':'action_cancel',
+		'action_id':10],
+		'cancelled': True}
+
+
+
 # List of commands
 
 Command name | Exemple of format | Description
 --- | --- | --- 
 Navigate to | `['navigate_to', robot_name, destination_x, destination_y] ` | Moves the robot to the destination (with coordinates given in meters), automatically finding a path that avoids obstacles
+Navigate to a cell | `['navigate_to_cell', robot_name, cell_x_index, cell_y_index] ` | Same behavior as navigate_to with the destination being a cell
+Navigate to an area | `['navigate_to_area', robot_name, area_name] ` | Navigate the robot to the closest cell in the given area (area_name must be the name of a parking_area or a interact_area)
 Pick  | `['pick', robot_name] ` |  Picks the next package from an output belt if the robot is facing the belt and is in the associated interact area
 Place  | `['place', robot_name]` |  Place the carried package in an input belt if the robot is carrying a package, is facing the belt and is in the associated interact area
-Rotation  | `['do_rotation', robot_name, angle, speed]` |  Rotates the robot of the given angle (in rads) at the given speed (in rads/s)
+Rotation  | `['do_rotation', robot_name, angle, speed]` |  Rotates the robot of the given angle (in rads) from its current orientation, at the given speed (in rads/s)

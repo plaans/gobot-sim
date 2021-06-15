@@ -18,11 +18,12 @@ try:
     if not(client.wait_for_server(10)):
             sys.exit("timeout")
     else:
-            action = client.ActionClient.navigate_to('robot0', 15, 15)
-            #action.set_feedback_callback(print)
+            action_id = client.ActionClientManager.run_command(['navigate_to','robot0', 15, 15])
+
+            #client.ActionClientManager.set_feedback_callback(action_id, print)
             #cancel_sent =  threading.Event()
-            #action.set_feedback_callback(lambda d : cancel_after_half(d,action, cancel_sent) )
-            if not(action.wait_result(10)):
+            #client.ActionClientManager.set_feedback_callback(action_id, lambda d : cancel_after_half(d,action, cancel_sent) )
+            if not(client.ActionClientManager.wait_result(action_id,10)):
                 sys.exit("timeout")
             else:
                 final_position = client.StateClient.robot_coordinates('robot0')
