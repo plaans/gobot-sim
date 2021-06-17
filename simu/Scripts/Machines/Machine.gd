@@ -1,6 +1,6 @@
 extends Node2D
 
-export var progress_gradient: Gradient = preload("res://Assets/machine/progress_gradient.tres")
+export var progress_gradient: Gradient = preload("res://Assets/progress_gradient.tres")
 
 # Declare member variables here. Examples:
 var input_belt: Node = null setget set_input_belt
@@ -164,10 +164,10 @@ func request_input()->Node:
 	
 func export_static() -> Array:
 	var export_data = []
-	export_data.append(["Machine.instance", machine_name])
+	export_data.append(["Machine.instance", machine_name, "machine"])
 	
-	export_data.append(["Machine.coordinates", machine_name, ExportManager.pixels_to_meters(position)])
-	export_data.append(["Machine.coordinates_tile", machine_name, ExportManager.pixels_to_tiles(position)])
+	export_data.append(["Machine.coordinates", machine_name, ExportManager.vector_pixels_to_meters(position)])
+	export_data.append(["Machine.coordinates_tile", machine_name, ExportManager.vector_pixels_to_tiles(position)])
 	
 	if input_belt:
 		export_data.append(["Machine.input_belt", machine_name, input_belt.get_name()])

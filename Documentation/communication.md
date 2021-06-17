@@ -16,7 +16,7 @@ Below are listed the attributes and commands that can be sent.
 Field | Exemple of format | Description
 --- | --- | --- 
 ***Static*** |  |
-Declaration of instance | `['Robot.instance', robot_name]`
+Declaration of instance | `['Robot.instance', robot_name, 'robot]`
 ***Dynamic*** |  |
 Coordinates | `['Robot.coordinates', robot_name, [x,y]]` | The coordinates (floats) are given in meters, with a conversion automatically done in the simulator so that one tile of the tilemap is always 1m x 1m in size.
 Tiles Coordinates | `['Robot.coordinates_tile', robot_name, [x,y]]` | Coordinates in tiles (indexes of tile the robot is currently in)
@@ -32,7 +32,7 @@ In interact areas  | `['Robot.in_interact_areas', robot_name, [interact_area0, i
 Field | Exemple of format | Description
 --- | --- | --- 
 ***Static*** |  |
-Declaration of instance | `['Machine.instance', machine_name]`
+Declaration of instance | `['Machine.instance', machine_name, 'machine']`
 Coordinates | `['Machine.coordinates', machine_name, [x,y]]` | Coordinates in meters (floats)
 Tiles Coordinates | `['Machine.coordinates_tile', machine_name, [x,y]]` | Coordinates in tiles (indexes of tile the machine is located at)
 Input belt | `['Machine.input_belt', machine_name, input_belt_name]` | Name of the input belt connected to this machine (string)
@@ -47,7 +47,7 @@ Progress rate  | `['Machine.progress_rate', machine_name, progress_rate]` | Prog
 Field | Exemple of format | Description
 --- | --- | --- 
 ***Static*** |  |
-Declaration of instance | `['Package.instance', package_name]`
+Declaration of instance | `['Package.instance', package_name, 'package']`
 ***Dynamic*** |  |
 Location | `['Package.location', package_name, location_name]` | String corresponding to the name of the location (robot, belt, ...)
 Processes  | `['Package.processes_list', package_name, [[id0, duration0], [id1, duration1], ...]]` |  List of `[process_id, process_duration]` (int and float) for each process remaining to be done
@@ -59,7 +59,7 @@ Processes  | `['Package.processes_list', package_name, [[id0, duration0], [id1, 
 Field | Exemple of format | Description
 --- | --- | --- 
 ***Static*** |  |
-Declaration of instance | `['Belt.instance', belt_name]`
+Declaration of instance | `['Belt.instance', belt_name, 'belt']`
 Belt type | `['Belt.belt_type', belt_name, 'input' / 'output']` | Value is either 'input' or 'output'
 Polygons | `['Belt.polygons', belt_name, [polygon0, polygon1, ...]]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
 Cells  | `['Belt.cells', belt_name, [[x0, y0], [x1, y1], ...]]` | List of indexes of cells that compose this Belt
@@ -71,16 +71,16 @@ List of packages  | `['Belt.packages_list', belt_name, [package0, package1, ...]
 Field | Exemple of format | Description
 --- | --- | --- 
 ***Static*** |  |
-Declaration of instance | `['Parking_area.instance', parking_area_name]`
-Polygon | `['Parking_area.polygons', parking_area_name, [polygon0, polygon1, ...]]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
+Declaration of instance | `['Parking_area.instance', parking_area_name, 'parking_area']`
+Polygon | `['Parking_area.polygons', parking_area_name, [[x0, y0], [x1, y1], ...]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
 Cells  | `['Parking_area.cells', parking_area_name, [[x0, y0], [x1, y1], ...]]` | List of indexes of cells that compose this Parking area
 	 
 ## Interact area : 
 Field | Exemple of format | Description
 --- | --- | --- 
 ***Static*** |  |
-Declaration of instance | `['Interact_area.instance', interact_area_name]`
-Polygon | `['Interact_area.polygons', interact_area_name, [polygon0, polygon1, ...]]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
+Declaration of instance | `['Interact_area.instance', interact_area_name, 'interact_area]`
+Polygon | `['Interact_area.polygons', interact_area_name, [[x0, y0], [x1, y1], ...]]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
 Cells  | `['Interact_area.cells', interact_area_name, [[x0, y0], [x1, y1], ...]]` | List of indexes of cells that compose this Interact area
 Belt  | `['Interact_area.Belt', interact_area_name, belt_name]` | Name of Belt this Interact area is associated with
 	 

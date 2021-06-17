@@ -44,14 +44,18 @@ func get_all_robot_interfaces() -> Array:
 func set_tile_size(size : Vector2):
 	tile_size = size
 	
-func pixels_to_meters(original_vector : Vector2) -> Array:
+func pixel_to_meter(original_value : float) : 
+	#supposes that tiles are always squared
+	return original_value/tile_size.x
+
+func vector_pixels_to_meters(original_vector : Vector2) -> Array:
 	#convert a position in pixel to a position in meter (assuming a tile is 1mx1m)
 	#takes a position in Vector2 format 
 	#and outputs the position as an [x,y] Array format which is the format used for transmission of data
 	return [original_vector.x/tile_size.x, original_vector.y/tile_size.y]
 	
-func pixels_to_tiles(original_vector : Vector2) -> Array:
-	#convert a position in pixel to a position in tile (indexes of the tile)
+func vector_pixels_to_tiles(original_vector : Vector2) -> Array:
+	#convert a position in pixel to a position in meter (assuming a tile is 1mx1m)
 	#takes a position in Vector2 format 
 	#and outputs the position as an [x,y] Array format which is the format used for transmission of data
 	return [floor(original_vector.x/tile_size.x), floor(original_vector.y/tile_size.y)]	
@@ -59,7 +63,7 @@ func pixels_to_tiles(original_vector : Vector2) -> Array:
 func convert_array_pixels_to_meters(original_array : Array) -> Array:
 	var new_array = []
 	for position in original_array:
-		new_array.append(pixels_to_meters(position))
+		new_array.append(vector_pixels_to_meters(position))
 	return new_array
 	
 func convert_polys_list_to_meters(original_array : Array) -> Array:
@@ -72,7 +76,7 @@ func convert_polys_list_to_meters(original_array : Array) -> Array:
 func convert_array_pixels_to_tiles(original_array : Array) -> Array:
 	var new_array = []
 	for position in original_array:
-		new_array.append(pixels_to_tiles(position))
+		new_array.append(vector_pixels_to_tiles(position))
 	return new_array
 	
 func convert_vector2s_array_to_arrays_array(original_array : Array) -> Array:
@@ -82,13 +86,18 @@ func convert_vector2s_array_to_arrays_array(original_array : Array) -> Array:
 		new_array.append([position.x, position.y])
 	return new_array
 
-func meters_to_pixels(original_array : Array) -> Vector2:
-	#inverse of pixels_to_meters function
-	return Vector2(original_array[0]*tile_size.x, original_array[1]*tile_size.y)
-	
+
+func meter_to_pixel(original_value : float) : 
+	#supposes that tiles are always squared
+	return original_value*tile_size.x
+
 func tiles_to_pixels(original_array : Array) -> Vector2:
-	#inverse of pixels_to_tiles function
-	return Vector2(original_array[0]*tile_size.x + tile_size.x/2, original_array[1]*tile_size.y + tile_size.y / 2)
+	#inverse of vector_pixels_to_tiles 
+	return meters_to_pixels(original_array) + tile_size/2
+
+func meters_to_pixels(original_array : Array) -> Vector2:
+	# inverse of vector_pixels_to_meters
+	return Vector2(original_array[0]*tile_size.x, original_array[1]*tile_size.y)
 	
 func add_export_static(node : Node):
 	if not(node.has_method("export_static")):

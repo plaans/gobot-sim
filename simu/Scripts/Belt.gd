@@ -159,14 +159,14 @@ func get_interact_areas_names() -> Array:
 		
 func export_static() -> Array:
 	var export_data = []
-	export_data.append(["Belt.instance", belt_name])
+	export_data.append(["Belt.instance", belt_name, "belt"])
 	
 	var belt_type_name 
 	if belt_type == BeltType.INPUT:
 		belt_type_name = "input"
 	else:
 		belt_type_name = "output"
-	export_data.append(["Belt.belt_type", belt_name, ExportManager.pixels_to_meters(position)])
+	export_data.append(["Belt.belt_type", belt_name, ExportManager.vector_pixels_to_meters(position)])
 	
 	export_data.append(["Belt.cells", belt_name, ExportManager.convert_vector2s_array_to_arrays_array(cells)])
 	export_data.append(["Belt.polygons", belt_name, ExportManager.convert_polys_list_to_meters(polys)])

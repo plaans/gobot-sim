@@ -1,10 +1,11 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://Scripts/Machines/OutputMachine.gd" type="Script" id=1]
 [ext_resource path="res://Assets/machine/progress_over.tres" type="Texture" id=2]
 [ext_resource path="res://Assets/machine/progress_under.tres" type="Texture" id=3]
 [ext_resource path="res://Assets/machine/progress_fill.tres" type="Texture" id=4]
 [ext_resource path="res://Assets/machine/output_machine_texture.png" type="Texture" id=5]
+[ext_resource path="res://Scenes/ProcessesNode.tscn" type="PackedScene" id=6]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 32, 32 )
@@ -72,3 +73,5 @@ __meta__ = {
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 anims/process = SubResource( 2 )
+
+[node name="ProcessesNode" parent="." instance=ExtResource( 6 )]
