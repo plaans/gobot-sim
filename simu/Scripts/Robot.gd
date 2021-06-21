@@ -53,18 +53,18 @@ export(bool) var debug_draw = true
 export(Array, Color) var debug_colors = [Color.white, Color.purple, Color.white]
 
 func _ready():
-	ExportManager.add_export_static(self)
-	ExportManager.add_export_dynamic(self)
 	current_battery = max_battery
 	
-	#generate a name 
-	robot_name = ExportManager.new_name("robot")
 	if !_Navigation:
 		Logger.log_error("No navigation available for %s - global motion planning will be disabled"%robot_name)
 	if !_Controller:
 		Logger.log_error("No controller defined for %s - local collision avoidance will be disabled"%robot_name)
 	
-	ExportManager.add_new_robot(self)
+	#generate a name 
+	robot_name = ExportManager.register_new_node(self, "robot")
+	
+	ExportManager.add_export_static(self)
+	ExportManager.add_export_dynamic(self)
 
 func _physics_process(delta):
 	if navigating:
@@ -125,11 +125,11 @@ func _physics_process(delta):
 		if rotation_time <= 0.0:
 			stop_rotation()
 			# Send "do_rotation finished"
-			Communication.command_result(robot_name, "do_rotation", "do_rotation command completed successfully")
+			#Communication.command_result(robot_name, "do_rotation", "do_rotation command completed successfully")
 		elif current_battery <= 0.0:
 			stop_rotation()
 			# Send "battery depleted"
-			Communication.command_result(robot_name, "do_rotation", "Could not complete rotation command because battery became empty")
+			#Communication.command_result(robot_name, "do_rotation", "Could not complete rotation command because battery became empty")
 		else:
 			rotate(rotation_speed * delta)
 
@@ -191,6 +191,8 @@ func do_rotation(speed: float, duration: float):
 func is_moving()->bool:
 	return move_time > 0.0
 	
+
+
 func is_rotating()->bool:
 	return rotation_time > 0.0
 
@@ -221,7 +223,7 @@ func move_to(point: Vector2, speed: float):
 	var new_vector = point - self.global_position
 	do_move(new_vector.angle(), speed, new_vector.length() / speed)
 
-func navigate_to(point: Vector2, speed: float):
+func navigate_to(point: Vector2, speed: float = 50):
 	if !_Navigation:
 		Logger.log_warning("No navigation available - cancelling command")
 		Communication.command_result(robot_name, "navigate_to", "Could not complete navigate_to command because no navigation is available")
@@ -237,9 +239,50 @@ func navigate_to(point: Vector2, speed: float):
 	move_speed = speed
 	emit_signal("action_done")
 	
-func navigate_to_cell(tile_x, tile_y, speed: float):
+func navigate_to_cell(tile_x, tile_y, speed: float = 50):
 	var target_position = ExportManager.tiles_to_pixels([tile_x, tile_y])
 	navigate_to(target_position, speed)
+	
+func navigate_to_area(area):
+	var destination_cell = find_closest_cell(area.cells)
+	navigate_to_cell(destination_cell.x, destination_cell.y)
+		
+		
+func go_charge():
+	var parking_areas = get_tree().get_nodes_in_group("parking_areas")
+	var destination_cell = find_closest_cell(find_closest_area(parking_areas))
+	navigate_to_cell(destination_cell.x, destination_cell.y)
+	
+func face_object(node : Node2D, speed : float = 100):
+	var current_direction = Vector2.RIGHT.rotated(rotation)
+	var angle = current_direction.angle_to(node.position - position)
+	do_rotation(angle-rotation, speed)
+	
+		
+func find_closest_cell(cells_list : Array) -> Array:
+	var dist_min
+	var closest_cell = null
+	
+	for cell in cells_list:
+		var new_dist = position.distance_to(ExportManager.tiles_to_pixels([cell.x, cell.y]))
+		if closest_cell == null or new_dist<dist_min:
+			dist_min = new_dist
+			closest_cell = cell
+	
+	return closest_cell
+	
+func find_closest_area(areas_list : Array) -> Array:
+	var dist_min
+	var closest_area = null
+	
+	for area in areas_list:
+		var closest_cell = find_closest_cell(area.cells)
+		var new_dist = position.distance_to(ExportManager.tiles_to_pixels(closest_cell))
+		if closest_area == null or new_dist<dist_min:
+			dist_min = new_dist
+			closest_area = area
+	
+	return closest_area
 
 func add_package(Package : Node):
 	carried_package = Package
@@ -250,7 +293,7 @@ func pick():
 	Logger.log_info("%-12s" % "pick")
 	if carried_package:
 		Logger.log_warning("Already carrying a package for pick() call")
-		return
+		return false
 	
 	var target_belt = get_target_belt(1)
 	if target_belt and !target_belt.is_empty():
@@ -283,15 +326,18 @@ func place():
 	Logger.log_info("%-12s" % "place")
 	if !carried_package:
 		Logger.log_warning("No current package for place() call")
-		return
+		return false
 	
 	var target_belt = get_target_belt(0)
 	if target_belt and target_belt.can_accept_package(carried_package):
 		target_belt.add_package(carried_package)
 		carried_package = null 
+		return true
 	else:
 		Logger.log_warning("No belt found for place() call")
+		return false
 	
+
 
 # Given a group string, returns the node which the robot's raycast is colliding with 
 # if it's in the group.

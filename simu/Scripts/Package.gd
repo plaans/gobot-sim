@@ -18,11 +18,11 @@ func get_name() -> String:
 	return package_name
 
 func _ready():
+	#generate a name 
+	package_name = ExportManager.register_new_node(self, "package")
+	
 	ExportManager.add_export_static(self)
 	ExportManager.add_export_dynamic(self)
-	
-	#generate a name 
-	package_name = ExportManager.new_name("package")
 
 func set_delivery_limit(time : float):
 	delivery_limit = time

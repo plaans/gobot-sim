@@ -5,10 +5,10 @@ var cells : Array #contains the cells of the parking_area
 var polys : Array
 
 func _ready():
-	ExportManager.add_export_static(self)
-	
 	#generate a name 
-	parking_area_name = ExportManager.new_name("parking_area")
+	parking_area_name = ExportManager.register_new_node(self, "parking_area")
+	
+	ExportManager.add_export_static(self)
 	
 func get_name() -> String:
 	return parking_area_name

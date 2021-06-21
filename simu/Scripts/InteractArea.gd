@@ -6,10 +6,10 @@ var cells : Array #contains the cells of the interact_area
 var polys : Array
 
 func _ready():
-	ExportManager.add_export_static(self)
-	
 	#generate a name 
-	interact_area_name = ExportManager.new_name("interact_area")
+	interact_area_name = ExportManager.register_new_node(self, "interact_area")
+	
+	ExportManager.add_export_static(self)
 	
 func get_name() -> String:
 	return interact_area_name
@@ -26,7 +26,7 @@ func export_static() -> Array:
 	var export_data = []
 	export_data.append(["Interact_area.instance", interact_area_name, "interact_area"])
 	
-	export_data.append(["Interact_area.cells", interact_area_name, cells])
+	export_data.append(["Interact_area.cells", interact_area_name, ExportManager.convert_vector2s_array_to_arrays_array(cells)])
 	export_data.append(["Interact_area.polygons", interact_area_name, ExportManager.convert_polys_list_to_meters(polys)])
 	export_data.append(["Interact_area.belt", interact_area_name, belt.get_name()])
 
