@@ -18,3 +18,8 @@ jobs:
             wget https://downloads.tuxfamily.org/godotengine/3.3.2/Godot_v3.3.2-stable_x11.64.zip
             unzip Godot_v3.3.2-stable_x11.64.zip
             cd ../Simulation-Factory-Godot
+      - name: Run
+        run: | 
+            cd tests
+            python -m unittest basic_test should_fail_test
+
