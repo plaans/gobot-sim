@@ -24,13 +24,13 @@ func _process(_delta):
 			#case of movement command
 			
 			
-			if not(robot.following):
+			if not(robot.navigating):
 				#result
 				action_server.send_result(true)
 			else:
 				#feedback
 				var current_pos = robot.position
-				var destination = robot.path[robot.path.size()-1]
+				var destination = robot.nav_path[robot.nav_path.size()-1]
 				var progress 
 				if initial_position.distance_to(destination) == 0:
 					progress = 0
@@ -42,7 +42,7 @@ func _process(_delta):
 			#case of movement command
 			
 			#result
-			if not(robot.rotating):
+			if not(robot.is_rotating()):
 				action_server.send_result(true)
 				
 
