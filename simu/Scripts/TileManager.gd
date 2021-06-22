@@ -98,6 +98,12 @@ func get_outline(world: TileWorld)->PoolVector2Array:
 		Vector2(world.offset.x + world.size.x, world.offset.y) * tilemap.cell_size,
 	])
 
+func cell_groups_to_cells(cell_groups: Array)->Array:
+	var new_array = []
+	for group in cell_groups:
+		new_array += Array(group)
+	return new_array
+
 # Given an array of cell position, returns an array of 2-values arrays.
 # This is used to transform a PoolVector2Array into a JSON-compatible structure
 func cells_to_arrays(cells: Array)->Array:
@@ -136,7 +142,7 @@ func cells_to_polys(cells: PoolVector2Array)->Array:
 		
 		cells_polys.append(tile_poly)
 	
-	return PolyHelper.merge_polys(cells_polys)
+	return cells_polys
 
 # Given a TileWorld and a group of tiles to fill,
 # returns the merged collision polys of connected tiles from this group.
@@ -151,6 +157,7 @@ func collision_polys_from_cell_groups(cell_groups: Array)-> Array:
 	var new_polys = []
 	for group in cell_groups:
 		new_polys += cells_to_polys(group)
+	new_polys = PolyHelper.merge_polys(new_polys)
 	return PolyHelper.make_collision_polys(new_polys)
 
 ########## Fill functions ##########

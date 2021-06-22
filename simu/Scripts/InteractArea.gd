@@ -2,12 +2,14 @@ extends Area2D
 
 var belt: Node = null
 var interact_area_name : String
+var cells : Array #contains the cells of the interact_area
+var polys : Array
 
 func _ready():
-	add_to_group("export_static")
-	
 	#generate a name 
-	interact_area_name = ExportManager.new_name("interact_area")
+	interact_area_name = ExportManager.register_new_node(self, "interact_area")
+	
+	ExportManager.add_export_static(self)
 	
 func get_name() -> String:
 	return interact_area_name
@@ -22,10 +24,10 @@ func _on_InteractArea_body_exited(body):
 
 func export_static() -> Array:
 	var export_data = []
-	export_data.append(["interact_area", interact_area_name])
+	export_data.append(["Interact_area.instance", interact_area_name, "interact_area"])
 	
-	if get_children().size()>0:
-		var collision_polygon = get_child(0)
-		export_data.append(["polygon", interact_area_name, ExportManager.convert_array_pixels_to_meters(collision_polygon.get_polygon())])
+	export_data.append(["Interact_area.cells", interact_area_name, ExportManager.convert_vector2s_array_to_arrays_array(cells)])
+	export_data.append(["Interact_area.polygons", interact_area_name, ExportManager.convert_polys_list_to_meters(polys)])
+	export_data.append(["Interact_area.belt", interact_area_name, belt.get_name()])
 
 	return export_data

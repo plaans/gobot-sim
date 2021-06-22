@@ -12,7 +12,7 @@ func _ready():
 	add_to_group("export_static")
 	
 	#generate a name 
-	machine_name = ExportManager.new_name("output_machine")
+	machine_name = ExportManager.register_new_node(self, "output_machine")
 
 func set_delete_time(new_delete_time: float):
 	delete_time = new_delete_time

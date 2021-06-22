@@ -32,6 +32,8 @@ func _ready():
 	popup = AcceptDialog.new()
 	get_tree().current_scene.add_child(popup)
 	popup.pause_mode = Node.PAUSE_MODE_PROCESS
+	popup.set_exclusive(true)
+	
 	popup.add_button("Quit", true, "text")
 	popup.connect("confirmed", self, "popup_continue_simulation")
 	popup.connect("custom_action", self, "popup_quit_simulation")
