@@ -42,7 +42,7 @@ func _process(_delta):
 			#case of movement command
 			
 			#result
-			if not(robot.rotation_speed > 0):
+			if not(robot.is_rotating()):
 				action_server.send_result(true)
 				
 

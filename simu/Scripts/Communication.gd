@@ -63,7 +63,7 @@ func read_data(client):
 		var content = json.get_result()
 		
 		if content["type"] == "robot_command":
-			var command_info = content["data"] 
+			var command_info = content["data"]["command_info"] 
 			var command_name = command_info[0]
 			var robot_name = command_info[1]
 			var function_parameters = command_info
@@ -72,11 +72,11 @@ func read_data(client):
 			
 			var robot_interface = ExportManager.get_robot_interface(robot_name)
 			if robot_interface != null:
-				robot_interface.receive_command(command_name, function_parameters, content['temp_id'])
+				robot_interface.receive_command(command_name, function_parameters, content["data"]['temp_id'])
 			
 		elif content["type"] == "cancel_request":
 			for robot_interface in ExportManager.get_all_robot_interfaces() :
-				robot_interface.cancel_command(content["action_id"])
+				robot_interface.cancel_command(content["data"]["action_id"])
 	
 					
 

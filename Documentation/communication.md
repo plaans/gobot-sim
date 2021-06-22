@@ -94,38 +94,57 @@ For commands to apply to the robot, the command to send are formatted as a list 
 - Sending a new command to the server
 
 		{'type':'robot_command', 
-		 'temp_id':0,
-		 'data':['navigate_to','robot1',50,100]}
+		 'data': 
+		 	{'command_info : ['navigate_to','robot1',50,100], 
+			 'temp_id':0
+			}
+		}
 
 	'temp_id' corresponds to the temporary id attributed by the client until the first response from the server which attributes an id to the action
 - Response from the server when a new command is received
 
 		{'type':'action_response',
-		'temp_id':0,
-		'command_id':10]}
+		 'data': 
+		 	{'temp_id':0, 
+			 'action_id':10
+			}
+		}
+
 	If the command was not accepted (wrong syntax, wrong number of arguments, ...), the 'command_id' will be -1
 	
 - Server sending feedback about the action progress 
 
 		{'type':'action_feedback',
-		'action_id':10],
-		'feedback':0.5}
+		 'data': 
+		 	{'action_id':10,
+			 'feedback':0.5
+			}
+		}
 
 - Server sending result of an action (completed or failed)
 
 		{'type':'action_result',
-		'action_id':10],
-		'result': True}
+		 'data': 
+		 	{'action_id':10,
+			 'result': True
+			}
+		}
 
 - Server sending information that an action was preempted
 
 		{'type':'action_preempt',
-		'action_id':10]}
+		 'data': 
+		 	{'action_id':10
+			}
+		}
 
 - Client sending request to cancel an action
 
 		{'type':'cancel_request',
-		'action_id':10]}
+		 'data': 
+		 	{'action_id':10
+			}
+		}
 
 - Server sending confirmation that an action was cancelled (or not)
 
