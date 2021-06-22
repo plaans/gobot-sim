@@ -38,7 +38,7 @@ func _process(_delta):
 					progress = current_pos.distance_to(destination) / initial_position.distance_to(destination)
 				action_server.send_feedback(1 - progress)
 				
-		if current_command == "do_rotation":
+		if ["do_rotation","face_object"].has(current_command) :
 			#case of movement command
 			
 			#result
@@ -73,7 +73,6 @@ func verify_command(command_name : String, parameters : Array) :
 			
 		
 func apply_command(command_name : String, function_parameters : Array):
-	
 		if command_name == "pick":
 			apply_pick()
 
@@ -93,7 +92,9 @@ func apply_command(command_name : String, function_parameters : Array):
 
 		elif command_name == "do_rotation":
 			apply_do_rotation(function_parameters)
-				
+			
+		elif command_name == "face_object":
+			apply_face_object(function_parameters)
 
 	
 
@@ -127,11 +128,22 @@ func apply_navigate_to_cell(function_parameters):
 
 func apply_navigate_to_area(function_parameters):
 	var area_name = function_parameters[0]
-	Logger.log_info("%-12s %8s;%8s" % ["navigate_to_area", robot.name, area_name])
-	robot.navigate_to_area(area_name)
+	var area = ExportManager.get_node_from_name(area_name)
+	if area!=null and area is Area2D:
+		Logger.log_info("%-12s %8s;%8s" % ["navigate_to_area", robot.name, area_name])
+		robot.navigate_to_area(area)
 				
 func apply_do_rotation(function_parameters):
 	var angle = function_parameters[0]
 	var speed = function_parameters[1]
 	Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["do_rotation", robot.name, angle, speed])
-	robot.do_rotation(angle, speed)					
+	robot.do_rotation(angle, speed)		
+	
+func apply_face_object(function_parameters):
+	var node_name = function_parameters[0]
+	var speed = function_parameters[1]
+	
+	var node = ExportManager.get_node_from_name(node_name)
+	if node!=null:
+		Logger.log_info("%-12s %8s;%8s;%8.3f" % ["face_object", robot.name, node_name, speed])
+		robot.face_object(node, speed)					

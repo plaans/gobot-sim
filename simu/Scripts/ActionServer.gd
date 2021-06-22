@@ -17,7 +17,9 @@ func set_new_goal(command, temp_id):
 	if current_state == states.ACTIVE:
 		#send message that previous goal was premepted
 		current_state = states.PREEMPTED 
-		var encoded_message = JSON.print({'type': 'action_preempt', 'action_id':action_id})
+		
+		var data_to_send = {'action_id':action_id}
+		var encoded_message = JSON.print({'type': 'action_preempt', 'data':data_to_send})
 		Communication.send_message(encoded_message)
 	
 
@@ -25,17 +27,22 @@ func set_new_goal(command, temp_id):
 	action_id = ExportManager.generate_new_command_id()
 	current_state = states.ACTIVE
 	command_name = command
-	var encoded_message = JSON.print({'type': 'action_response', 'action_id':action_id, 'temp_id':temp_id})
+	
+	var data_to_send = {'action_id':action_id, 'temp_id':temp_id}
+	var encoded_message = JSON.print({'type': 'action_response', 'data':data_to_send})
 	Communication.send_message(encoded_message)
 	
 
 func reject(temp_id):
 	current_state = states.REJECTED
-	var encoded_message = JSON.print({'type': 'action_response', 'action_id':-1,'temp_id':temp_id})
+	
+	var data_to_send = {'action_id':-1,'temp_id':temp_id}
+	var encoded_message = JSON.print({'type': 'action_response', 'data':data_to_send})
 	Communication.send_message(encoded_message)
 			
 func send_feedback(feedback):
-	var encoded_message = JSON.print({'type': 'action_feedback', 'feedback':feedback, 'action_id':action_id})
+	var data_to_send = {'feedback':feedback, 'action_id':action_id}
+	var encoded_message = JSON.print({'type': 'action_feedback', 'data':data_to_send})
 	Communication.send_message(encoded_message)		
 		
 func send_result(result : bool):
@@ -43,13 +50,17 @@ func send_result(result : bool):
 		current_state = states.SUCCEEDED
 	else:
 		current_state = states.ABORTED
-	var encoded_message = JSON.print({'type': 'action_result', 'result':result, 'action_id':action_id})
+		
+	var data_to_send = {'result':result, 'action_id':action_id}
+	var encoded_message = JSON.print({'type': 'action_result', 'data':data_to_send})
 	Communication.send_message(encoded_message)
 	
 
 func cancel_action():
 	if current_state == states.ACTIVE:
-		var encoded_message = JSON.print({'type': 'action_cancel', 'action_id':action_id, 'cancelled' : true})
+		
+		var data_to_send = {'action_id':action_id, 'cancelled' : true}
+		var encoded_message = JSON.print({'type': 'action_cancel', 'data':data_to_send})
 		Communication.send_message(encoded_message)
 		current_state = states.RECALLED
 #	else:
