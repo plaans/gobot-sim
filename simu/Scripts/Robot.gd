@@ -253,10 +253,9 @@ func go_charge():
 	var destination_cell = find_closest_cell(find_closest_area(parking_areas))
 	navigate_to_cell(destination_cell.x, destination_cell.y)
 	
-func face_object(node : Node2D, speed : float = 100):
-	var current_direction = Vector2.RIGHT.rotated(rotation)
-	var angle = current_direction.angle_to(node.position - position)
-	do_rotation(angle-rotation, speed)
+func face_object(node : Node2D, speed : float = 5):
+	var angle = Vector2.RIGHT.angle_to(node.position - position)
+	rotate_to(angle, speed)
 	
 		
 func find_closest_cell(cells_list : Array) -> Array:
@@ -299,8 +298,10 @@ func pick():
 	if target_belt and !target_belt.is_empty():
 		var new_package = target_belt.remove_package()
 		add_package(new_package)
+		return true
 	else:
 		Logger.log_warning("Invalid belt for pick() call")
+		return false
 
 func pick_package(package: Node):
 	Logger.log_info("%-12s" % "pick_package")

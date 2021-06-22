@@ -144,4 +144,5 @@ Navigate to a cell | `['navigate_to_cell', robot_name, cell_x_index, cell_y_inde
 Navigate to an area | `['navigate_to_area', robot_name, area_name] ` | Navigate the robot to the closest cell in the given area (area_name must be the name of a parking_area or a interact_area)
 Pick  | `['pick', robot_name] ` |  Picks the next package from an output belt if the robot is facing the belt and is in the associated interact area
 Place  | `['place', robot_name]` |  Place the carried package in an input belt if the robot is carrying a package, is facing the belt and is in the associated interact area
-Rotation  | `['do_rotation', robot_name, angle, speed]` |  Rotates the robot of the given angle (in rads) from its current orientation, at the given speed (in rads/s)
+Rotation  | `['rotate_to', robot_name, angle, speed]` |  Rotates the robot to the given angle (in rads)at the given speed (in rads/s)
+Rotate to face an object  | `['face_object', node_name, speed]` |  Rotates the robot to face a given node (node_name must be the name of a machine, belt, etc.)
