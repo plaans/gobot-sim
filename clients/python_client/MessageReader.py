@@ -1,7 +1,7 @@
 import json
 from typing import Callable, Dict
 
-from TCP_Client import TCP_Client
+from .TCP_Client import TCP_Client
 
 class MessageReader():
 	def __init__(self, TCP_Client : TCP_Client):

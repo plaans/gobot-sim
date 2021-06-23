@@ -2,8 +2,8 @@ from typing import Callable, Dict, List
 import threading 
 import uuid
 
-from TCP_Client import TCP_Client
-from ActionClient import ActionClient
+from .TCP_Client import TCP_Client
+from .ActionClient import ActionClient
 
 
 class ActionClientManager():
