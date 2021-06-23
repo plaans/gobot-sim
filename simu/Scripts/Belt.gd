@@ -23,6 +23,11 @@ var line_points: PoolVector2Array setget set_line_points
 onready var _PackagePath = $PackagePath
 onready var _VisualLine = $Line2D
 
+var cells : Array #contains the cells of the belt
+var polys : Array
+
+var interact_areas : Array
+
 var belt_name : String
 
 func _ready():
@@ -31,12 +36,12 @@ func _ready():
 		setup_line()
 	
 	_VisualLine.material.set_shader_param("speed", visual_speed)
-	
-	add_to_group("export_static")
-	add_to_group("export_dynamic")
-	
+
 	#generate a name 
-	belt_name = ExportManager.new_name("belt")
+	belt_name = ExportManager.register_new_node(self, "belt")
+	
+	ExportManager.add_export_static(self)
+	ExportManager.add_export_dynamic(self)
 	
 func get_name() -> String:
 	return belt_name
@@ -144,30 +149,36 @@ func get_packages_names() -> Array:
 	for package in packages:
 		names_array.append(package.get_name())
 	return names_array
+	
+func get_interact_areas_names() -> Array:
+	#returns Array containing name of all interact areas associated with this belt
+	var names_array = []
+	for interact_area in interact_areas:
+		names_array.append(interact_area.get_name())
+	return names_array	
 		
 func export_static() -> Array:
 	var export_data = []
-	export_data.append(["belt", belt_name])
-	export_data.append(["coordinates", belt_name, ExportManager.pixels_to_meters(position)])
+	export_data.append(["Belt.instance", belt_name, "belt"])
 	
 	var belt_type_name 
 	if belt_type == BeltType.INPUT:
 		belt_type_name = "input"
 	else:
 		belt_type_name = "output"
-	export_data.append(["belt_type", belt_name, ExportManager.pixels_to_meters(position)])
+	export_data.append(["Belt.belt_type", belt_name, ExportManager.vector_pixels_to_meters(position)])
 	
-	var collision_polygons = []
-	for child in  get_children():
-		if child is CollisionPolygon2D:
-			collision_polygons.append(ExportManager.convert_array_pixels_to_meters(child.get_polygon()))	
-	export_data.append(["polygon", belt_name, collision_polygons])
+	export_data.append(["Belt.cells", belt_name, ExportManager.convert_vector2s_array_to_arrays_array(cells)])
+	export_data.append(["Belt.polygons", belt_name, ExportManager.convert_polys_list_to_meters(polys)])
+	
+	export_data.append(["Belt.interact_areas", belt_name, get_interact_areas_names()])
+	
 
 	
 	return export_data
 	
 func export_dynamic() -> Array:
 	var export_data = []
-	export_data.append(["packages_list", belt_name, get_packages_names()])
+	export_data.append(["Belt.packages_list", belt_name, get_packages_names()])
 	
 	return export_data

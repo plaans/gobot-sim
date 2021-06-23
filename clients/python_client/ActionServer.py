@@ -1,22 +1,12 @@
 from typing import Callable, Dict, List
 import threading 
-from enum import Enum, auto
 
-class States(Enum):
-	PENDING = auto()
-	ACTIVE = auto()
-	RECALLED = auto()
-	REJECTED = auto()
-	PREEMPTED = auto()
-	ABORTED = auto()
-	SUCCEEDED = auto()
+from TCP_Client import TCP_Client
 
 
-class ActionClient():
+class ActionServer():
 	def __init__(self, client, id):
 		self.id = id
-		self.id_attributed = threading.Event()
-
 		self.client = client #used to have access to the client to send cancel requests
 
 		self.feed_back_callback = None
@@ -27,14 +17,7 @@ class ActionClient():
 
 		self.cancel_callback = None
 
-		self.current_state = States.PENDING
-
-	
-	def wait_id_attributed(self, timeout=10):
-		if self.id_attributed.wait(timeout):
-			return self.id
-		else:
-			return None
+		self.current_state = "PENDING"
 
 	def set_feedback_callback(self, callback : Callable):
 		self.feed_back_callback = callback
@@ -42,16 +25,14 @@ class ActionClient():
 	def set_result_callback(self, callback : Callable):
 		self.result_callback = callback
 
-	def accept(self, command_id):
+	def set_id(self, command_id):
 		self.id = command_id
-		self.current_state = States.ACTIVE
-		self.id_attributed.set()
 
 	def get_state(self):
 		return self.current_state
 
 	def reject(self):
-		self.current_state = States.REJECTED
+		self.current_state = "REJECT"
 		self.result = False
 		self.result_received.set()
 	
@@ -61,10 +42,6 @@ class ActionClient():
 
 	def receive_result(self, result):
 		self.result = result
-		if result:
-			self.current_state = States.ABORTED
-		else:
-			self.current_state = States.SUCCEEDED
 		self.result_received.set()
 
 		if callable(self.result_callback):
@@ -75,12 +52,8 @@ class ActionClient():
 
 		self.client.send_cancel_request(self.id)
 		
-	def preempted(self, cancelled):
-		self.current_state = States.PREEMPTED
-		self.receive_result(False)
 
-	def preempted(self, cancelled):
-		self.current_state = States.RECALLED
+	def receive_cancel_response(self, cancelled):
 		if callable(self.cancel_callback):
 			self.cancel_callback(cancelled)
 		self.receive_result(False)
@@ -90,3 +63,4 @@ class ActionClient():
 			return self.result
 		else:
 			return False
+	

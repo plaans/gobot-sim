@@ -2,88 +2,166 @@
 
 The messages sent between the server (run by the simulation) and the client which connects use JSON format.
 
-From the client to the server, the command to send are formatted as a list which first element contains the name of the command and the elements coming afterwards are the arguments. This is encapsulated to contain information about the type of data sent. For example if sending a command to navigate 'robot1' to position (50,100), the message format would be :
+## State of the simulation
 
-	{'type':'robot_command',
-	'data':['navigate_to','robot1',50,100]}
 
-From the server to the client, the data about the state of the simulation is sent as a concatenation of facts with a format such as ['coordinates','robot1',[300,350]] for example in the case of the coordinates. The message format is the same as presented before, with 'type' = 'static' or 'dynamic' and 'data' containing the concatenation of all data to sent.
+From the server to the client, the data about the state of the simulation is sent as a concatenation of facts with a format such as `['coordinates','robot1',[300,350]]` for example in the case of the coordinates. The message format is the same as presented before, with 'type' = 'static' or 'dynamic' and 'data' containing the concatenation of all data to sent.
 
 Below are listed the attributes and commands that can be sent.
 
-## List of attributes 
+# List of attributes 
 
-### Robot 
+## Robot 
 
-*Static*
-
-	 - Declaration of element : ['robot', robot_name]
-
-*Dynamic*
-
-	 - Coordinates (floats) : ['coordinates', robot_name, [x,y]]
-	 - Battery (float) : ['battery', robot_name, battery_proportion]
-	 - Rotation (float) : ['rotation', robot_name, rotation_value]
-	 - Movement speed (2 floats) : ['velocity', robot_name, [velocity_x,velocity_y]]
-	 - Rotation speed (float) : ['rotation_speed', robot_name, rotation_speed_]
-	 - In_station (bool) : ['in_station', robot_name, in_station]
-	 - In_interact (bool) : ['in_interact', robot_name, in_interact]
+Field | Exemple of format | Description
+--- | --- | --- 
+***Static*** |  |
+Declaration of instance | `['Robot.instance', robot_name, 'robot]`
+***Dynamic*** |  |
+Coordinates | `['Robot.coordinates', robot_name, [x,y]]` | The coordinates (floats) are given in meters, with a conversion automatically done in the simulator so that one tile of the tilemap is always 1m x 1m in size.
+Tiles Coordinates | `['Robot.coordinates_tile', robot_name, [x,y]]` | Coordinates in tiles (indexes of tile the robot is currently in)
+Battery  | `['Robot.battery', robot_name, battery_proportion]` |  The value is a float between 0 and 1.
+Movement speed  | `['Robot.velocity', robot_name, [velocity_x, velocity_y]]` |  floats in meters/s
+Rotation speed  | `['Robot.rotation_speed', robot_name, rotation_speed]` |  float in rads/s
+In station  | `['Robot.in_station', robot_name, in_station]` |  Bool indicating if the robot is currently in a charging station
+In interact areas  | `['Robot.in_interact_areas', robot_name, [interact_area0, interact_area1, ...]]` | Liste of names of interact areas the robot is currently in
  
-### Machine 
-*Static*
-
-	 - Declaration of element : ['machine', machine_name]
-	 - Coordinates (floats) : ['coordinates', machine_name, [x,y]]
-	 - Input belt (string) : ['input_belt', machine_name, input_belt_name]
-	 - Output belt (string) : ['output_belt', machine_name, output_belt_name]
-	 - Processes (list of ids for each process) : ['processes_list', machine_name, [id0, id1, ...]]
-
-*Dynamic*
-
-	 - Progress of current task between 0 and 1 (0 if no task in progress) :['progress_rate', machine_name, progress_rate]
+## Machine 
 
 
-### Package
-*Static*
-
-	 - Declaration of element : ['package', package_name]
-
-*Dynamic*
-
-	 - Location (string) : ['location', package_name, parent_name]
-	 - Processes (list of [process_id, process_duration] for each process) : ['processes_list', package_name, [[id0, duration0], [id1, duration1], ...]]
-	 
-### Belt
-
-*Static*
-
-	 - Declaration of element : ['belt', belt_name]
-	 - Coordinates (floats) : ['coordinates', belt_name, [x,y]]
-	 - Belt type ('input' or 'output') : ['belt_type', belt_name, 'input' / 'output']
-	 - Polygons (list of polygons) : ['polygon', belt_name, [polygon0, polygon1, ...]]
+Field | Exemple of format | Description
+--- | --- | --- 
+***Static*** |  |
+Declaration of instance | `['Machine.instance', machine_name, 'machine']`
+Coordinates | `['Machine.coordinates', machine_name, [x,y]]` | Coordinates in meters (floats)
+Tiles Coordinates | `['Machine.coordinates_tile', machine_name, [x,y]]` | Coordinates in tiles (indexes of tile the machine is located at)
+Input belt | `['Machine.input_belt', machine_name, input_belt_name]` | Name of the input belt connected to this machine (string)
+Output belt | `['Machine.output_belt', machine_name, output_belt_name]` | Name of the output belt connected to this machine (string)
+Processes | `['Machine.processes_list', machine_name, [id0, id1, ...]]` | List of the ids (ints) of each process the machine can do
+***Dynamic*** |  |
+Progress rate  | `['Machine.progress_rate', machine_name, progress_rate]` | Progress of current task between 0 and 1 
 
 
-*Dynamic*
+## Package
 
-	 - List of names of packages on belt: ['packages_list', belt_name, [package0, package1, ...]]
+Field | Exemple of format | Description
+--- | --- | --- 
+***Static*** |  |
+Declaration of instance | `['Package.instance', package_name, 'package']`
+***Dynamic*** |  |
+Location | `['Package.location', package_name, location_name]` | String corresponding to the name of the location (robot, belt, ...)
+Processes  | `['Package.processes_list', package_name, [[id0, duration0], [id1, duration1], ...]]` |  List of `[process_id, process_duration]` (int and float) for each process remaining to be done
+
+
+## Belt
+
+
+Field | Exemple of format | Description
+--- | --- | --- 
+***Static*** |  |
+Declaration of instance | `['Belt.instance', belt_name, 'belt']`
+Belt type | `['Belt.belt_type', belt_name, 'input' / 'output']` | Value is either 'input' or 'output'
+Polygons | `['Belt.polygons', belt_name, [polygon0, polygon1, ...]]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
+Cells  | `['Belt.cells', belt_name, [[x0, y0], [x1, y1], ...]]` | List of indexes of cells that compose this Belt
+Interact areas  | `['Belt.interact_areas', belt_name, [interact_area0, interact_area1, ...]]` | List of names of interact areas associated with this Belt
+***Dynamic*** |  |
+List of packages  | `['Belt.packages_list', belt_name, [package0, package1, ...]]` | List of the names of the packages currently on the belt
  
-### Parking area : 
-
-*Static*
-
-	 - Declaration of element : ['parking_area', parking_area_name]
-	 - Polygon (floats) : ['polygon', parking_area_name, [[x0, y0], [x1, y1], ...]]
+## Parking area : 
+Field | Exemple of format | Description
+--- | --- | --- 
+***Static*** |  |
+Declaration of instance | `['Parking_area.instance', parking_area_name, 'parking_area']`
+Polygon | `['Parking_area.polygons', parking_area_name, [[x0, y0], [x1, y1], ...]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
+Cells  | `['Parking_area.cells', parking_area_name, [[x0, y0], [x1, y1], ...]]` | List of indexes of cells that compose this Parking area
 	 
-### Interact area : 
-
-*Static*
-
-	 - Declaration of element : ['interact_area', interact_area_name]
-	 - Polygon (floats) : ['polygon', interact_area_name, [[x0, y0], [x1, y1], ...]]
+## Interact area : 
+Field | Exemple of format | Description
+--- | --- | --- 
+***Static*** |  |
+Declaration of instance | `['Interact_area.instance', interact_area_name, 'interact_area]`
+Polygon | `['Interact_area.polygons', interact_area_name, [[x0, y0], [x1, y1], ...]]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
+Cells  | `['Interact_area.cells', interact_area_name, [[x0, y0], [x1, y1], ...]]` | List of indexes of cells that compose this Interact area
+Belt  | `['Interact_area.Belt', interact_area_name, belt_name]` | Name of Belt this Interact area is associated with
 	 
-## List of commands
+## Commands sent to the simulation 
 
-	- Navigate to : ['navigate_to', robot_name, destination_x, destination_y] 
-	- Pick : ['pickup', robot_name] 
-	- Place : ['place', robot_name] 
-	- Rotation : ['do_rotation', robot_name, angle, speed] 
+For commands to apply to the robot, the command to send are formatted as a list which first element contains the name of the command and the elements coming afterwards are the arguments. The JSON message must also specify that the type is 'robot_command' and have a field 'temp_id'. This field contains the ID attributed to the action temporarily by the client, and the first response from the server will contain the permanent ID attributed to the action. After that, other types of message are exchanged, from the server to give information about the state of the action and from the client to cancel an action. Here is a list of the messages types concerning actions :
+
+
+### Examples of possible message types 
+
+- Sending a new command to the server
+
+		{'type':'robot_command', 
+		 'data': 
+		 	{'command_info : ['navigate_to','robot1',50,100], 
+			 'temp_id':0
+			}
+		}
+
+	'temp_id' corresponds to the temporary id attributed by the client until the first response from the server which attributes an id to the action
+- Response from the server when a new command is received
+
+		{'type':'action_response',
+		 'data': 
+		 	{'temp_id':0, 
+			 'action_id':10
+			}
+		}
+
+	If the command was not accepted (wrong syntax, wrong number of arguments, ...), the 'command_id' will be -1
+	
+- Server sending feedback about the action progress 
+
+		{'type':'action_feedback',
+		 'data': 
+		 	{'action_id':10,
+			 'feedback':0.5
+			}
+		}
+
+- Server sending result of an action (completed or failed)
+
+		{'type':'action_result',
+		 'data': 
+		 	{'action_id':10,
+			 'result': True
+			}
+		}
+
+- Server sending information that an action was preempted
+
+		{'type':'action_preempt',
+		 'data': 
+		 	{'action_id':10
+			}
+		}
+
+- Client sending request to cancel an action
+
+		{'type':'cancel_request',
+		 'data': 
+		 	{'action_id':10
+			}
+		}
+
+- Server sending confirmation that an action was cancelled (or not)
+
+		{'type':'action_cancel',
+		'action_id':10],
+		'cancelled': True}
+
+
+
+# List of commands
+
+Command name | Exemple of format | Description
+--- | --- | --- 
+Navigate to | `['navigate_to', robot_name, destination_x, destination_y] ` | Moves the robot to the destination (with coordinates given in meters), automatically finding a path that avoids obstacles
+Navigate to a cell | `['navigate_to_cell', robot_name, cell_x_index, cell_y_index] ` | Same behavior as navigate_to with the destination being a cell
+Navigate to an area | `['navigate_to_area', robot_name, area_name] ` | Navigate the robot to the closest cell in the given area (area_name must be the name of a parking_area or a interact_area)
+Pick  | `['pick', robot_name] ` |  Picks the next package from an output belt if the robot is facing the belt and is in the associated interact area
+Place  | `['place', robot_name]` |  Place the carried package in an input belt if the robot is carrying a package, is facing the belt and is in the associated interact area
+Rotation  | `['rotate_to', robot_name, angle, speed]` |  Rotates the robot to the given angle (in rads)at the given speed (in rads/s)
+Rotate to face an object  | `['face_object', node_name, speed]` |  Rotates the robot to face a given node (node_name must be the name of a machine, belt, etc.)

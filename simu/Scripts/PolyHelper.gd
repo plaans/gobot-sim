@@ -42,8 +42,9 @@ static func outline_exclude_polys(polys: Array, outline: PoolVector2Array)->Pool
 	
 	var i: int = 0
 	while i < polys.size():
-		if Geometry.clip_polygons_2d(polys[i], new_outline).size() > 0:
-			new_outline = Geometry.clip_polygons_2d(new_outline, polys[i])[0]
+		var test_poly = Geometry.clip_polygons_2d(new_outline, polys[i])
+		if test_poly.size() == 1:
+			new_outline = test_poly[0]
 			polys.remove(i)
 			i = 0
 		else:
@@ -75,20 +76,36 @@ static func make_navigation_poly(polys: Array, outline: PoolVector2Array)->Navig
 	
 	return navigation_poly
 
-static func get_poly_from_collision_shape(col_shape: CollisionShape2D)->PoolVector2Array:
+# Given a Shape2D, returns the shape's polygon as a PoolVector2Array.
+# Warning: Currently only works for RectangleShape2D and ConvexPolygonShape2D,
+# will return an empty polygon otherwise.
+static func get_poly_from_shape(shape: Shape2D)->PoolVector2Array:
 	var new_poly = PoolVector2Array()
-	if col_shape:
-		match col_shape.shape.get_class():
+	if shape:
+		match shape.get_class():
 			"RectangleShape2D":
-				var shape_transform: Transform2D = col_shape.get_global_transform()
-				var shape: RectangleShape2D = col_shape.shape
 				new_poly = PoolVector2Array([
 					Vector2(-shape.extents.x, -shape.extents.y),
 					Vector2(-shape.extents.x, shape.extents.y),
 					Vector2(shape.extents.x, shape.extents.y),
 					Vector2(shape.extents.x, -shape.extents.y)
 				])
-				return shape_transform.xform(new_poly);
+			"ConvexPolygonShape2D":
+				new_poly = shape.points
 			_:
 				pass
 	return new_poly
+
+# Given a CollisionObject2D object, returns an array of all the convex polygons
+# contained by that object as PoolVector2Arrays.
+# Note: polys are given in global coordinates
+static func get_polys_from_collision_object(object: CollisionObject2D)->Array:
+	var polys: Array = []
+	var object_transform: Transform2D = object.get_transform()
+	var owners = object.get_shape_owners()
+	for owner_id in owners:
+		var owner_transform: Transform2D = object.shape_owner_get_transform(owner_id)
+		for i in object.shape_owner_get_shape_count(owner_id):
+			var shape = object.shape_owner_get_shape(owner_id, i)
+			polys.append(object_transform.xform(owner_transform.xform(get_poly_from_shape(shape))))
+	return polys
