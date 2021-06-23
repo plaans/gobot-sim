@@ -11,8 +11,13 @@ jobs:
          operating-system: [ubuntu-18.04, ubuntu-20.04, windows-2019]
          include:
            - operating-system: ubuntu-18.04
+             path: Godot/Godot_v3.3.2-stable_linux_server.64
            - operating-system: ubuntu-20.04
+             path: Godot/Godot_v3.3.2-stable_linux_server.64
            - operating-system: windows-2019
+             path: Godot/Godot_v3.3.2-stable_win64.exe
+    env: 
+      GODOT_PATH: ${{ matrix.path }}
     steps:
       - uses: actions/checkout@v1
       - name: Install_Linux
@@ -20,18 +25,22 @@ jobs:
         run: |
             sudo apt install unzip wget
             cd .. && mkdir Godot && cd Godot
-            wget https://downloads.tuxfamily.org/godotengine/3.3.2/Godot_v3.3.2-stable_x11.64.zip
-            unzip Godot_v3.3.2-stable_x11.64.zip
-            cd ../Simulation-Factory-Godot
+            wget https://downloads.tuxfamily.org/godotengine/3.3.2/Godot_v3.3.2-stable_linux_server.64.zip
+            unzip Godot_v3.3.2-stable_linux_server.64.zip
+            cd ..
       - name: Install_Windows
         if: runner.os == 'Windows'
         run: |
             cd .. && mkdir Godot && cd Godot
             Invoke-WebRequest -Uri https://downloads.tuxfamily.org/godotengine/3.3.2/Godot_v3.3.2-stable_win64.exe.zip -OutFile file.zip
             Expand-Archive -Path file.zip -DestinationPath .
-            cd ../Simulation-Factory-Godot
+            cd ..
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
       - name: Run
         run: | 
-            cd tests
-            python -m unittest basic_test
+            cd ..
+            python3 -m unittest Simulation-Factory-Godot.tests.connection_test
 

@@ -1,10 +1,10 @@
 import time
 import threading 
 
-from MessageReader import MessageReader
-from StateClient import StateClient
-from ActionClientManager import ActionClientManager
-from TCP_Client import TCP_Client
+from .MessageReader import MessageReader
+from .StateClient import StateClient
+from .ActionClientManager import ActionClientManager
+from .TCP_Client import TCP_Client
 
 class CompleteClient():
 	def __init__(self, address : str = 'localhost', port : int = 10000, frequency : float = 60):
