@@ -25,7 +25,7 @@ func _ready():
 	var scenario_file = get_arg(arguments,"--scenario","res://scenarios/new_scenario_with_environment.json" )
 	load_scenario(scenario_file)
 	
-	var pickup_radius = float(get_arg(arguments,"--pickup-radius",100 ))
+	var pickup_radius = float(get_arg(arguments,"--pickup-radius",500 ))
 	var robots_list = get_tree().get_nodes_in_group("robots")
 	for robot in robots_list:
 		robot.get_node("RayCast2D").set_cast_to(Vector2.RIGHT*pickup_radius)

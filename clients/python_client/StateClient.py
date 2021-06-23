@@ -18,24 +18,25 @@ class StateClient():
 		for line in data:
 			self.check_waited_token(line)
 
-			if len(line)==2:#declaration of instance
-				name = line[1]
-				type = line[0]
+			name = line[1]
+			attribute = line[0]
+			value = line[2]
+
+			if ".instance" in attribute:#declaration of instance
 				if name not in self.state:
 					self.state[name] = {}
-				self.state[name]['type'] = type
+				self.state[name]['type'] = attribute
 
-				if type not in self.names_list_by_category :
-					self.names_list_by_category[type] =[]
-				self.names_list_by_category[type].append(name)
+				if attribute not in self.names_list_by_category :
+					self.names_list_by_category[attribute] =[]
+				self.names_list_by_category[attribute].append(name)
 
-			if len(line)>=3:#to check the data has the right format
-				name = line[1]
-				attribute = line[0]
-				value = line[2]
-				if name not in self.state:
-					self.state[name] = {}
-				self.state[name][attribute] = value
+			
+			if name not in self.state:
+				self.state[name] = {}
+			self.state[name][attribute] = value
+
+
 
 
 		#pprint.pprint(self.state)
