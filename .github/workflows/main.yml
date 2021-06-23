@@ -9,22 +9,17 @@ jobs:
     strategy:
       matrix:
          operating-system: [ubuntu-18.04, ubuntu-20.04]
-         include:
-           - operating-system: ubuntu-18.04
-             path: Godot/Godot_v3.3.2-stable_linux_server.64
-           - operating-system: ubuntu-20.04
-             path: Godot/Godot_v3.3.2-stable_linux_server.64
     env: 
-      GODOT_PATH: ${{ matrix.path }}
+      GODOT_PATH: Godot/godot
     steps:
       - uses: actions/checkout@v1
       - name: Install
         run: |
             sudo apt install unzip wget
             cd .. && mkdir Godot && cd Godot
-            wget https://downloads.tuxfamily.org/godotengine/3.3.2/Godot_v3.3.2-stable_linux_server.64.zip
-            unzip Godot_v3.3.2-stable_linux_server.64.zip
-            cd ..
+            wget https://downloads.tuxfamily.org/godotengine/3.3.2/Godot_v3.3.2-stable_linux_headless.64.zip
+            unzip Godot_v3.3.2-stable_linux_headless.64.zip
+            mv Godot_v3.3.2-stable_linux_headless.64 godot
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
