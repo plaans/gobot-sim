@@ -9,12 +9,12 @@ class ConnectionTest(unittest.TestCase):
     def test_connect_simulation(self):
 
         # start simulation
-        sim = subprocess.Popen([os.environ["GODOT_PATH"], "--path", " Simulation-Factory-Godot/simu", " --scenario res://scenarios/new_scenario.json"])
+        sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", " Simulation-Factory-Godot/simu/simulation.pck", "--scenario", os.environ["GITHUB_WORKSPACE"] + "/simu/scenarios/new_scenario_with_environment.json"])
 
         client = CompleteClient("localhost",10000)
         try:
             #try connecting client
-            assert client.wait_for_server(10)
+            self.assertTrue(client.wait_for_server(10))
             client.kill()
 
         finally:
