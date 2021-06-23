@@ -8,32 +8,22 @@ jobs:
     runs-on: ${{ matrix.operating-system }}
     strategy:
       matrix:
-         operating-system: [ubuntu-18.04, ubuntu-20.04, windows-2019]
+         operating-system: [ubuntu-18.04, ubuntu-20.04]
          include:
            - operating-system: ubuntu-18.04
              path: Godot/Godot_v3.3.2-stable_linux_server.64
            - operating-system: ubuntu-20.04
              path: Godot/Godot_v3.3.2-stable_linux_server.64
-           - operating-system: windows-2019
-             path: Godot/Godot_v3.3.2-stable_win64.exe
     env: 
       GODOT_PATH: ${{ matrix.path }}
     steps:
       - uses: actions/checkout@v1
-      - name: Install_Linux
-        if: runner.os == 'Linux'
+      - name: Install
         run: |
             sudo apt install unzip wget
             cd .. && mkdir Godot && cd Godot
             wget https://downloads.tuxfamily.org/godotengine/3.3.2/Godot_v3.3.2-stable_linux_server.64.zip
             unzip Godot_v3.3.2-stable_linux_server.64.zip
-            cd ..
-      - name: Install_Windows
-        if: runner.os == 'Windows'
-        run: |
-            cd .. && mkdir Godot && cd Godot
-            Invoke-WebRequest -Uri https://downloads.tuxfamily.org/godotengine/3.3.2/Godot_v3.3.2-stable_win64.exe.zip -OutFile file.zip
-            Expand-Archive -Path file.zip -DestinationPath .
             cd ..
       - name: Set up Python
         uses: actions/setup-python@v2
