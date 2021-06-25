@@ -35,4 +35,36 @@ class NavigationTests(unittest.TestCase):
         finally:
             sim.kill()
             sim.wait()
+
+    def test_navigate_to_area(self):
+
+        # start simulation
+        sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", " Simulation-Factory-Godot/simu/simulation.pck",
+         "--scenario", os.environ["GITHUB_WORKSPACE"] + "/simu/scenarios/new_scenario.json",
+         "--environment", os.environ["GITHUB_WORKSPACE"] + "/simu/environments/new_environment.json"])
+
+        client = CompleteClient("localhost",10000)
+        try:
+            #try connecting client
+            self.assertTrue(client.wait_for_server(10))
+
+            self.assertTrue(client.StateClient.wait_for_message("Parking_area.instance", 10))
+            target_parking_area = client.StateClient.parking_areas_list()[0]
+
+            action_id = client.ActionClientManager.run_command(['navigate_to_area','robot0',target_parking_area])
+            self.assertTrue(client.ActionClientManager.wait_result(action_id,10))
+            self.assertTrue(client.StateClient.robot_in_station('robot0'))
+            
+
+            target_interact_area = client.StateClient.interact_areas_list()[0]
+
+            action_id = client.ActionClientManager.run_command(['navigate_to_area','robot0',target_interact_area])
+            self.assertTrue(client.ActionClientManager.wait_result(action_id,10))
+            self.assertTrue(target_interact_area in client.StateClient.robot_in_interact_areas('robot0'))
+
+            client.kill()
+
+        finally:
+            sim.kill()
+            sim.wait()
             
