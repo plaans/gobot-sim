@@ -69,7 +69,16 @@ func cancel_command(command_id):
 		action_server.cancel_action()
 			
 func verify_command(command_name : String, parameters : Array) :
-	return args_count.has(command_name) and args_count[command_name] == parameters.size()
+	if not(args_count.has(command_name)):
+		var error_message = "Command '%s' does not exist" % command_name
+		Logger.log_warning(error_message)
+		return false
+	elif not args_count[command_name] == parameters.size():
+		var error_message = "Wrong number of arguments for '%s' command, expected %s and got %s" % [command_name, args_count[command_name],parameters.size()]
+		Logger.log_warning(error_message)
+		return false
+	else:
+		return true
 			
 		
 func apply_command(command_name : String, function_parameters : Array):
@@ -105,11 +114,11 @@ func command_result(node_name, command_name, result):
 		Communication.send_message(encoded_message)
 		
 func apply_pick():
-	Logger.log_info("%-12s %8s" % ["pick", robot.name])
+	Logger.log_info("%-12s %8s" % ["pick", robot.robot_name])
 	action_server.send_result(robot.pick())
 	
 func apply_place():
-	Logger.log_info("%-12s %8s" % ["place", robot.name])
+	Logger.log_info("%-12s %8s" % ["place", robot.robot_name])
 	action_server.send_result(robot.place())
 			
 func apply_navigate_to(function_parameters):
@@ -117,26 +126,26 @@ func apply_navigate_to(function_parameters):
 	var dest_y = function_parameters[1]
 	var destination = ExportManager.meters_to_pixels([dest_x, dest_y])
 
-	Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["navigate_to", robot.name, dest_x, dest_y])
+	Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["navigate_to", robot.robot_name, dest_x, dest_y])
 	robot.navigate_to(Vector2(destination.x,destination.y))
 	
 func apply_navigate_to_cell(function_parameters):
 	var dest_cell_x = function_parameters[0]
 	var dest_cell_y = function_parameters[1]
-	Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["navigate_to_cell", robot.name, dest_cell_x, dest_cell_y])
+	Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["navigate_to_cell", robot.robot_name, dest_cell_x, dest_cell_y])
 	robot.navigate_to_cell([dest_cell_x, dest_cell_y])
 
 func apply_navigate_to_area(function_parameters):
 	var area_name = function_parameters[0]
 	var area = ExportManager.get_node_from_name(area_name)
 	if area!=null and area is Area2D:
-		Logger.log_info("%-12s %8s;%8s" % ["navigate_to_area", robot.name, area_name])
+		Logger.log_info("%-12s %8s;%8s" % ["navigate_to_area", robot.robot_name, area_name])
 		robot.navigate_to_area(area)
 				
 func apply_do_rotation(function_parameters):
 	var angle = function_parameters[0]
 	var speed = function_parameters[1]
-	Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["do_rotation", robot.name, angle, speed])
+	Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["do_rotation", robot.robot_name, angle, speed])
 	robot.do_rotation(angle, speed)		
 	
 func apply_face_object(function_parameters):
@@ -145,5 +154,5 @@ func apply_face_object(function_parameters):
 	
 	var node = ExportManager.get_node_from_name(node_name)
 	if node!=null:
-		Logger.log_info("%-12s %8s;%8s;%8.3f" % ["face_object", robot.name, node_name, speed])
+		Logger.log_info("%-12s %8s;%8s;%8.3f" % ["face_object", robot.robot_name, node_name, speed])
 		robot.face_object(node, speed)					
