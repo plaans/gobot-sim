@@ -253,10 +253,20 @@ func go_charge():
 	var destination_cell = find_closest_cell(find_closest_area(parking_areas))
 	navigate_to_cell(destination_cell.x, destination_cell.y)
 	
-func face_object(node : Node2D, speed : float = 5):
-	var angle = Vector2.RIGHT.angle_to(node.position - position)
-	rotate_to(angle, speed)
-	
+func face_belt(node : Node2D, speed : float = 5):
+	if not(node.has_method("set_belt_type")):
+		Logger.log_warning("the argument used for face_belt is not the name of a belt")
+		
+	else:
+		var collision_polygon
+		for child_node in node.get_children():
+			if child_node is CollisionPolygon2D:
+				collision_polygon = child_node
+				break
+		
+		var center = ExportManager.polygon_center(collision_polygon.polygon)
+		var angle = Vector2.RIGHT.angle_to(center - position)
+		rotate_to(angle, speed)
 		
 func find_closest_cell(cells_list : Array) -> Array:
 	var dist_min

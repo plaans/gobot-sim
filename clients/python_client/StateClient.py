@@ -43,7 +43,7 @@ class StateClient():
 
 
 
-		#pprint.pprint(self.state)
+		# pprint.pprint(self.state)
 	
 
 	def check_waited_token(self, line):
@@ -173,4 +173,7 @@ class StateClient():
 	
 	def interact_areas_list(self) -> List[str]:
 		return self.get_instances_list("Interact_area.instance")
+
+	def instance_type(self, node_name : str) -> str:
+		return self.get_data("type",node_name)
 

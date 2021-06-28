@@ -22,32 +22,101 @@ class ManipulationTests(unittest.TestCase):
         try:
             #try connecting client
             self.assertTrue(client.wait_for_server(10))
-
-            self.assertTrue(client.StateClient.wait_for_message("Package.location", 10))
             
-            target_package = client.StateClient.packages_list()[0]
-            input_machine_name = client.StateClient.package_location(target_package)
-            belt = client.StateClient.machine_output_belt(input_machine_name)
-            interact_area = client.StateClient.belt_interact_areas(belt)[0]
-
-            while target_package not in client.StateClient.belt_packages_list(belt):
-                input_machine_name = client.StateClient.package_location(target_package)
-                belt = client.StateClient.machine_output_belt(input_machine_name)
-                interact_area = client.StateClient.belt_interact_areas(belt)[0]
+            while client.StateClient.packages_list() == None:
                 time.sleep(0.1)
 
+            target_package = client.StateClient.packages_list()[0]
+
+            package_parent_node = client.StateClient.package_location(target_package)
+            while package_parent_node == None or client.StateClient.instance_type(package_parent_node) != 'Belt.instance':
+                package_parent_node = client.StateClient.package_location(target_package)
+                time.sleep(0.1)
+
+            interact_area = client.StateClient.belt_interact_areas(package_parent_node)[0]
+
             action_id = client.ActionClientManager.run_command(['navigate_to_area','robot0', interact_area])
-            client.ActionClientManager.wait_result(action_id, 10)
+            self.assertTrue(client.ActionClientManager.wait_result(action_id, 10))
             
-            action_id = client.ActionClientManager.run_command(['face_object', 'robot0',belt, 5])
-            assert client.ActionClientManager.wait_result(action_id, 10)
+            action_id = client.ActionClientManager.run_command(['face_object', 'robot0',package_parent_node, 5])
+            self.assertTrue(client.ActionClientManager.wait_result(action_id, 10))
 
             action_id = client.ActionClientManager.run_command(['pick','robot0'])
-            assert client.ActionClientManager.wait_result(action_id, 10)
+            self.assertTrue(client.ActionClientManager.wait_result(action_id, 10))
 
-            assert client.StateClient.wait_next_dynamic_update(10)
+            self.assertTrue(client.StateClient.wait_next_dynamic_update(10))
 
-            assert client.StateClient.package_location(target_package) == 'robot0'
+            self.assertTrue(client.StateClient.package_location(target_package) == 'robot0')
+
+            client.kill()
+
+        finally:
+            sim.kill()
+            sim.wait()
+
+    def test_place(self):
+
+        # start simulation
+        sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", " Simulation-Factory-Godot/simu/simulation.pck",
+         "--scenario", os.environ["GITHUB_WORKSPACE"] + "/simu/scenarios/new_scenario.json",
+         "--environment", os.environ["GITHUB_WORKSPACE"] + "/simu/environments/new_environment.json"])
+
+        client = CompleteClient("localhost",10000)
+        try:
+            #try connecting client
+            self.assertTrue(client.wait_for_server(10))
+            
+            while client.StateClient.packages_list() == None:
+                time.sleep(0.1)
+
+            target_package = client.StateClient.packages_list()[0]
+
+            package_parent_node = client.StateClient.package_location(target_package)
+            while package_parent_node == None or client.StateClient.instance_type(package_parent_node) != 'Belt.instance':
+                package_parent_node = client.StateClient.package_location(target_package)
+                time.sleep(0.1)
+
+            interact_area = client.StateClient.belt_interact_areas(package_parent_node)[0]
+
+            action_id = client.ActionClientManager.run_command(['navigate_to_area','robot0', interact_area])
+            self.assertTrue(client.ActionClientManager.wait_result(action_id, 10))
+            
+            action_id = client.ActionClientManager.run_command(['face_belt', 'robot0',package_parent_node, 5])
+            self.assertTrue(client.ActionClientManager.wait_result(action_id, 10))
+
+            action_id = client.ActionClientManager.run_command(['pick','robot0'])
+            self.assertTrue(client.ActionClientManager.wait_result(action_id, 10))
+
+            self.assertTrue(client.StateClient.wait_next_dynamic_update(10))
+            self.assertTrue(client.StateClient.package_location(target_package) == 'robot0')
+
+            #now that package was picked find where to place it
+            
+            print( client.StateClient.package_processes_list(target_package))
+            process_to_do = client.StateClient.package_processes_list(target_package)[0][0]
+            machine_chosen = None
+            machines_list = client.StateClient.machines_list()
+            for machine in machines_list :
+                possible_processes = client.StateClient.machine_processes_list(machine)
+                if process_to_do in possible_processes:
+                    machine_chosen = machine
+                    break
+            
+            belt = client.StateClient.machine_input_belt(machine_chosen)
+            interact_area = client.StateClient.belt_interact_areas(belt)[0]
+
+            action_id = client.ActionClientManager.run_command(['navigate_to_area','robot0', interact_area])
+            self.assertTrue(client.ActionClientManager.wait_result(action_id, 10))
+            
+            action_id = client.ActionClientManager.run_command(['face_belt', 'robot0',belt, 5])
+            self.assertTrue(client.ActionClientManager.wait_result(action_id, 10))
+
+            action_id = client.ActionClientManager.run_command(['place','robot0'])
+            self.assertTrue(client.ActionClientManager.wait_result(action_id, 10))
+
+            self.assertTrue(client.StateClient.wait_next_dynamic_update(10))
+            self.assertTrue(client.StateClient.package_location(target_package) == machine_chosen)
+
 
             client.kill()
 

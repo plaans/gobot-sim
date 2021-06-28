@@ -3,7 +3,7 @@ class_name RobotInterface extends Node
 
 var registered_commands = {}
 
-var args_count = {"navigate_to" : 2, "navigate_to_cell" : 2, "navigate_to_area" : 1, "pick" : 0, "place" : 0, "go_charge" : 0, "do_rotation" : 2, "face_object" : 2}
+var args_count = {"navigate_to" : 2, "navigate_to_cell" : 2, "navigate_to_area" : 1, "pick" : 0, "place" : 0, "go_charge" : 0, "do_rotation" : 2, "face_belt" : 2}
 
 var action_server 
 var robot : Node
@@ -38,7 +38,7 @@ func _process(_delta):
 					progress = current_pos.distance_to(destination) / initial_position.distance_to(destination)
 				action_server.send_feedback(1 - progress)
 				
-		if ["do_rotation","face_object"].has(current_command) :
+		if ["do_rotation","face_belt"].has(current_command) :
 			#case of movement command
 			
 			#result
@@ -102,8 +102,8 @@ func apply_command(command_name : String, function_parameters : Array):
 		elif command_name == "do_rotation":
 			apply_do_rotation(function_parameters)
 			
-		elif command_name == "face_object":
-			apply_face_object(function_parameters)
+		elif command_name == "face_belt":
+			apply_face_belt(function_parameters)
 
 	
 
@@ -148,11 +148,11 @@ func apply_do_rotation(function_parameters):
 	Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["do_rotation", robot.robot_name, angle, speed])
 	robot.do_rotation(angle, speed)		
 	
-func apply_face_object(function_parameters):
+func apply_face_belt(function_parameters):
 	var node_name = function_parameters[0]
 	var speed = function_parameters[1]
 	
 	var node = ExportManager.get_node_from_name(node_name)
 	if node!=null:
-		Logger.log_info("%-12s %8s;%8s;%8.3f" % ["face_object", robot.robot_name, node_name, speed])
-		robot.face_object(node, speed)					
+		Logger.log_info("%-12s %8s;%8s;%8.3f" % ["face_belt", robot.robot_name, node_name, speed])
+		robot.face_belt(node, speed)					
