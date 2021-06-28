@@ -9,7 +9,8 @@ class ConnectionTest(unittest.TestCase):
     def test_connect_simulation(self):
 
         # start simulation
-        sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", " Simulation-Factory-Godot/simu/simulation.pck",
+        sim = subprocess.Popen([os.environ["GODOT_PATH"], 
+         "--main-pack",  os.environ["GITHUB_WORKSPACE"] + "/simu/simulation.pck",
          "--scenario", os.environ["GITHUB_WORKSPACE"] + "/simu/scenarios/new_scenario.json",
          "--environment", os.environ["GITHUB_WORKSPACE"] + "/simu/environments/new_environment.json"])
 
@@ -25,9 +26,11 @@ class ConnectionTest(unittest.TestCase):
 
     def test_send_commands(self):
 
-        sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", " Simulation-Factory-Godot/simu/simulation.pck",
+        sim = subprocess.Popen([os.environ["GODOT_PATH"], 
+         "--main-pack",  os.environ["GITHUB_WORKSPACE"] + "/simu/simulation.pck",
          "--scenario", os.environ["GITHUB_WORKSPACE"] + "/simu/scenarios/new_scenario.json",
          "--environment", os.environ["GITHUB_WORKSPACE"] + "/simu/environments/new_environment.json"])
+         
         client = CompleteClient("localhost",10000)
         try:
             #try connecting client

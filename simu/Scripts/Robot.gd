@@ -289,7 +289,6 @@ func add_package(Package : Node):
 	add_child(carried_package)
 	
 func pick():
-	Logger.log_info("%-12s" % "pick")
 	if carried_package:
 		Logger.log_warning("Already carrying a package for pick() call")
 		return false
@@ -324,7 +323,6 @@ func pick_package(package: Node):
 		Logger.log_warning("Invalid target belt for pick_package() call")
 
 func place():
-	Logger.log_info("%-12s" % "place")
 	if !carried_package:
 		Logger.log_warning("No current package for place() call")
 		return false
