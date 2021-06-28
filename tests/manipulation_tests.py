@@ -38,7 +38,7 @@ class ManipulationTests(unittest.TestCase):
             action_id = client.ActionClientManager.run_command(['navigate_to_area','robot0', interact_area])
             self.assertTrue(client.ActionClientManager.wait_result(action_id, 10))
             
-            action_id = client.ActionClientManager.run_command(['face_object', 'robot0',package_parent_node, 5])
+            action_id = client.ActionClientManager.run_command(['face_belt', 'robot0',package_parent_node, 5])
             self.assertTrue(client.ActionClientManager.wait_result(action_id, 10))
 
             action_id = client.ActionClientManager.run_command(['pick','robot0'])
@@ -92,7 +92,6 @@ class ManipulationTests(unittest.TestCase):
 
             #now that package was picked find where to place it
             
-            print( client.StateClient.package_processes_list(target_package))
             process_to_do = client.StateClient.package_processes_list(target_package)[0][0]
             machine_chosen = None
             machines_list = client.StateClient.machines_list()
