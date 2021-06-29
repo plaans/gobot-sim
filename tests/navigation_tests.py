@@ -1,7 +1,6 @@
 import unittest
 
 from .SimulationTestBase import SimulationTestBase
-from ..clients.python_client.CompleteClient import CompleteClient
 
 class NavigationTests(SimulationTestBase):
 
@@ -11,7 +10,14 @@ class NavigationTests(SimulationTestBase):
 
         final_position = self.client.StateClient.robot_coordinates('robot0')
         distance_squared = (final_position[0]-15)**2 + (final_position[1]-15)**2
-        self.assertTrue(distance_squared<=0.1)
+        self.assertAlmostEqual(distance_squared, 0, delta=0.1)
+
+    def test_navigate_to_cell(self):
+        action_id = self.client.ActionClientManager.run_command(['navigate_to','robot0', 3, 5])
+        self.assertTrue(self.client.ActionClientManager.wait_result(action_id,10))
+
+        self.assertEqual(self.client.StateClient.robot_coordinates_tile('robot0'), [3, 5])
+
 
     def test_navigate_to_area(self):
         self.assertTrue(self.client.StateClient.wait_for_message("Parking_area.instance", 10))
@@ -26,7 +32,7 @@ class NavigationTests(SimulationTestBase):
 
         action_id = self.client.ActionClientManager.run_command(['navigate_to_area','robot0',target_interact_area])
         self.assertTrue(self.client.ActionClientManager.wait_result(action_id,10))
-        self.assertTrue(target_interact_area in self.client.StateClient.robot_in_interact_areas('robot0'))
+        self.assertIn(target_interact_area, self.client.StateClient.robot_in_interact_areas('robot0'))
             
 if __name__ == '__main__':
     unittest.main()

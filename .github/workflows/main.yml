@@ -41,5 +41,6 @@ jobs:
             cd ..
             python3 -m unittest Simulation-Factory-Godot.tests.connection_tests 
             python3 -m unittest Simulation-Factory-Godot.tests.navigation_tests
+            python3 -m unittest Simulation-Factory-Godot.tests.rotation_tests
             python3 -m unittest Simulation-Factory-Godot.tests.manipulation_tests
 

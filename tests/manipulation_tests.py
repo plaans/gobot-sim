@@ -2,7 +2,6 @@ import time
 import unittest
 
 from .SimulationTestBase import SimulationTestBase
-from ..clients.python_client.CompleteClient import CompleteClient
 
 class ManipulationTests(SimulationTestBase):
 
@@ -30,7 +29,7 @@ class ManipulationTests(SimulationTestBase):
 
         time.sleep(0.5)
 
-        self.assertTrue(self.client.StateClient.package_location(self.target_package) == 'robot0')
+        self.assertEqual(self.client.StateClient.package_location(self.target_package), 'robot0')
 
     def test_place(self):
         self.test_pick()
@@ -59,7 +58,7 @@ class ManipulationTests(SimulationTestBase):
         self.assertTrue(self.client.ActionClientManager.wait_result(action_id, 10))
 
         time.sleep(0.5)
-        self.assertTrue(self.client.StateClient.package_location(self.target_package) == machine_chosen)
+        self.assertEqual(self.client.StateClient.package_location(self.target_package), machine_chosen)
 
 if __name__ == '__main__':
     unittest.main()            

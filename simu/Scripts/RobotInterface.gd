@@ -3,7 +3,7 @@ class_name RobotInterface extends Node
 
 var registered_commands = {}
 
-var args_count = {"navigate_to" : 2, "navigate_to_cell" : 2, "navigate_to_area" : 1, "pick" : 0, "place" : 0, "go_charge" : 0, "do_rotation" : 2, "face_belt" : 2}
+var args_count = {"navigate_to" : 2, "navigate_to_cell" : 2, "navigate_to_area" : 1, "pick" : 0, "place" : 0, "go_charge" : 0, "rotate_to" : 2, "face_belt" : 2}
 
 var action_server 
 var robot : Node
@@ -38,7 +38,7 @@ func _process(_delta):
 					progress = current_pos.distance_to(destination) / initial_position.distance_to(destination)
 				action_server.send_feedback(1 - progress)
 				
-		if ["do_rotation","face_belt"].has(current_command) :
+		if ["rotate_to","face_belt"].has(current_command) :
 			#case of movement command
 			
 			#result
@@ -62,7 +62,7 @@ func cancel_command(command_id):
 		if ["navigate_to","navigate_to_cell","navigate_to_area"].has(current_command):
 			#case of movement command
 			robot.stop_navigate()
-		elif current_command == "do_rotation":
+		elif current_command == "rotate_to":
 			robot.stop_rotation()
 			
 		action_server.cancel_action()
@@ -93,13 +93,11 @@ func apply_command(command_name : String, function_parameters : Array):
 		elif command_name == "navigate_to_cell":
 			apply_navigate_to_cell(function_parameters)
 				
-
 		elif command_name == "navigate_to_area":
 			apply_navigate_to_area(function_parameters)
 				
-
-		elif command_name == "do_rotation":
-			apply_do_rotation(function_parameters)
+		elif command_name == "rotate_to":
+			apply_rotate_to(function_parameters)
 			
 		elif command_name == "face_belt":
 			apply_face_belt(function_parameters)
@@ -141,11 +139,11 @@ func apply_navigate_to_area(function_parameters):
 		Logger.log_info("%-12s %8s;%8s" % ["navigate_to_area", robot.robot_name, area_name])
 		robot.navigate_to_area(area)
 				
-func apply_do_rotation(function_parameters):
+func apply_rotate_to(function_parameters):
 	var angle = function_parameters[0]
 	var speed = function_parameters[1]
-	Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["do_rotation", robot.robot_name, angle, speed])
-	robot.do_rotation(angle, speed)		
+	Logger.log_info("%-12s %8s;%8.3f;%8.3f" % ["rotate_to", robot.robot_name, angle, speed])
+	robot.rotate_to(angle, speed)		
 	
 func apply_face_belt(function_parameters):
 	var node_name = function_parameters[0]
