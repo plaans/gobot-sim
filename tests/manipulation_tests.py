@@ -1,24 +1,10 @@
 import time
-import subprocess
-import threading 
-import sys
-
 import unittest
-import subprocess
-import os
 
+from .SimulationTestBase import SimulationTestBase
 from ..clients.python_client.CompleteClient import CompleteClient
 
-class ManipulationTests(unittest.TestCase):
-
-    def setUp(self):
-        self.sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", " Simulation-Factory-Godot/simu/simulation.pck",
-         "--scenario", os.environ["GITHUB_WORKSPACE"] + "/simu/scenarios/new_scenario.json",
-         "--environment", os.environ["GITHUB_WORKSPACE"] + "/simu/environments/new_environment.json"])
-
-    def tearDown(self):
-        self.sim.kill()
-        self.sim.wait()
+class ManipulationTests(SimulationTestBase):
 
     def test_pick(self):
         client = CompleteClient("localhost",10000)
@@ -110,5 +96,6 @@ class ManipulationTests(unittest.TestCase):
         finally:
             client.kill()
 
-            
+if __name__ == '__main__':
+    unittest.main()            
 
