@@ -11,18 +11,19 @@ from ..clients.python_client.CompleteClient import CompleteClient
 
 class ManipulationTests(unittest.TestCase):
 
-    def test_pick(self):
-
-        # start simulation
-        sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", " Simulation-Factory-Godot/simu/simulation.pck",
+    def setUp(self):
+        self.sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", " Simulation-Factory-Godot/simu/simulation.pck",
          "--scenario", os.environ["GITHUB_WORKSPACE"] + "/simu/scenarios/new_scenario.json",
          "--environment", os.environ["GITHUB_WORKSPACE"] + "/simu/environments/new_environment.json"])
 
+    def tearDown(self):
+        self.sim.kill()
+        self.sim.wait()
+
+    def test_pick(self):
         client = CompleteClient("localhost",10000)
+        self.assertTrue(client.wait_for_server(10))
         try:
-            #try connecting client
-            self.assertTrue(client.wait_for_server(10))
-            
             while client.StateClient.packages_list() == None:
                 time.sleep(0.1)
 
@@ -44,28 +45,18 @@ class ManipulationTests(unittest.TestCase):
             action_id = client.ActionClientManager.run_command(['pick','robot0'])
             self.assertTrue(client.ActionClientManager.wait_result(action_id, 10))
 
-            self.assertTrue(client.StateClient.wait_next_dynamic_update(10))
+            time.sleep(0.5)
 
             self.assertTrue(client.StateClient.package_location(target_package) == 'robot0')
 
-            client.kill()
-
         finally:
-            sim.kill()
-            sim.wait()
+            client.kill()
 
     def test_place(self):
 
-        # start simulation
-        sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", " Simulation-Factory-Godot/simu/simulation.pck",
-         "--scenario", os.environ["GITHUB_WORKSPACE"] + "/simu/scenarios/new_scenario.json",
-         "--environment", os.environ["GITHUB_WORKSPACE"] + "/simu/environments/new_environment.json"])
-
         client = CompleteClient("localhost",10000)
+        self.assertTrue(client.wait_for_server(10))
         try:
-            #try connecting client
-            self.assertTrue(client.wait_for_server(10))
-            
             while client.StateClient.packages_list() == None:
                 time.sleep(0.1)
 
@@ -87,7 +78,7 @@ class ManipulationTests(unittest.TestCase):
             action_id = client.ActionClientManager.run_command(['pick','robot0'])
             self.assertTrue(client.ActionClientManager.wait_result(action_id, 10))
 
-            self.assertTrue(client.StateClient.wait_next_dynamic_update(10))
+            time.sleep(0.5)
             self.assertTrue(client.StateClient.package_location(target_package) == 'robot0')
 
             #now that package was picked find where to place it
@@ -113,13 +104,11 @@ class ManipulationTests(unittest.TestCase):
             action_id = client.ActionClientManager.run_command(['place','robot0'])
             self.assertTrue(client.ActionClientManager.wait_result(action_id, 10))
 
-            self.assertTrue(client.StateClient.wait_next_dynamic_update(10))
+            time.sleep(0.5)
             self.assertTrue(client.StateClient.package_location(target_package) == machine_chosen)
 
-
+        finally:
             client.kill()
 
-        finally:
-            sim.kill()
-            sim.wait()
+            
 
