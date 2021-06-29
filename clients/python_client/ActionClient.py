@@ -69,21 +69,18 @@ class ActionClient():
 
 		if callable(self.result_callback):
 			self.result_callback(result)
-
-	def cancel(self, callback_function : Callable):
-		self.cancel_callback = callback_function
-
-		self.client.send_cancel_request(self.id)
 		
-	def preempted(self, cancelled):
+	def preempted(self):
 		self.current_state = States.PREEMPTED
-		self.receive_result(False)
+		self.result = False
+		self.result_received.set()
 
-	def preempted(self, cancelled):
+	def cancel(self, cancelled):
 		self.current_state = States.RECALLED
 		if callable(self.cancel_callback):
 			self.cancel_callback(cancelled)
-		self.receive_result(False)
+		self.result = False
+		self.result_received.set()
 
 	def wait_result(self, timeout : float):
 		if self.result_received.wait(timeout):

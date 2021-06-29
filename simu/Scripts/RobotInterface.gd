@@ -61,8 +61,7 @@ func cancel_command(command_id):
 		var current_command = action_server.command_name
 		if ["navigate_to","navigate_to_cell","navigate_to_area"].has(current_command):
 			#case of movement command
-			robot.stop()
-			robot.stop_path()
+			robot.stop_navigate()
 		elif current_command == "do_rotation":
 			robot.stop_rotation()
 			
