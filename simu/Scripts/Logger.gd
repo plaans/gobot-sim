@@ -84,6 +84,7 @@ func log_with_tag(tag : String, text : String):
 	mutex.lock()
 	log_data += "[%s] %8.3f %s \n" % [tag, OS.get_ticks_msec()/1000.0, text] 
 	mutex.unlock()
+	print( "[%s] %8.3f %s \n" % [tag, OS.get_ticks_msec()/1000.0, text])
 	
 func log_info(text : String):
 	log_with_tag("INF", text)

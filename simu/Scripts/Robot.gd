@@ -253,10 +253,20 @@ func go_charge():
 	var destination_cell = find_closest_cell(find_closest_area(parking_areas))
 	navigate_to_cell(destination_cell.x, destination_cell.y)
 	
-func face_object(node : Node2D, speed : float = 5):
-	var angle = Vector2.RIGHT.angle_to(node.position - position)
-	rotate_to(angle, speed)
-	
+func face_belt(node : Node2D, speed : float = 5):
+	if not(node.has_method("set_belt_type")):
+		Logger.log_warning("the argument used for face_belt is not the name of a belt")
+		
+	else:
+		var collision_polygon
+		for child_node in node.get_children():
+			if child_node is CollisionPolygon2D:
+				collision_polygon = child_node
+				break
+		
+		var center = ExportManager.polygon_center(collision_polygon.polygon)
+		var angle = Vector2.RIGHT.angle_to(center - position)
+		rotate_to(angle, speed)
 		
 func find_closest_cell(cells_list : Array) -> Array:
 	var dist_min
@@ -289,7 +299,6 @@ func add_package(Package : Node):
 	add_child(carried_package)
 	
 func pick():
-	Logger.log_info("%-12s" % "pick")
 	if carried_package:
 		Logger.log_warning("Already carrying a package for pick() call")
 		return false
@@ -324,7 +333,6 @@ func pick_package(package: Node):
 		Logger.log_warning("Invalid target belt for pick_package() call")
 
 func place():
-	Logger.log_info("%-12s" % "place")
 	if !carried_package:
 		Logger.log_warning("No current package for place() call")
 		return false

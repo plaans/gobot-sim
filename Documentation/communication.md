@@ -164,4 +164,4 @@ Navigate to an area | `['navigate_to_area', robot_name, area_name] ` | Navigate 
 Pick  | `['pick', robot_name] ` |  Picks the next package from an output belt if the robot is facing the belt and is in the associated interact area
 Place  | `['place', robot_name]` |  Place the carried package in an input belt if the robot is carrying a package, is facing the belt and is in the associated interact area
 Rotation  | `['rotate_to', robot_name, angle, speed]` |  Rotates the robot to the given angle (in rads)at the given speed (in rads/s)
-Rotate to face an object  | `['face_object', node_name, speed]` |  Rotates the robot to face a given node (node_name must be the name of a machine, belt, etc.)
+Rotate to face an object  | `['face_belt', belt_name, speed]` |  Rotates the robot to face a given belt

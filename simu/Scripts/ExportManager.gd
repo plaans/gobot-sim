@@ -117,4 +117,10 @@ func generate_new_command_id():
 	command_id+=1
 	return command_id
 
-
+func polygon_center(points_list : PoolVector2Array):
+	var size = points_list.size()
+	var points_sum = Vector2(0,0)
+	if size>0:
+		for point in points_list:
+			points_sum += point
+		return points_sum / size
