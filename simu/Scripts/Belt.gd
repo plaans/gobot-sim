@@ -166,7 +166,7 @@ func export_static() -> Array:
 		belt_type_name = "input"
 	else:
 		belt_type_name = "output"
-	export_data.append(["Belt.belt_type", belt_name, ExportManager.vector_pixels_to_meters(position)])
+	export_data.append(["Belt.belt_type", belt_name, belt_type_name])
 	
 	export_data.append(["Belt.cells", belt_name, ExportManager.convert_vector2s_array_to_arrays_array(cells)])
 	export_data.append(["Belt.polygons", belt_name, ExportManager.convert_polys_list_to_meters(polys)])

@@ -158,10 +158,15 @@ For commands to apply to the robot, the command to send are formatted as a list 
 
 Command name | Exemple of format | Description
 --- | --- | --- 
+**Manipulation commands** |  |
+Pick  | `['pick', robot_name] ` |  Picks the next package from an output belt if the robot is facing the belt and is in the associated interact area
+Place  | `['place', robot_name]` |  Place the carried package in an input belt if the robot is carrying a package, is facing the belt and is in the associated interact area
+**Navigation commands** |  |
+Move the robot| `['do_move', robot_name, angle, speed, duration] ` | Moves the robot for the given duration and speed, in the direction determined by the angle (indendepent of the rotation of the robot itself)
 Navigate to | `['navigate_to', robot_name, destination_x, destination_y] ` | Moves the robot to the destination (with coordinates given in meters), automatically finding a path that avoids obstacles
 Navigate to a cell | `['navigate_to_cell', robot_name, cell_x_index, cell_y_index] ` | Same behavior as navigate_to with the destination being a cell
 Navigate to an area | `['navigate_to_area', robot_name, area_name] ` | Navigate the robot to the closest cell in the given area (area_name must be the name of a parking_area or a interact_area)
-Pick  | `['pick', robot_name] ` |  Picks the next package from an output belt if the robot is facing the belt and is in the associated interact area
-Place  | `['place', robot_name]` |  Place the carried package in an input belt if the robot is carrying a package, is facing the belt and is in the associated interact area
-Rotation  | `['rotate_to', robot_name, angle, speed]` |  Rotates the robot to the given angle (in rads)at the given speed (in rads/s)
-Rotate to face an object  | `['face_belt', belt_name, speed]` |  Rotates the robot to face a given belt
+**Rotation commands** |  |
+Do a rotation (of the given angle)  | `['do_rotation', robot_name, angle, speed]` |  Rotates the robot of the given angle (in rads) from the current rotation, at the given speed (in rads/s)
+Rotate to an angle  | `['rotate_to', robot_name, angle, speed]` |  Rotates the robot to the given angle (in rads) at the given speed (in rads/s)
+Rotate to face a belt  | `['face_belt', belt_name, speed]` |  Rotates the robot to face a given belt

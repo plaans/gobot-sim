@@ -95,7 +95,7 @@ func _physics_process(delta):
 	# Movement
 	if is_moving():
 		# If navigating with a controller, velocity is set directly from it
-		if has_controller():
+		if navigating and has_controller():
 			if _Controller.reached_target():
 				stop_move()
 			else:
@@ -140,7 +140,7 @@ func _process(delta):
 	if not(in_station):
 		var new_battery = max(0, current_battery - battery_drain_rate*delta)
 		if current_battery>0 and new_battery==0:
-			Logger.log_info("Battery became empty for robot of id %s" % self.get_instance_id())
+			Logger.log_info("Battery became empty for %s" % robot_name)
 		current_battery = new_battery
 	else:
 		current_battery = min(max_battery, current_battery + battery_charge_rate*delta)
@@ -190,8 +190,6 @@ func do_rotation(speed: float, duration: float):
 
 func is_moving()->bool:
 	return move_time > 0.0
-	
-
 
 func is_rotating()->bool:
 	return rotation_time > 0.0
