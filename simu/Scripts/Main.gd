@@ -1,4 +1,4 @@
-extends Node
+extends Node2D
 
 
 onready var _Navigation = $Navigation2D
@@ -230,12 +230,6 @@ func _unhandled_input(event):
 	if event is InputEventMouseButton and event.pressed:
 		match event.button_index:
 			BUTTON_LEFT:
-				_Robot.navigate_to(event.position, 96)
+				_Robot.navigate_to(get_global_mouse_position(), 96)
 			BUTTON_RIGHT:
-#				var temp_shape = PoolVector2Array([Vector2(-32,-32),Vector2(-32,32),Vector2(32,32),Vector2(32,-32)])
-#				var temp_transform = Transform2D(0, event.position)
-#				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.cut_poly(temp_transform.xform(temp_shape))
-				_Robot.rotate_to((event.position - _Robot.position).angle(), 2.0)
-			BUTTON_MIDDLE:
-#				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.static_poly
-				pass
+				_Robot.rotate_to((get_global_mouse_position() - _Robot.position).angle(), 2.0)

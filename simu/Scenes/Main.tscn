@@ -1,12 +1,13 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://Assets/tileset.tres" type="TileSet" id=1]
 [ext_resource path="res://Scripts/Navigation2D.gd" type="Script" id=2]
 [ext_resource path="res://Scripts/Main.gd" type="Script" id=3]
 [ext_resource path="res://Scripts/TileWorldExporter.gd" type="Script" id=4]
+[ext_resource path="res://Scripts/Camera.gd" type="Script" id=5]
 [ext_resource path="res://Scripts/WorldMap.gd" type="Script" id=14]
 
-[node name="Main" type="Node"]
+[node name="Main" type="Node2D"]
 script = ExtResource( 3 )
 
 [node name="WorldMap" type="TileMap" parent="."]
@@ -25,3 +26,8 @@ target_path = "res://environments/exported_env.json"
 "navigation",
 ]]
 script = ExtResource( 2 )
+
+[node name="Camera" type="Camera2D" parent="."]
+position = Vector2( 512, 304 )
+current = true
+script = ExtResource( 5 )
