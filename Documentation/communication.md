@@ -82,7 +82,7 @@ Field | Exemple of format | Description
 Declaration of instance | `['Interact_area.instance', interact_area_name, 'interact_area]`
 Polygon | `['Interact_area.polygons', interact_area_name, [[x0, y0], [x1, y1], ...]]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
 Cells  | `['Interact_area.cells', interact_area_name, [[x0, y0], [x1, y1], ...]]` | List of indexes of cells that compose this Interact area
-Belt  | `['Interact_area.Belt', interact_area_name, belt_name]` | Name of Belt this Interact area is associated with
+Belt  | `['Interact_area.belt', interact_area_name, belt_name]` | Name of Belt this Interact area is associated with
 	 
 ## Commands sent to the simulation 
 

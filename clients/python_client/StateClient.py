@@ -148,8 +148,8 @@ class StateClient():
 	def interact_area_cells(self, interact_area_name : str) -> List:
 		return self.get_data("Interact_area.cells",interact_area_name)
 
-	def interact_area_Belt(self, interact_area_name : str) -> str:
-		return self.get_data("Interact_area.Belt",interact_area_name)
+	def interact_area_belt(self, interact_area_name : str) -> str:
+		return self.get_data("Interact_area.belt",interact_area_name)
 
 
 	def get_instances_list(self, category_name : str):
