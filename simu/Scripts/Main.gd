@@ -158,7 +158,16 @@ func load_scenario(file_path : String):
 					new_processes_list.append(Process.new(process_id))
 					
 				closest_machine.processes.processes = new_processes_list
-			
+				
+				# TODO: add optional scenario parameters for belts (get input_belt and output_belt on the machine)
+				# - size (default = number of tiles, defined by the environment)
+				
+				# TODO: add optional scenario parameters for InputMachine parameters
+				# - infinite (default = false)
+				# - create_order (default = 0, values = 0,1,2)
+				# - create_time (default = 0, values = 0,1)
+				# - time_step (default = 15)
+				
 	
 	#robots		
 	for k in range(scenario.robots.size()):
