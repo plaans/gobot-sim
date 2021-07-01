@@ -11,7 +11,7 @@ enum Order {
 }
 enum Time {
 	FIXED,
-	RANDOMIZED
+	RANDOM
 }
 export(Order) var create_order = Order.NORMAL
 export(Time) var create_time = Time.FIXED
