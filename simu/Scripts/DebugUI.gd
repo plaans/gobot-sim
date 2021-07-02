@@ -16,7 +16,6 @@ func _on_DrawControllerDebug_toggled(button_pressed):
 	set_active_debug(active_debug)
 
 func set_active_debug(states: Array):
-	print("hey")
 	active_debug = states
 	for node in get_tree().get_nodes_in_group("debug"):
 		if node.is_in_group("debug_path"):
