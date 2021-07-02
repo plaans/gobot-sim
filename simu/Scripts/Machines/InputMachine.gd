@@ -13,9 +13,9 @@ enum Time {
 	FIXED,
 	RANDOM
 }
-export(Order) var create_order = Order.NORMAL
-export(Time) var create_time = Time.FIXED
-export var time_step: float = 15.0 setget set_time_step
+export(Order) var create_order: int = Order.NORMAL
+export(Time) var create_time: int = Time.FIXED
+export var time_step: float = 5.0 setget set_time_step
 export var infinite: bool = false
 export(PackedScene) var package_scene = preload("res://Scenes/Package.tscn")
 
@@ -24,8 +24,6 @@ export(PackedScene) var package_scene = preload("res://Scenes/Package.tscn")
 var packages_templates: Array = []
 
 func _ready():
-	process_time = time_step
-	
 	add_to_group("export_static")
 	
 	#generate a name 

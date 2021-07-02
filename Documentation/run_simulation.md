@@ -14,4 +14,6 @@ If running the project without exporting it, download the Godot executable (eith
 
 - `--log` followed by the file location to which the logs need to be saved
 
-If the project has been exported, either directly run the executable obtained, or use the same command as before but instead of specifying the project path with --path use --main-pack to specify the package file obtained when exporting (.pck file). In both cases the same arguments as before can be used (--scenario, --port, etc.)
+- `--environment` followed by the file to use as an environment, overriding the environment defined in the scenario
+
+If the project has been exported, either directly run the executable obtained, or use the same command as before but instead of specifying the project path with `--path` use `--main-pack` to specify the package file obtained when exporting (.pck file). In both cases the same arguments as before can be used (`--scenario`, `--port`, etc.)
