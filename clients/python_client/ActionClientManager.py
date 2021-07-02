@@ -2,8 +2,8 @@ from typing import Callable, Dict, List
 import threading 
 import uuid
 
-from TCP_Client import TCP_Client
-from ActionClient import ActionClient
+from .TCP_Client import TCP_Client
+from .ActionClient import ActionClient
 
 
 class ActionClientManager():
@@ -86,4 +86,4 @@ class ActionClientManager():
 		action_id = response_message['data']["action_id"]
 		cancelled = response_message['data']["cancelled"]
 		if action_id in self.actions:
-			self.actions[action_id].receive_cancel_response(cancelled)
+			self.actions[action_id].cancel(cancelled)

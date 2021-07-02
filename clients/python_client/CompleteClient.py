@@ -1,10 +1,10 @@
 import time
 import threading 
 
-from MessageReader import MessageReader
-from StateClient import StateClient
-from ActionClientManager import ActionClientManager
-from TCP_Client import TCP_Client
+from .MessageReader import MessageReader
+from .StateClient import StateClient
+from .ActionClientManager import ActionClientManager
+from .TCP_Client import TCP_Client
 
 class CompleteClient():
 	def __init__(self, address : str = 'localhost', port : int = 10000, frequency : float = 60):
@@ -28,7 +28,7 @@ class CompleteClient():
 		self.thread = threading.Thread(target=self.thread_action)
 		self.stop_thread = threading.Event()
 		self.thread.daemon = True
-
+		self.thread_started = False
 	
 	def wait_for_server(self, timeout = 20): #timeout in seconds
 		start_time = time.time() 
@@ -40,12 +40,14 @@ class CompleteClient():
 			connected = self.TCP_Client.connect()
 
 		self.thread.start()	
+		self.thread_started = True
 		return connected
 		
 
 	def kill(self):
 		self.stop_thread.set()
-		self.thread.join()
+		if self.thread_started :
+			self.thread.join()
 		self.TCP_Client.kill()
 
 

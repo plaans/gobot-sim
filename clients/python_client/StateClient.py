@@ -9,42 +9,47 @@ class StateClient():
 		self.names_list_by_category = {}
 		
 		self.waited_token = None 
-		self.wait_event = threading.Event() #will be set when the StateClient when the token is received
+		self.wait_token_event = threading.Event() #will be set when the StateClient when the token is received
+
+		self.wait_dynamic_update_event = threading.Event()
 
 	def update(self, message : Dict):
 		# if message['type']=='static':
 		# 	pprint.pprint( message['data'])
+		if message['type']=='dynamic':
+			self.wait_dynamic_update_event.set()
 		data = message['data']
 		for line in data:
 			self.check_waited_token(line)
 
-			if len(line)==2:#declaration of instance
-				name = line[1]
-				type = line[0]
+			name = line[1]
+			attribute = line[0]
+			value = line[2]
+
+			if ".instance" in attribute:#declaration of instance
 				if name not in self.state:
 					self.state[name] = {}
-				self.state[name]['type'] = type
+				self.state[name]['type'] = attribute
 
-				if type not in self.names_list_by_category :
-					self.names_list_by_category[type] =[]
-				self.names_list_by_category[type].append(name)
+				if attribute not in self.names_list_by_category :
+					self.names_list_by_category[attribute] =[]
+				self.names_list_by_category[attribute].append(name)
 
-			if len(line)>=3:#to check the data has the right format
-				name = line[1]
-				attribute = line[0]
-				value = line[2]
-				if name not in self.state:
-					self.state[name] = {}
-				self.state[name][attribute] = value
+			
+			if name not in self.state:
+				self.state[name] = {}
+			self.state[name][attribute] = value
 
 
-		#pprint.pprint(self.state)
+
+
+		# pprint.pprint(self.state)
 	
 
 	def check_waited_token(self, line):
 		if self.waited_token != None and self.waited_token in line:
 			self.waited_token = None
-			self.wait_event.set()
+			self.wait_token_event.set()
 
 
 	def get_data(self, key : str, name : str):
@@ -54,10 +59,15 @@ class StateClient():
 	def wait_for_message(self, token, timeout = 60):
 		#waits until the StateClient receives a message containing token 
 		#for example to wait until a robot instance is declared token would be Robot.instance
-		self.wait_event.clear()
+		self.wait_token_event.clear()
 		self.waited_token = token
-		return self.wait_event.wait(timeout)
+		return self.wait_token_event.wait(timeout)
 		
+	def wait_next_dynamic_update(self, timeout = 60):
+		#waits until the StateClient receives a message containing token 
+		#for example to wait until a robot instance is declared token would be Robot.instance
+		self.wait_dynamic_update_event.clear()
+		return self.wait_dynamic_update_event.wait(timeout)
 
 	# getter functions, that access the state and return some information
 	def robot_coordinates(self, name : str) -> List[float]:
@@ -163,4 +173,7 @@ class StateClient():
 	
 	def interact_areas_list(self) -> List[str]:
 		return self.get_instances_list("Interact_area.instance")
+
+	def instance_type(self, node_name : str) -> str:
+		return self.get_data("type",node_name)
 
