@@ -49,7 +49,7 @@ export var progress_gradient: Gradient = preload("res://Assets/progress_gradient
 
 # Debug
 export(float) var points_spacing = 3 # px
-export(bool) var debug_draw = true
+export(bool) var debug_draw = true setget set_debug_draw
 export(Array, Color) var debug_colors = [Color.white, Color.purple, Color.white]
 
 func _ready():
@@ -156,6 +156,10 @@ func _draw():
 	if real_nav_path.size() >= 2:
 		draw_polyline(transform.xform_inv(real_nav_path), debug_colors[1], 2.0)
 		draw_line(Vector2.ZERO, distance_to_path, debug_colors[2])
+
+func set_debug_draw(state: bool):
+	debug_draw = state
+	update()
 
 func get_name() -> String:
 	return robot_name
