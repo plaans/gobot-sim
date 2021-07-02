@@ -1,11 +1,13 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://Assets/tileset.tres" type="TileSet" id=1]
 [ext_resource path="res://Scripts/Navigation2D.gd" type="Script" id=2]
 [ext_resource path="res://Scripts/Main.gd" type="Script" id=3]
+[ext_resource path="res://Scripts/TileWorldExporter.gd" type="Script" id=4]
+[ext_resource path="res://Scenes/DebugUI.tscn" type="PackedScene" id=5]
 [ext_resource path="res://Scripts/WorldMap.gd" type="Script" id=14]
 
-[node name="Main" type="Node"]
+[node name="Main" type="Node2D"]
 script = ExtResource( 3 )
 
 [node name="WorldMap" type="TileMap" parent="."]
@@ -16,7 +18,13 @@ centered_textures = true
 format = 1
 script = ExtResource( 14 )
 
+[node name="TileWorldExporter" type="Node" parent="WorldMap"]
+script = ExtResource( 4 )
+target_path = "res://environments/exported_env.json"
+
 [node name="Navigation2D" type="Navigation2D" parent="." groups=[
 "navigation",
 ]]
 script = ExtResource( 2 )
+
+[node name="DebugUI" parent="." instance=ExtResource( 5 )]

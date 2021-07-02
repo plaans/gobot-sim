@@ -11,11 +11,11 @@ enum Order {
 }
 enum Time {
 	FIXED,
-	RANDOMIZED
+	RANDOM
 }
 export(Order) var create_order = Order.NORMAL
-export(Order) var time_step = Time.FIXED
-export var create_time: float = 20.0 setget set_create_time
+export(Time) var create_time = Time.FIXED
+export var time_step: float = 15.0 setget set_time_step
 export var infinite: bool = false
 export(PackedScene) var package_scene = preload("res://Scenes/Package.tscn")
 
@@ -24,16 +24,16 @@ export(PackedScene) var package_scene = preload("res://Scenes/Package.tscn")
 var packages_templates: Array = []
 
 func _ready():
-	process_time = create_time
+	process_time = time_step
 	
 	add_to_group("export_static")
 	
 	#generate a name 
 	machine_name = ExportManager.register_new_node(self, "input_machine")
 
-func set_create_time(new_create_time: float):
-	create_time = new_create_time
-	process_time = new_create_time
+func set_time_step(new_time_step: float):
+	time_step = new_time_step
+	process_time = new_time_step
 
 func start_process():
 	remaining_process_time = process_time
@@ -50,17 +50,19 @@ func set_process_blinking(blink: bool, speed: float = 4.0):
 	pass
 
 # Creates a random package from the packages_templates, and returns the package.
+# 
 func request_input()->Node:
 	var new_package = null
 	if packages_templates.size() > 0:
+		# Which package to output
 		var templates_index: int = 0
 		match create_order:
-			Order.NORMAL:
-				templates_index = 0
-			Order.REVERSE:
-				templates_index = -1
 			Order.RANDOM:
 				templates_index = randi() % packages_templates.size()
+			Order.REVERSE:
+				templates_index = -1
+			_:
+				templates_index = 0
 		
 		var template = packages_templates[templates_index]
 		if !infinite:
@@ -76,7 +78,12 @@ func request_input()->Node:
 		new_package.position = Vector2.ZERO
 		new_package.processes.processes = new_processes
 		
-		# TODO: change time if time_step == Time.RANDOM
+		# Time to create the package
+		match create_time:
+			Time.RANDOM:
+				process_time = -log(randf())/(1/time_step)
+			_:
+				process_time = time_step
 		
 		current_package = new_package
 	return new_package

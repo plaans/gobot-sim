@@ -28,6 +28,8 @@ tracks/0/keys = {
 }
 
 [node name="Robot" type="KinematicBody2D" groups=[
+"debug",
+"debug_path",
 "robots",
 ]]
 z_index = 1
