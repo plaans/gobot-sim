@@ -48,6 +48,15 @@ class NavigationTests(SimulationTestBase):
         action_id = self.client.ActionClientManager.run_command(['navigate_to_area','robot0',target_interact_area])
         self.assertTrue(self.client.ActionClientManager.wait_result(action_id,10))
         self.assertIn(target_interact_area, self.client.StateClient.robot_in_interact_areas('robot0'))
+
+    def test_go_charge(self):
+        
+        action_id = self.client.ActionClientManager.run_command(['navigate_to','robot0', 15, 15])#to move away from parking_area
+        self.assertTrue(self.client.ActionClientManager.wait_result(action_id,10))
+
+        action_id = self.client.ActionClientManager.run_command(['go_charge','robot0'])
+        self.assertTrue(self.client.ActionClientManager.wait_result(action_id,10))
+        self.assertTrue(self.client.StateClient.robot_in_station('robot0'))
             
 if __name__ == '__main__':
     unittest.main()

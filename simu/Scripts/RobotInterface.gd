@@ -3,9 +3,10 @@ class_name RobotInterface extends Node
 
 var registered_commands = {}
 
-var args_count = {"do_move" : 3, "navigate_to" : 2, "navigate_to_cell" : 2, "navigate_to_area" : 1, "pick" : 0, "place" : 0, "go_charge" : 0, "do_rotation" : 2, "rotate_to" : 2, "face_belt" : 2}
+var args_count = {"do_move" : 3, "navigate_to" : 2, "navigate_to_cell" : 2, "navigate_to_area" : 1, "pick" : 0, "pick_package" : 1, "place" : 0, "go_charge" : 0, "do_rotation" : 2, "rotate_to" : 2, "face_belt" : 2}
 
-var action_server 
+var action_server
+
 var robot : Node
 
 var initial_position #used for feedback for navigation commands
@@ -32,7 +33,7 @@ func _process(_delta):
 					var remaining_duration = robot.move_time
 					action_server.send_feedback(remaining_duration/total_duration)
 				
-		if ["navigate_to","navigate_to_cell","navigate_to_area"].has(current_command):
+		if ["navigate_to","navigate_to_cell","navigate_to_area", "go_charge"].has(current_command):
 			#case of navigation command
 			if not(robot.navigating):
 				#result
@@ -69,7 +70,7 @@ func cancel_command(command_id):
 	if action_server.action_id == command_id:
 			
 		var current_command = action_server.command_name
-		if ["do_move", "navigate_to","navigate_to_cell","navigate_to_area"].has(current_command):
+		if ["do_move", "navigate_to", "navigate_to_cell", "navigate_to_area", "go_charge"].has(current_command):
 			#case of movement command
 			robot.stop_navigate()
 		elif ["do_rotation","rotate_to","face_belt"].has(current_command):
@@ -93,7 +94,10 @@ func verify_command(command_name : String, parameters : Array) :
 func apply_command(command_name : String, function_parameters : Array):
 		if command_name == "pick":
 			apply_pick()
-
+			
+		elif command_name == "pick_package":
+			apply_pick_package(function_parameters)	
+			
 		elif command_name == "place":
 			apply_place()	
 			
@@ -108,6 +112,9 @@ func apply_command(command_name : String, function_parameters : Array):
 				
 		elif command_name == "navigate_to_area":
 			apply_navigate_to_area(function_parameters)
+			
+		elif command_name == "go_charge":
+			apply_go_charge(function_parameters)
 				
 		elif command_name == "do_rotation":
 			apply_do_rotation(function_parameters)
@@ -129,6 +136,16 @@ func command_result(node_name, command_name, result):
 func apply_pick():
 	Logger.log_info("%-12s %8s" % ["pick", robot.robot_name])
 	action_server.send_result(robot.pick())
+	
+func apply_pick_package(function_parameters):
+	var package_name = function_parameters[0]
+	var package = ExportManager.get_node_from_name(package_name)
+	if package!=null:
+		Logger.log_info("%-12s %8s;%8s" % ["pick_package", robot.robot_name, package_name])
+		action_server.send_result(robot.pick_package(package))	
+	else:
+		action_server.send_result(false)	
+	
 	
 func apply_place():
 	Logger.log_info("%-12s %8s" % ["place", robot.robot_name])
@@ -166,6 +183,10 @@ func apply_navigate_to_area(function_parameters):
 	if area!=null and area is Area2D:
 		Logger.log_info("%-12s %8s;%8s" % ["navigate_to_area", robot.robot_name, area_name])
 		robot.navigate_to_area(area)
+		
+func apply_go_charge(function_parameters):
+	Logger.log_info("%-12s %8s" % ["go_charge", robot.robot_name])
+	robot.go_charge()
 		
 func apply_do_rotation(function_parameters):
 	var angle = function_parameters[0]

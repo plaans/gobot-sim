@@ -248,7 +248,7 @@ func navigate_to_area(area):
 		
 func go_charge():
 	var parking_areas = get_tree().get_nodes_in_group("parking_areas")
-	var destination_cell = find_closest_cell(find_closest_area(parking_areas))
+	var destination_cell = find_closest_cell(find_closest_area(parking_areas).cells)
 	navigate_to_cell(destination_cell.x, destination_cell.y)
 	
 func face_belt(node : Node2D, speed : float = 5):
@@ -278,13 +278,13 @@ func find_closest_cell(cells_list : Array) -> Array:
 	
 	return closest_cell
 	
-func find_closest_area(areas_list : Array) -> Array:
+func find_closest_area(areas_list : Array) -> Node:
 	var dist_min
 	var closest_area = null
 	
 	for area in areas_list:
 		var closest_cell = find_closest_cell(area.cells)
-		var new_dist = position.distance_to(ExportManager.tiles_to_pixels(closest_cell))
+		var new_dist = position.distance_to(ExportManager.tiles_to_pixels([closest_cell.x, closest_cell.y]))
 		if closest_area == null or new_dist<dist_min:
 			dist_min = new_dist
 			closest_area = area
@@ -311,13 +311,12 @@ func pick():
 		return false
 
 func pick_package(package: Node):
-	Logger.log_info("%-12s" % "pick_package")
 	if carried_package:
 		Logger.log_warning("Already carrying a package for pick_package() call")
-		return
+		return false
 	if !package:
 		Logger.log_warning("No package specified for pick_package() call")
-		return
+		return false
 	
 	var target_belt = get_target_belt(1)
 	if target_belt and !target_belt.is_empty():
@@ -325,10 +324,13 @@ func pick_package(package: Node):
 		if target_index >= 0:
 			var new_package = target_belt.remove_package(target_index)
 			add_package(new_package)
+			return true
 		else:
 			Logger.log_warning("No package %s in target belt for pick_package() call"%package.package_name)
+			return false
 	else:
 		Logger.log_warning("Invalid target belt for pick_package() call")
+		return false
 
 func place():
 	if !carried_package:
