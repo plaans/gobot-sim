@@ -42,6 +42,9 @@ class ActionClient():
 	def set_result_callback(self, callback : Callable):
 		self.result_callback = callback
 
+	def set_id(self, command_id):
+		self.id = command_id
+
 	def accept(self, command_id):
 		self.id = command_id
 		self.current_state = States.ACTIVE
@@ -52,6 +55,7 @@ class ActionClient():
 
 	def reject(self):
 		self.current_state = States.REJECTED
+		self.id_attributed.set() #in this case the id will stay the temp_id
 		self.result = False
 		self.result_received.set()
 	
@@ -61,7 +65,7 @@ class ActionClient():
 
 	def receive_result(self, result):
 		self.result = result
-		if result:
+		if not(result):
 			self.current_state = States.ABORTED
 		else:
 			self.current_state = States.SUCCEEDED

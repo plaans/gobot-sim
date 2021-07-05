@@ -23,14 +23,22 @@ class ConnectionTest(SimulationTestBase):
         #command that should work
         action_id = self.client.ActionClientManager.run_command(['navigate_to','robot0', 15, 15])
         self.assertTrue(self.client.ActionClientManager.wait_result(action_id,10))
+        self.assertEqual(self.client.ActionClientManager.get_state(action_id), States.SUCCEEDED)
 
-        #commands that should not work
+        #commands that are not valid
         action_id = self.client.ActionClientManager.run_command(['wrong_command','robot0', 15, 15])
         self.assertFalse(self.client.ActionClientManager.wait_result(action_id,10))
-        action_id = self.client.ActionClientManager.run_command(['navigate_to','wrong_target', 15, 15])
-        self.assertFalse(self.client.ActionClientManager.wait_result(action_id,10))
+        self.assertEqual(self.client.ActionClientManager.get_state(action_id), States.REJECTED)
+
         action_id = self.client.ActionClientManager.run_command(['navigate_to','robot0']) #wrong_number of arguments
-        self.assertFalse(self.client.ActionClientManager.wait_result(action_id,10))      
+        self.assertFalse(self.client.ActionClientManager.wait_result(action_id,10))   
+        self.assertEqual(self.client.ActionClientManager.get_state(action_id), States.REJECTED)   
+
+        #command that is valid but should not work
+        action_id = self.client.ActionClientManager.run_command(['pick','robot0'])
+        self.assertFalse(self.client.ActionClientManager.wait_result(action_id, 10))
+        self.assertEqual(self.client.ActionClientManager.get_state(action_id), States.ABORTED)
+
 
     def test_cancel(self):
         action_id = self.client.ActionClientManager.run_command(['navigate_to','robot0', 15, 15])
