@@ -82,7 +82,7 @@ Field | Exemple of format | Description
 Declaration of instance | `['Interact_area.instance', interact_area_name, 'interact_area]`
 Polygon | `['Interact_area.polygons', interact_area_name, [[x0, y0], [x1, y1], ...]]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
 Cells  | `['Interact_area.cells', interact_area_name, [[x0, y0], [x1, y1], ...]]` | List of indexes of cells that compose this Interact area
-Belt  | `['Interact_area.Belt', interact_area_name, belt_name]` | Name of Belt this Interact area is associated with
+Belt  | `['Interact_area.belt', interact_area_name, belt_name]` | Name of Belt this Interact area is associated with
 	 
 ## Commands sent to the simulation 
 
@@ -158,10 +158,17 @@ For commands to apply to the robot, the command to send are formatted as a list 
 
 Command name | Exemple of format | Description
 --- | --- | --- 
+**Manipulation commands** |  |
+Pick  | `['pick', robot_name] ` |  Picks the next package from an output belt if the robot is facing the belt and is in the associated interact area
+pick_package  | `['pick_package', robot_name, package_name] ` |  Picks the package specified from an output belt if the robot is facing the belt and is in the associated interact area (same as 'pick' with the possibility to chose which package to pick)
+Place  | `['place', robot_name]` |  Place the carried package in an input belt if the robot is carrying a package, is facing the belt and is in the associated interact area
+**Navigation commands** |  |
+Move the robot| `['do_move', robot_name, angle, speed, duration] ` | Moves the robot for the given duration and speed, in the direction determined by the angle (indendepent of the rotation of the robot itself)
 Navigate to | `['navigate_to', robot_name, destination_x, destination_y] ` | Moves the robot to the destination (with coordinates given in meters), automatically finding a path that avoids obstacles
 Navigate to a cell | `['navigate_to_cell', robot_name, cell_x_index, cell_y_index] ` | Same behavior as navigate_to with the destination being a cell
 Navigate to an area | `['navigate_to_area', robot_name, area_name] ` | Navigate the robot to the closest cell in the given area (area_name must be the name of a parking_area or a interact_area)
-Pick  | `['pick', robot_name] ` |  Picks the next package from an output belt if the robot is facing the belt and is in the associated interact area
-Place  | `['place', robot_name]` |  Place the carried package in an input belt if the robot is carrying a package, is facing the belt and is in the associated interact area
-Rotation  | `['rotate_to', robot_name, angle, speed]` |  Rotates the robot to the given angle (in rads)at the given speed (in rads/s)
-Rotate to face an object  | `['face_belt', belt_name, speed]` |  Rotates the robot to face a given belt
+Go to closest charging area | `['go_charge', robot_name] ` | Navigate the robot to the closest cell in the closest parking_area
+**Rotation commands** |  |
+Do a rotation (of the given angle)  | `['do_rotation', robot_name, angle, speed]` |  Rotates the robot of the given angle (in rads) from the current rotation, at the given speed (in rads/s)
+Rotate to an angle  | `['rotate_to', robot_name, angle, speed]` |  Rotates the robot to the given angle (in rads) at the given speed (in rads/s)
+Rotate to face a belt  | `['face_belt', belt_name, speed]` |  Rotates the robot to face a given belt
