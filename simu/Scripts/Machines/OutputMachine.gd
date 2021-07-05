@@ -1,22 +1,22 @@
 extends "res://Scripts/Machines/Machine.gd"
 
 # A type of machine that get packages out of the scene.
-# delete_time is used to determine the time it take the machine to create a package,
+# time_step is used to determine the time it take the machine to create a package,
 # but process_time is used internally. 
 
-export var delete_time: float = 20.0 setget set_delete_time
+export var time_step: float = 10.0 setget set_time_step
 
 func _ready():
-	process_time = delete_time
+	process_time = time_step
 	
 	add_to_group("export_static")
 	
 	#generate a name 
 	machine_name = ExportManager.register_new_node(self, "output_machine")
 
-func set_delete_time(new_delete_time: float):
-	delete_time = new_delete_time
-	process_time = new_delete_time
+func set_time_step(new_time_step: float):
+	time_step = new_time_step
+	process_time = new_time_step
 
 func start_process():
 	remaining_process_time = process_time

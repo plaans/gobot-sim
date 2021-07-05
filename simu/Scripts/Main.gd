@@ -1,4 +1,4 @@
-extends Node
+extends Node2D
 
 
 onready var _Navigation = $Navigation2D
@@ -6,7 +6,6 @@ onready var _WorldMap = $WorldMap
 
 var _Robot
 export (PackedScene) var RobotScene = preload("res://Scenes/Robot.tscn")
-
 
 func _ready():	
 
@@ -98,6 +97,76 @@ func get_file_content(file_path: String):
 		
 	return content.get_result()
 
+# - object is the Object to apply the optional parameters to
+# - optional params is an array of parameters names (e.g: ["infinite", "create_time", "create_order", "time_step"])
+# which should be valid properties of the given object
+# - parameters is the dictionnary of parameters given by the scenario file
+# This function is safe and very flexible, invalid values will be ignored but won't output errors or warnings
+func set_optional_params(object: Object, optional_params: Array, scenario_object: Dictionary):
+	for param in optional_params:
+		if scenario_object.has(param):
+			object.set(param, scenario_object[param])
+
+func find_closest_machine(target_pos: Vector2, machines: Array, max_distance: float = 1.5)->Node:
+	for machine in machines:
+		var machine_pos: Vector2 = ExportManager.vector_pixels_to_vector_meters(machine.position)
+		# using a distance of 1.5 works even in diagonals
+		if machine_pos.distance_to(target_pos) <= max_distance:
+			return machine
+	return null
+
+func setup_machines_of_type(machine_type: String, machines: Array, scenario: Dictionary):
+	if scenario[machine_type].size() != machines.size():
+		Logger.log_error("Wrong number of %s : processes specified for %s machines but %s are present in the simulation" 
+			% [machine_type, scenario[machine_type].size(), machines.size()])
+	else:	
+		for i in scenario[machine_type].size():
+			#find if there is a machine close enough to the position specified (1.5 meters from the original position)
+			var target_pos: Vector2 = Vector2(scenario[machine_type][i].position[0], scenario[machine_type][i].position[1])
+			var machine = find_closest_machine(target_pos, machines)
+			# If no machine was found
+			if machine == null:
+				Logger.log_error("Cannot identify the %s for position specified %s" % [machine_type, target_pos])
+				continue # skip iteration
+			# If the position wasn't exact
+			elif ExportManager.vector_pixels_to_vector_meters(machine.position) != target_pos:
+				Logger.log_warning("No %s found at position specified %s, so used instead the closest one at position %s" 
+					% [machine_type, target_pos, ExportManager.vector_pixels_to_vector_meters(machine.position)])
+			
+			# Specific parameters and optional ones
+			match machine_type:
+				"machines":
+					# Specify the machine's processes from the scenario
+					var new_processes = []
+					if scenario.machines[i].has("possible_processes"):
+						for process_id in scenario.machines[i].possible_processes:
+							new_processes.append(Process.new(process_id))
+					machine.processes.processes = new_processes
+					# Set optional parameters
+					set_optional_params(machine, [], scenario.machines[i])
+					
+				"input_machines":
+					# Specify what packages the InputMachine will create
+					var new_packages = []
+					if scenario.input_machines[i].has("packages"):
+						new_packages = scenario.input_machines[i].packages
+					# If no packages have been defined for this inputmachine, use the default ones
+					elif scenario.has("packages"):
+						new_packages = scenario.packages
+					machine.packages_templates = new_packages
+					# Set optional parameters
+					set_optional_params(machine, ["infinite", "create_order", "create_time", "time_step"], scenario.input_machines[i])
+				
+				"output_machines":
+					# Set optional parameters
+					set_optional_params(machine, ["time_step"], scenario.output_machines[i])
+			
+			# All machines have belts, optional belt parameters are specified here
+			if machine.input_belt and scenario[machine_type][i].has("input_belt_size"):
+				machine.input_belt.set("size", scenario[machine_type][i]["input_belt_size"])
+			if machine.output_belt and scenario[machine_type][i].has("output_belt_size"):
+				machine.output_belt.set("size", scenario[machine_type][i]["output_belt_size"])
+
 func load_scenario(file_path : String):
 	var scenario_path = get_absolute_path(file_path)
 	var scenario = get_file_content(scenario_path)
@@ -115,67 +184,48 @@ func load_scenario(file_path : String):
 			Logger.log_error("No environment field in scenario")
 			return
 	
-	#machines
-	var all_machines_list = get_tree().get_nodes_in_group("machines")
-	#filter to exclude intput and output machines
+	# Setting up the machines
+	var all_machines = get_tree().get_nodes_in_group("machines")
 	
-	var machines_list = []
-	for machine in all_machines_list:
-		if not(machine.is_in_group("input_machines")) and not(machine.is_in_group("output_machines")):
-			machines_list.append(machine)
-			
-	if scenario.machines.size()!=machines_list.size():
-		Logger.log_error("Wrong number of machines : processes specified for %s machines but there are %s machines in the simulation" 
-						% [scenario.machines.size(),machines_list.size()])
-	else:	
-		for k in range(scenario.machines.size()):	
-			var position = scenario.machines[k].position
-			var x = position[0]
-			var y = position[1]
-
-		#find if there is a machine close enough to the position specified (for now search for distance <50)
-			var closest_machine = null
-			var closest_machine_x = 0
-			var closest_machine_y = 0
-			for machine in machines_list:
-				var position_machine_pixels = ExportManager.vector_pixels_to_meters(machine.position)
-				var machine_x = floor(position_machine_pixels[0])
-				var machine_y = floor(position_machine_pixels[1])
-				if abs(machine_x-x)<=1 and abs(machine_y-y)<=1:
-					closest_machine = machine
-					closest_machine_x = machine_x
-					closest_machine_y = machine_y
-			if closest_machine == null:
-				Logger.log_error("Cannot identify the machine for position specified (%s %s)" % [x,y])
-			else:
-				#a machine was found close enough but if position was not exact still register a warning
-				if closest_machine_x != x or closest_machine_y != y:
-					Logger.log_warning("No machine found at position specified (%s %s), so used instead the closest one at position (%s %s) " 
-					% [x,y,closest_machine_x,closest_machine_y])
-				
-				var new_processes_list = []
-				for process_id in scenario.machines[k].possible_processes:
-					new_processes_list.append(Process.new(process_id))
-					
-				closest_machine.processes.processes = new_processes_list
-			
+	var input_machines = []
+	var output_machines = []
+	var machines = []
 	
-	#robots		
-	for k in range(scenario.robots.size()):
-		var new_robot = RobotScene.instance()
-		add_child(new_robot)
-		var new_position = scenario.robots[k].position
-		new_robot.position.x = new_position[0]
-		new_robot.position.y = new_position[1]
-		
-		if k==0:
-			_Robot = new_robot
-		
-	#packages
-	for machine in get_tree().get_nodes_in_group("input_machines"):
+	for machine in all_machines:
+		if machine.is_in_group("input_machines"):
+			input_machines.append(machine)
+		elif machine.is_in_group("output_machines"):
+			output_machines.append(machine)
+		else:
+			machines.append(machine)
+	
+	# Machines
+	setup_machines_of_type("machines", machines, scenario)
+	# InputMachines
+	if scenario.has("output_machines"):
+		setup_machines_of_type("input_machines", input_machines, scenario)
+	# OutputMachines
+	if scenario.has("input_machines"):
+		setup_machines_of_type("input_machines", input_machines, scenario)
+	else:
+		# Can happen if:
+		# - it's an older scenario
+		# - the default parameters are enough
+		# - there is only one InputMachine
+		for machine in input_machines:
 			machine.packages_templates = scenario.packages
-			machine.create_time = 5.0
+	
+	# Robots
+	for i in range(scenario.robots.size()):
+		var new_robot = RobotScene.instance()
+		new_robot.position = Vector2(scenario.robots[i].position[0], scenario.robots[i].position[1])
+		# Set optional parameters
+		set_optional_params(new_robot, ["max_battery", "battery_drain_rate", "battery_charge_rate"], scenario.robots[i])
 		
+		add_child(new_robot)
+		if i==0:
+			_Robot = new_robot
+
 
 func load_environment(file_path : String):
 	if file_path != "":
@@ -221,12 +271,6 @@ func _unhandled_input(event):
 	if event is InputEventMouseButton and event.pressed:
 		match event.button_index:
 			BUTTON_LEFT:
-				_Robot.navigate_to(event.position, 96)
+				_Robot.navigate_to(get_global_mouse_position(), 96)
 			BUTTON_RIGHT:
-#				var temp_shape = PoolVector2Array([Vector2(-32,-32),Vector2(-32,32),Vector2(32,32),Vector2(32,-32)])
-#				var temp_transform = Transform2D(0, event.position)
-#				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.cut_poly(temp_transform.xform(temp_shape))
-				_Robot.rotate_to((event.position - _Robot.position).angle(), 2.0)
-			BUTTON_MIDDLE:
-#				_Navigation.get_node("NavigationPolygonInstance").navpoly = _Navigation.static_poly
-				pass
+				_Robot.rotate_to((get_global_mouse_position() - _Robot.position).angle(), 2.0)

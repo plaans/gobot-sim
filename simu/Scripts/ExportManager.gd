@@ -59,7 +59,14 @@ func vector_pixels_to_tiles(original_vector : Vector2) -> Array:
 	#takes a position in Vector2 format 
 	#and outputs the position as an [x,y] Array format which is the format used for transmission of data
 	return [floor(original_vector.x/tile_size.x), floor(original_vector.y/tile_size.y)]	
-	
+
+func vector_pixels_to_vector_meters(original_vector : Vector2) -> Vector2:
+	#convert a position in pixel to a position in meter (assuming a tile is 1mx1m)
+	#takes a position in Vector2 format 
+	#and outputs the position as a Vector2
+	var new_vector = original_vector / tile_size
+	return Vector2(floor(new_vector.x),floor(new_vector.y))
+
 func convert_array_pixels_to_meters(original_array : Array) -> Array:
 	var new_array = []
 	for position in original_array:

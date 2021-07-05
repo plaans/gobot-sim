@@ -12,9 +12,11 @@ enum BeltType {
 	INPUT,
 	OUTPUT
 }
-export(BeltType) var belt_type = BeltType.INPUT setget set_belt_type
+
 export var size : int = 1 setget set_size # slots
 export var visual_speed: float = 1.0 setget set_visual_speed # slot/s
+
+var belt_type: int = BeltType.INPUT setget set_belt_type
 var packages: Array = []
 var machine: Node = null # reference to the machine the belt is linked to
 var line_points: PoolVector2Array setget set_line_points
