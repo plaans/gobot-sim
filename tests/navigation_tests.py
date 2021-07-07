@@ -1,5 +1,4 @@
 import unittest
-import time
 
 from .SimulationTestBase import SimulationTestBase
 
@@ -7,10 +6,8 @@ class NavigationTests(SimulationTestBase):
 
     def test_do_move(self):
         #get the start position which will be used to compute the expected final position
+        self.client.StateClient.wait_next_dynamic_update(timeout=10)
         start_position = self.client.StateClient.robot_coordinates('robot0')
-        while start_position == None:
-            start_position = self.client.StateClient.robot_coordinates('robot0')
-            time.sleep(0.1)
 
         angle = 0
         speed = 5

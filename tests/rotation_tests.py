@@ -1,5 +1,4 @@
 import unittest
-import time
 
 from .SimulationTestBase import SimulationTestBase
 
@@ -7,10 +6,8 @@ class RotationTests(SimulationTestBase):
 
     def test_do_rotation(self):
         #get the start rotation which will be used to compute the expected final rotation
+        self.client.StateClient.wait_next_dynamic_update(timeout=10)
         current_rotation = self.client.StateClient.robot_rotation('robot0')
-        while current_rotation == None:
-            current_rotation = self.client.StateClient.robot_rotation('robot0')
-            time.sleep(0.1)
              
         speed = -0.3
         duration = 1.5

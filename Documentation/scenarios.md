@@ -57,7 +57,7 @@ Environment | `"res://path/to/environment"` | path to the environment file.
 ### Robots
 Field | Example of format | Description
 ---|---|---
-Position | `[x,y]` | Position of the robot in pixels
+Position | `[x,y]` | Position of the robot in meters
 *(optional)* Max Battery | `max_battery` | float
 *(optional)* Battery Drain Rate | `battery_drain_rate` | float between 0 and 1
 *(optional)* Battery Charge Rate | `battery_charge_rate` | float between 0 and 1
