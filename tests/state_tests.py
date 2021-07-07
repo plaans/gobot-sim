@@ -91,24 +91,40 @@ class StateTest(SimulationTestBase):
         self.client.StateClient.wait_for_message('Parking_area.instance', timeout=10)
         self.client.StateClient.wait_next_dynamic_update(timeout=10)
 
-        parking_area = self.client.StateClient.parking_areas_list()[0]
-        self.assertIsInstance(parking_area, str)
+        #check list of parking_areas
+        parking_areas_list = self.client.StateClient.parking_areas_list()
+        self.assertIsInstance(parking_areas_list, List)
+        self.assertEqual(len(parking_areas_list), 1)
+
+        #do checks on the first parking_area instance
+        parking_area = parking_areas_list[0]
         self.assertEqual(self.client.StateClient.instance_type(parking_area), 'Parking_area.instance')
 
-        self.assertIsInstance(self.client.StateClient.parking_area_polygons(parking_area), List)
-        self.assertIsInstance(self.client.StateClient.parking_area_cells(parking_area), List)
-  
+        expected_polygons = [[[4, 18], [4, 16], [10, 16], [10, 18]],
+                            [[21, 18], [21, 16], [26, 16], [26, 18]]]
+        self.assertEqual(self.client.StateClient.parking_area_polygons(parking_area), expected_polygons)
+        expected_cells = [[4, 16], [5, 16], [4, 17], [6, 16], [5, 17], [7, 16], [6, 17], [8, 16], [7, 17],
+                         [9, 16], [8, 17], [9, 17], [21, 16], [22, 16], [21, 17], [23, 16], [22, 17], [24, 16],
+                         [23, 17], [25, 16], [24, 17], [25, 17]]
+        self.assertEqual(self.client.StateClient.parking_area_cells(parking_area), expected_cells)
+
     def test_interact_area_state(self):
         self.client.StateClient.wait_for_message('Interact_area.instance', timeout=10)
+
         self.client.StateClient.wait_next_dynamic_update(timeout=10)
 
-        interact_area = self.client.StateClient.interact_areas_list()[0]
+        #check list of interact_areas
+        interact_areas_list = self.client.StateClient.interact_areas_list()
+        self.assertEqual(len(interact_areas_list), 6)
+
+        #do checks on the first interact_area instance
+        interact_area = interact_areas_list[0]
         self.assertIsInstance(interact_area, str)
         self.assertEqual(self.client.StateClient.instance_type(interact_area), 'Interact_area.instance')
 
-        self.assertIsInstance(self.client.StateClient.interact_area_polygons(interact_area), List)
-        self.assertIsInstance(self.client.StateClient.interact_area_cells(interact_area), List)
-        self.assertIsInstance(self.client.StateClient.interact_area_belt(interact_area), str)
+        self.assertEqual(self.client.StateClient.interact_area_polygons(interact_area), [[[9, 6], [13, 6], [13, 7], [9, 7]]])
+        self.assertEqual(self.client.StateClient.interact_area_cells(interact_area), [[12, 6], [11, 6], [10, 6], [9, 6]])
+        self.assertEqual(self.client.StateClient.interact_area_belt(interact_area), 'belt0')
 
 if __name__ == '__main__':
     unittest.main()
