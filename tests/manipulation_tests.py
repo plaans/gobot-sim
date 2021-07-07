@@ -37,14 +37,13 @@ class ManipulationTests(SimulationTestBase):
     def test_pick_package(self):
         self.client.StateClient.wait_for_message('Package.instance', timeout=10)
 
+        #get a package in the list of existing packages
         self.target_package = self.client.StateClient.packages_list()[0]
 
-        input_machine = self.client.StateClient.package_location(self.target_package)
-        belt =  self.client.StateClient.machine_output_belt(input_machine)
-        while self.client.StateClient.belt_packages_list(belt) == None or len(self.client.StateClient.belt_packages_list(belt))<2:
-            time.sleep(0.1)
+        #wait until that package is on belt4 (the belt packages arrive on in the scenario and environment loaded)
+        self.client.StateClient.wait_for_message('Package.location', instance_name = self.target_package, value='belt4', timeout=10)
 
-        package_to_pick=self.client.StateClient.belt_packages_list(belt)[0]
+        belt = self.client.StateClient.package_location(self.target_package)
 
         interact_area = self.client.StateClient.belt_interact_areas(belt)[0]
 
@@ -54,12 +53,12 @@ class ManipulationTests(SimulationTestBase):
         action_id = self.client.ActionClientManager.run_command(['face_belt', 'robot0',belt, 5])
         self.assertTrue(self.client.ActionClientManager.wait_result(action_id, timeout=10))
 
-        action_id = self.client.ActionClientManager.run_command(['pick_package','robot0', package_to_pick])
+        action_id = self.client.ActionClientManager.run_command(['pick_package','robot0', self.target_package])
         self.assertTrue(self.client.ActionClientManager.wait_result(action_id, timeout=10))
 
         time.sleep(0.5)
 
-        self.assertEqual(self.client.StateClient.package_location(package_to_pick), 'robot0')
+        self.assertEqual(self.client.StateClient.package_location(self.target_package), 'robot0')
 
 
     def test_place(self):
