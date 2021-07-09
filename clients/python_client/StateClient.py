@@ -121,6 +121,11 @@ class StateClient():
 	def machine_processes_list(self, machine_name : str) -> List[int]:
 		return self.get_data("Machine.processes_list", machine_name)
 
+	def machine_type(self, machine_name : str) -> str:
+		return self.get_data("Machine.type", machine_name)
+
+	def machine_progress_rate(self, machine_name : str) -> float:
+		return self.get_data("Machine.progress_rate", machine_name)
 
 
 	def package_location(self, package_name : str) -> str:
