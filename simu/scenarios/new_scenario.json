@@ -1,6 +1,6 @@
 {
 	"robots": [
-		{"position":[255,540]}
+		{"position":[7.8,16.5]}
 	],
 	"machines": [
 		{"position":[14,5],"possible_processes":[0,1,2]},

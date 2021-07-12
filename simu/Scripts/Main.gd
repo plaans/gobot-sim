@@ -218,7 +218,8 @@ func load_scenario(file_path : String):
 	# Robots
 	for i in range(scenario.robots.size()):
 		var new_robot = RobotScene.instance()
-		new_robot.position = Vector2(scenario.robots[i].position[0], scenario.robots[i].position[1])
+		#new_robot.position = Vector2(scenario.robots[i].position[0], scenario.robots[i].position[1])
+		new_robot.position = ExportManager.meters_to_pixels(scenario.robots[i].position)
 		# Set optional parameters
 		set_optional_params(new_robot, ["max_battery", "battery_drain_rate", "battery_charge_rate"], scenario.robots[i])
 		

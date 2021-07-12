@@ -38,6 +38,7 @@ Tiles Coordinates | `['Machine.coordinates_tile', machine_name, [x,y]]` | Coordi
 Input belt | `['Machine.input_belt', machine_name, input_belt_name]` | Name of the input belt connected to this machine (string)
 Output belt | `['Machine.output_belt', machine_name, output_belt_name]` | Name of the output belt connected to this machine (string)
 Processes | `['Machine.processes_list', machine_name, [id0, id1, ...]]` | List of the ids (ints) of each process the machine can do
+Machine type | `['Machine.type', machine_name, type]` | Can be either 'input_machine', 'output_machine' or 'standard_machine'
 ***Dynamic*** |  |
 Progress rate  | `['Machine.progress_rate', machine_name, progress_rate]` | Progress of current task between 0 and 1 
 

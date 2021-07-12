@@ -8,8 +8,10 @@ class StateClient():
 		self.state = {}
 		self.names_list_by_category = {}
 		
-		self.waited_token = None 
-		self.wait_token_event = threading.Event() #will be set when the StateClient when the token is received
+		self.waited_attribute = None 
+		self.waited_instance_name = None 
+		self.waited_value = None 
+		self.wait_message_event = threading.Event() #will be set when the StateClient when the token is received
 
 		self.wait_dynamic_update_event = threading.Event()
 
@@ -20,8 +22,6 @@ class StateClient():
 			self.wait_dynamic_update_event.set()
 		data = message['data']
 		for line in data:
-			self.check_waited_token(line)
-
 			name = line[1]
 			attribute = line[0]
 			value = line[2]
@@ -41,27 +41,38 @@ class StateClient():
 			self.state[name][attribute] = value
 
 
+			self.check_waited_message(line)
+
+
 
 
 		# pprint.pprint(self.state)
 	
 
-	def check_waited_token(self, line):
-		if self.waited_token != None and self.waited_token in line:
-			self.waited_token = None
-			self.wait_token_event.set()
+	def check_waited_message(self, line):
+		if self.waited_attribute != None and line[0]==self.waited_attribute:
+			instance_name_condition = self.waited_instance_name == None or line[1]==self.waited_instance_name
+			value_condition = self.waited_value == None or line[2]==self.waited_value
+
+			if instance_name_condition and value_condition :
+				self.waited_attribute = None
+				self.wait_message_event.set()
 
 
 	def get_data(self, key : str, name : str):
 		if name in self.state and key in self.state[name]:
 			return self.state[name][key]
 
-	def wait_for_message(self, token, timeout = 60):
+
+
+	def wait_for_message(self, attribute, instance_name = None, value = None, timeout = 60):
 		#waits until the StateClient receives a message containing token 
 		#for example to wait until a robot instance is declared token would be Robot.instance
-		self.wait_token_event.clear()
-		self.waited_token = token
-		return self.wait_token_event.wait(timeout)
+		self.wait_message_event.clear()
+		self.waited_attribute = attribute
+		self.waited_instance_name = instance_name
+		self.waited_value = value
+		return self.wait_message_event.wait(timeout)
 		
 	def wait_next_dynamic_update(self, timeout = 60):
 		#waits until the StateClient receives a message containing token 
@@ -110,6 +121,11 @@ class StateClient():
 	def machine_processes_list(self, machine_name : str) -> List[int]:
 		return self.get_data("Machine.processes_list", machine_name)
 
+	def machine_type(self, machine_name : str) -> str:
+		return self.get_data("Machine.type", machine_name)
+
+	def machine_progress_rate(self, machine_name : str) -> float:
+		return self.get_data("Machine.progress_rate", machine_name)
 
 
 	def package_location(self, package_name : str) -> str:
