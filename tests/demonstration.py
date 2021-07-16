@@ -14,8 +14,9 @@ class Demonstration(SimulationTestBase):
         packages_list = self.client.StateClient.packages_list()
 
         #do each package one by one
-        for target_package in packages_list:
-
+        k=0
+        while k<len(packages_list):
+            target_package = packages_list[k]
             #first pick the package at the input machine 
             self.take_package(target_package)
 
@@ -28,6 +29,7 @@ class Demonstration(SimulationTestBase):
             self.deliver_package(output_machine)
 
             packages_list = self.client.StateClient.packages_list()#update list to include new packages
+            k += 1
 
     def find_machine_for_process(self, process_id):
         #finds a machine that can do the process specified
