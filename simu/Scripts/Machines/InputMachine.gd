@@ -85,3 +85,23 @@ func request_input()->Node:
 		
 		current_package = new_package
 	return new_package
+	
+func export_static() -> Array:
+	var export_data = []
+	export_data.append(["Machine.instance", machine_name, "machine"])
+	
+	export_data.append(["Machine.coordinates", machine_name, ExportManager.vector_pixels_to_meters(position)])
+	export_data.append(["Machine.coordinates_tile", machine_name, ExportManager.vector_pixels_to_tiles(position)])
+	
+	if input_belt:
+		export_data.append(["Machine.input_belt", machine_name, input_belt.get_name()])
+	
+	if output_belt:
+		export_data.append(["Machine.output_belt", machine_name, output_belt.get_name()])
+
+	if processes:
+		export_data.append(["Machine.processes_list", machine_name, processes.get_processes_ids()])
+		
+	export_data.append(["Machine.type", machine_name, "input_machine"])	
+
+	return export_data

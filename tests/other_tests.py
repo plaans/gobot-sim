@@ -22,7 +22,7 @@ class OtherTest(unittest.TestCase):
         self.sim.wait()
 
     def test_two_robots(self):
-        time.sleep(1)
+        self.client.StateClient.wait_next_dynamic_update(timeout=10)
         robot0 = self.client.StateClient.robots_list()[0]
         robot1 = self.client.StateClient.robots_list()[1]
 

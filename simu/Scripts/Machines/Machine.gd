@@ -177,6 +177,8 @@ func export_static() -> Array:
 
 	if processes:
 		export_data.append(["Machine.processes_list", machine_name, processes.get_processes_ids()])
+		
+	export_data.append(["Machine.type", machine_name, "standard_machine"])	
 
 	return export_data
 	

@@ -22,6 +22,7 @@ class ActionClientManager():
 
 			new_action = ActionClient(self, temp_id)
 			self.actions[temp_id] = new_action
+			new_action.set_id(temp_id)
 
 			self.TCP_Client.write(data_to_send)
 			return new_action.wait_id_attributed()
@@ -58,7 +59,7 @@ class ActionClientManager():
 				self.actions[new_command_id] = action
 				action.accept(new_command_id)
 
-			del self.actions[temp_id]
+				del self.actions[temp_id]
 
 	def receive_feedback(self, response_message : Dict):
 		action_id = response_message['data']["action_id"]

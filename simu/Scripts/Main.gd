@@ -21,7 +21,7 @@ func _ready():
 	if environment_file != "":
 		load_environment(environment_file)
 	
-	var scenario_file = get_arg(arguments,"--scenario","res://scenarios/new_scenario_with_environment.json" )
+	var scenario_file = get_arg(arguments,"--scenario","res://scenarios/new_scenario_with_jobshop.json" )
 	load_scenario(scenario_file)
 	
 	var pickup_radius = float(get_arg(arguments,"--pickup-radius",500 ))
@@ -199,26 +199,93 @@ func load_scenario(file_path : String):
 		else:
 			machines.append(machine)
 	
-	# Machines
-	setup_machines_of_type("machines", machines, scenario)
-	# InputMachines
-	if scenario.has("output_machines"):
-		setup_machines_of_type("input_machines", input_machines, scenario)
-	# OutputMachines
-	if scenario.has("input_machines"):
-		setup_machines_of_type("input_machines", input_machines, scenario)
+	if scenario.has("jobshop"):
+		#in that case load from the jobshop file specified
+		
+		#each machine has only one corresponding process
+		for k in range(len(machines)):
+			var machine = machines[k]
+			machine.processes.processes = [Process.new(k+1)]
+			
+		#load the file and parse it
+		var job_shop_file = scenario.jobshop
+		var file = File.new()
+		var open_error = file.open(job_shop_file, File.READ) 
+		if open_error:
+			Logger.log_error("Error opening file %s (Error code %s)" % [job_shop_file, open_error])
+			return
+		var jobshop_content = file.get_as_text()
+		var lines = jobshop_content.split("\n")
+		var lines_split=[]
+		for line in lines:
+			lines_split.append(line.split(" "))
+			
+		var nb_jobs=int(lines_split[1][0])
+		var nb_machines=int(lines_split[1][1])
+		if nb_machines!=machines.size():
+			Logger.log_error("Wrong number of machines : the jobshop file has %s machines but %s are present in the simulation" 
+				% [nb_machines, machines.size()])
+		else:
+			
+			var times = []
+			for k in range(3, 3 + nb_jobs):
+				var new_array = []
+				for value in lines_split[k]:
+					if value!="":
+						new_array.append(float(value))
+				times.append(new_array)
+				
+			var jobs_list = []
+			for k in range(4 + nb_jobs, 4 + 2*nb_jobs):
+				var new_array = []
+				for value in lines_split[k]:
+					if value!="":
+						new_array.append(int(value))
+				jobs_list.append(new_array)
+			
+			#combine the list of tasks in each job from two lists (times of tasks and corresponding machines) to one list 
+			#of (process_id, duration) which corresponds to the format used in the simulation (here each process_id corresponds to a particular machine)
+			var packages_processes_list = []
+			for k in range(nb_jobs):
+				var durations = times[k]
+				var processes = jobs_list[k]
+				
+				var combined_list = []
+				for l in range(durations.size()):
+					combined_list.append([processes[l], durations[l]])
+					
+				packages_processes_list.append(combined_list)	
+			
+			
+			for machine in input_machines:
+				machine.packages_templates = packages_processes_list
+				set_optional_params(machine, ["time_step"], {"time_step" : 0})
+				#set the time_step to 0 for all packages to be generated at the same time
+
 	else:
-		# Can happen if:
-		# - it's an older scenario
-		# - the default parameters are enough
-		# - there is only one InputMachine
-		for machine in input_machines:
-			machine.packages_templates = scenario.packages
+				
+		# Machines
+		setup_machines_of_type("machines", machines, scenario)
+		# InputMachines
+		if scenario.has("output_machines"):
+			setup_machines_of_type("input_machines", input_machines, scenario)
+		# OutputMachines
+		if scenario.has("input_machines"):
+			setup_machines_of_type("input_machines", input_machines, scenario)
+			
+		else:
+			# Can happen if:
+			# - it's an older scenario
+			# - the default parameters are enough
+			# - there is only one InputMachine
+			for machine in input_machines:
+				machine.packages_templates = scenario.packages
 	
 	# Robots
 	for i in range(scenario.robots.size()):
 		var new_robot = RobotScene.instance()
-		new_robot.position = Vector2(scenario.robots[i].position[0], scenario.robots[i].position[1])
+		#new_robot.position = Vector2(scenario.robots[i].position[0], scenario.robots[i].position[1])
+		new_robot.position = ExportManager.meters_to_pixels(scenario.robots[i].position)
 		# Set optional parameters
 		set_optional_params(new_robot, ["max_battery", "battery_drain_rate", "battery_charge_rate"], scenario.robots[i])
 		

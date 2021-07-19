@@ -13,5 +13,8 @@
 		[[2,7],[0,12],
 		[5,4]]
     ],
-	"environment": "res://environments/new_environment.json"
+	"environment": "res://environments/env_6_machines.json",
+	"jobshop": "res://jobshop/instances/ft06.txt",
+	
+	
 }
