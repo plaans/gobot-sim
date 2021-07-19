@@ -77,6 +77,7 @@ func get_absolute_path(file_path: String)->String:
 		dir.change_dir(directory_path)
 		
 		absolute_path = dir.get_current_dir() + "/" + file_name
+		print( absolute_path)
 	
 	return absolute_path
 
@@ -208,11 +209,12 @@ func load_scenario(file_path : String):
 			machine.processes.processes = [Process.new(k+1)]
 			
 		#load the file and parse it
-		var job_shop_file = scenario.jobshop
+		var job_shop_path = scenario.jobshop
+		var jobshop_absolute_path = get_absolute_path(job_shop_path)
 		var file = File.new()
-		var open_error = file.open(job_shop_file, File.READ) 
+		var open_error = file.open(jobshop_absolute_path, File.READ) 
 		if open_error:
-			Logger.log_error("Error opening file %s (Error code %s)" % [job_shop_file, open_error])
+			Logger.log_error("Error opening file %s (Error code %s)" % [jobshop_absolute_path, open_error])
 			return
 		var jobshop_content = file.get_as_text()
 		var lines = jobshop_content.split("\n")
