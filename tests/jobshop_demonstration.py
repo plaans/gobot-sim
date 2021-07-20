@@ -13,7 +13,8 @@ class OtherTest(unittest.TestCase):
         
         self.sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", " Simulation-Factory-Godot/simu/simulation.pck",
             "--scenario", os.environ["GITHUB_WORKSPACE"] + "/simu/scenarios/new_scenario_with_jobshop.json", 
-            "--environment", os.environ["GITHUB_WORKSPACE"] + "/simu/environments/env_6_machines.json"])
+            "--environment", os.environ["GITHUB_WORKSPACE"] + "/simu/environments/env_6_machines.json",
+            "--jobshop", os.environ["GITHUB_WORKSPACE"] + "/simu/jobshop/instances/ft06.txt"])
 
         self.assertTrue(self.client.wait_for_server(10))
 
@@ -75,8 +76,6 @@ class OtherTest(unittest.TestCase):
             while line:
                 lines_split.append(line.split(" "))
                 line = f.readline()
-        
-        print( lines_split)
 
         self.nb_jobs=int(lines_split[1][0])
         self.nb_machines=int(lines_split[1][1])
@@ -95,13 +94,13 @@ class OtherTest(unittest.TestCase):
                 new_array.append(int(value))
             self.machines.append(new_array)
 
-        pprint.pprint( "times : {}".format(self.times))
-        pprint.pprint( "machines : {}".format(self.machines))
+        #pprint.pprint( "times : {}".format(self.times))
+        #pprint.pprint( "machines : {}".format(self.machines))
 
 
     def run_solver(self):
         subprocess.run(["aries/target/release/jobshop",
-        os.environ["GITHUB_WORKSPACE"] + "/simu/jobshop/instances/ft06.txt", "-o", "solution.txt"])
+        os.environ["GITHUB_WORKSPACE"] + "/simu/jobshop/instances/ft06.txt", "-o", "solution.txt"], stdout=subprocess.PIPE)
 
         self.all_machines_order = []
         with open('solution.txt') as f:
@@ -117,7 +116,7 @@ class OtherTest(unittest.TestCase):
                 self.all_machines_order.append(machine_order)
 
 
-        print( self.all_machines_order)
+        #print( self.all_machines_order)
 
         
 
