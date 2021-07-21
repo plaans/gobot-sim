@@ -110,7 +110,7 @@ texture={
 
 [layer_names]
 
-2d_physics/layer_2="Stand detection for pickup"
+2d_physics/layer_2="Belt detection for pick and place"
 
 [rendering]
 

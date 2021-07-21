@@ -21,7 +21,7 @@ func _ready():
 	if environment_file != "":
 		load_environment(environment_file)
 	
-	var scenario_file = get_arg(arguments,"--scenario","res://scenarios/new_scenario_with_jobshop.json" )
+	var scenario_file = get_arg(arguments,"--scenario","res://scenarios/new_scenario_with_environment.json" )
 	load_scenario(scenario_file)
 	
 	var pickup_radius = float(get_arg(arguments,"--pickup-radius",500 ))
