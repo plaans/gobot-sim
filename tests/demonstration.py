@@ -1,9 +1,23 @@
-import time
 import unittest
+import subprocess
+import os
+
+from ..clients.python_client.CompleteClient import CompleteClient
 
 from .SimulationTestBase import SimulationTestBase
 
 class Demonstration(SimulationTestBase):
+
+    def setUp(self):
+        self.client = CompleteClient("localhost",10000)
+        print( "OK")
+        
+        self.sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", " Simulation-Factory-Godot/simu/simulation.pck",
+            "--scenario", os.environ["GITHUB_WORKSPACE"] + "/simu/scenarios/new_scenario.json",
+            "--environment", os.environ["GITHUB_WORKSPACE"] + "/simu/environments/new_environment.json",
+            "--robot_controller", "teleport", "--time_scale", "3"])
+
+        self.assertTrue(self.client.wait_for_server(10))
 
     def test_demo(self):
         # demo taking care of processing and delivering every package available

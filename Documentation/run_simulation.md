@@ -16,4 +16,10 @@ If running the project without exporting it, download the Godot executable (eith
 
 - `--environment` followed by the file to use as an environment, overriding the environment defined in the scenario
 
+- `--jobshop` followed by a file defining a jobshop instance to use the simulation in jobshop mode
+
+- `--time_scale` to change the speed of the simulation (value is a float, with 1 being the default speed)
+
+- `--robot_controller` to choose the controller used for robot movement, can be "none" for no local collision avoidance, "PF" for local collision avoidance using potential fields, and "teleport" for the robot to instantaneously teleport to the destination
+  
 If the project has been exported, either directly run the executable obtained, or use the same command as before but instead of specifying the project path with `--path` use `--main-pack` to specify the package file obtained when exporting (.pck file). In both cases the same arguments as before can be used (`--scenario`, `--port`, etc.)
