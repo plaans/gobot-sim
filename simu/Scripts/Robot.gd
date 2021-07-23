@@ -40,7 +40,7 @@ var velocity : Vector2 = Vector2.ZERO # Set when doing a movement, manipulated b
 # Controller
 export(NodePath) var controller_path = "PFController"
 #onready var _Controller: Node2D = get_node_or_null(controller_path)
-onready var _Controller: Node2D 
+var _Controller: Node2D 
 # Other Nodes
 onready var _Raycast : RayCast2D = $RayCast2D
 onready var _Progress = $Sprite/TextureProgress
@@ -232,9 +232,9 @@ func move_to(point: Vector2, speed: float):
 	# let the controller handle the motion
 	if _teleport:
 		position = point
-	elif has_controller():
-		_Controller.target_point = point
 	else:
+		if has_controller():
+			_Controller.target_point = point
 		var new_vector = point - self.global_position
 		do_move(new_vector.angle(), speed, new_vector.length() / speed)
 

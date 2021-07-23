@@ -6,7 +6,7 @@ class NavigationTests(SimulationTestBase):
 
     def test_do_move(self):
         #get the start position which will be used to compute the expected final position
-        self.client.StateClient.wait_next_dynamic_update(timeout=10)
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state : 'robot0' in state and  'Robot.coordinates' in state['robot0'], timeout=10))
         start_position = self.client.StateClient.robot_coordinates('robot0')
 
         angle = 0

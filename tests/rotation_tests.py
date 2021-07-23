@@ -6,7 +6,7 @@ class RotationTests(SimulationTestBase):
 
     def test_do_rotation(self):
         #get the start rotation which will be used to compute the expected final rotation
-        self.client.StateClient.wait_next_dynamic_update(timeout=10)
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state : 'robot0' in state and  'Robot.rotation' in state['robot0'], timeout=10))
         current_rotation = self.client.StateClient.robot_rotation('robot0')
              
         speed = -0.3

@@ -21,11 +21,11 @@ func _ready():
 	if time_scale!=null:
 		Engine.time_scale = float(time_scale)
 		
-	robot_controller = get_arg(arguments,"--robot_controller",null ) #the variable will be used when robots are initialized
-	if robot_controller!=null and not (robot_controller in ["none", "PF", "teleport"]):
+	robot_controller = get_arg(arguments,"--robot_controller","PF" ) #the variable will be used when robots are initialized
+	if not (robot_controller in ["none", "PF", "teleport"]):
 		Logger.log_warning("Invalid value for robot_controller, ignoring it")
 		robot_controller = null
-
+	
 		
 		
 	# Uses the tilemap defined in-engine if no environment is provided
