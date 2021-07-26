@@ -8,7 +8,7 @@ from .SimulationTestBase import SimulationTestBase
 class StateTest(SimulationTestBase):
 
     def test_package_state(self):
-        self.client.StateClient.wait_for_message('Package.instance', timeout=10)
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state : 'package0' in state, timeout=10))
 
         #check list of packages is a list and is not empty
         package_list = self.client.StateClient.packages_list()
@@ -21,13 +21,13 @@ class StateTest(SimulationTestBase):
         self.assertEqual(self.client.StateClient.instance_type(package), 'Package.instance')
 
         #wait for package location information to be received since it comes after the first dynamic update
-        self.client.StateClient.wait_for_message('Package.location', timeout=10)
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state : 'package0' in state and 'Package.location' in state['package0'], timeout=10))
 
         self.assertEqual(self.client.StateClient.package_location(package), 'input_machine0')
         self.assertEqual(self.client.StateClient.package_processes_list(package), [[0,10],[1,5]])
 
     def test_robot_state(self):
-        self.client.StateClient.wait_for_message('Robot.instance', timeout=10)
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state : 'robot0' in state, timeout=10))
         self.client.StateClient.wait_next_dynamic_update(timeout=10)
 
         #check list of robots
@@ -50,7 +50,7 @@ class StateTest(SimulationTestBase):
 
 
     def test_machine_state(self):
-        self.client.StateClient.wait_for_message('Machine.instance', timeout=10)
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state : 'machine0' in state, timeout=10))
         self.client.StateClient.wait_next_dynamic_update(timeout=10)
 
         #check list of machines
@@ -69,7 +69,7 @@ class StateTest(SimulationTestBase):
         self.assertEqual(self.client.StateClient.machine_processes_list(machine), [0,1,2])
         
     def test_belt_state(self):
-        self.client.StateClient.wait_for_message('Belt.instance', timeout=10)
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state : 'belt0' in state, timeout=10))
         self.client.StateClient.wait_next_dynamic_update(timeout=10)
 
         #check list of belts
@@ -88,7 +88,7 @@ class StateTest(SimulationTestBase):
         self.assertEqual(self.client.StateClient.belt_packages_list(belt), [])
         
     def test_parking_area_state(self):
-        self.client.StateClient.wait_for_message('Parking_area.instance', timeout=10)
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state : 'parking_area0' in state, timeout=10))
         self.client.StateClient.wait_next_dynamic_update(timeout=10)
 
         #check list of parking_areas
@@ -109,7 +109,7 @@ class StateTest(SimulationTestBase):
         self.assertEqual(self.client.StateClient.parking_area_cells(parking_area), expected_cells)
 
     def test_interact_area_state(self):
-        self.client.StateClient.wait_for_message('Interact_area.instance', timeout=10)
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state : 'interact_area0' in state, timeout=10))
 
         self.client.StateClient.wait_next_dynamic_update(timeout=10)
 

@@ -39,13 +39,15 @@ var velocity : Vector2 = Vector2.ZERO # Set when doing a movement, manipulated b
 
 # Controller
 export(NodePath) var controller_path = "PFController"
-onready var _Controller: Node2D = get_node_or_null(controller_path)
+#onready var _Controller: Node2D = get_node_or_null(controller_path)
+var _Controller: Node2D 
 # Other Nodes
 onready var _Raycast : RayCast2D = $RayCast2D
 onready var _Progress = $Sprite/TextureProgress
 onready var _Navigation = get_tree().get_nodes_in_group("navigation").front()
 # Battery gradient
 export var progress_gradient: Gradient = preload("res://Assets/progress_gradient.tres")
+var _teleport = false
 
 # Debug
 export(float) var points_spacing = 3 # px
@@ -57,14 +59,22 @@ func _ready():
 	
 	if !_Navigation:
 		Logger.log_error("No navigation available for %s - global motion planning will be disabled"%robot_name)
-	if !_Controller:
-		Logger.log_error("No controller defined for %s - local collision avoidance will be disabled"%robot_name)
-	
+#	if !_Controller:
+#		Logger.log_error("No controller defined for %s - local collision avoidance will be disabled"%robot_name)
+
 	#generate a name 
 	robot_name = ExportManager.register_new_node(self, "robot")
 	
 	ExportManager.add_export_static(self)
 	ExportManager.add_export_dynamic(self)
+	
+func set_controller(robot_controller):
+	if robot_controller == "PF":
+		_Controller = get_node_or_null("PFController")
+	elif robot_controller == "none":
+		_Controller = null
+	elif robot_controller == "teleport":
+		_teleport = true
 
 func _physics_process(delta):
 	if navigating:
@@ -220,26 +230,32 @@ func rotate_to(target_angle: float, speed: float):
 func move_to(point: Vector2, speed: float):
 	# In the case the robot has local collision avoidance,
 	# let the controller handle the motion
-	if has_controller():
-		_Controller.target_point = point
-	var new_vector = point - self.global_position
-	do_move(new_vector.angle(), speed, new_vector.length() / speed)
+	if _teleport:
+		position = point
+	else:
+		if has_controller():
+			_Controller.target_point = point
+		var new_vector = point - self.global_position
+		do_move(new_vector.angle(), speed, new_vector.length() / speed)
 
 func navigate_to(point: Vector2, speed: float = 50):
-	if !_Navigation:
-		Logger.log_warning("No navigation available - cancelling command")
-		Communication.command_result(robot_name, "navigate_to", "Could not complete navigate_to command because no navigation is available")
-		return
-	# Stop current navigation
-	stop_navigate()
-	# Setup path variables
-	nav_path = _Navigation.get_simple_path(global_position, point)
-	real_nav_path = PoolVector2Array([global_position])
-	# Start navigating
-	navigating = true
-	current_nav_point = 0
-	move_speed = speed
-	emit_signal("action_done")
+	if _teleport:
+		position = point
+	else:
+		if !_Navigation:
+			Logger.log_warning("No navigation available - cancelling command")
+			Communication.command_result(robot_name, "navigate_to", "Could not complete navigate_to command because no navigation is available")
+			return
+		# Stop current navigation
+		stop_navigate()
+		# Setup path variables
+		nav_path = _Navigation.get_simple_path(global_position, point)
+		real_nav_path = PoolVector2Array([global_position])
+		# Start navigating
+		navigating = true
+		current_nav_point = 0
+		move_speed = speed
+		emit_signal("action_done")
 	
 func navigate_to_cell(tile_x, tile_y, speed: float = 50):
 	var target_position = ExportManager.tiles_to_pixels([tile_x, tile_y])

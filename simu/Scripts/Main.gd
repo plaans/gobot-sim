@@ -9,6 +9,8 @@ export (PackedScene) var RobotScene = preload("res://Scenes/Robot.tscn")
 var is_jobshop = false
 var jobshop_path
 
+var robot_controller
+
 func _ready():	
 
 	#values of arguments
@@ -17,6 +19,17 @@ func _ready():
 	var rng_seed = int(get_arg(arguments,"--seed",0 ))
 	seed(rng_seed)
 	
+	var time_scale = get_arg(arguments,"--time_scale",null )
+	if time_scale!=null:
+		Engine.time_scale = float(time_scale)
+		
+	robot_controller = get_arg(arguments,"--robot_controller","PF" ) #the variable will be used when robots are initialized
+	if not (robot_controller in ["none", "PF", "teleport"]):
+		Logger.log_warning("Invalid value for robot_controller, ignoring it")
+		robot_controller = null
+	
+		
+		
 	# Uses the tilemap defined in-engine if no environment is provided
 	# Note: current environment is also defined in res://environments/new_environment.json for test purposes
 	var environment_file = get_arg(arguments,"--environment","")
@@ -225,7 +238,7 @@ func load_scenario(file_path : String):
 		
 
 	else:
-					
+				
 		# Machines
 		setup_machines_of_type("machines", machines, scenario)
 		# InputMachines
@@ -251,9 +264,13 @@ func load_scenario(file_path : String):
 		# Set optional parameters
 		set_optional_params(new_robot, ["max_battery", "battery_drain_rate", "battery_charge_rate"], scenario.robots[i])
 		
+		new_robot.set_controller(robot_controller)
+		
 		add_child(new_robot)
+		
+		
 		if i==0:
-			_Robot = new_robot
+			_Robot = new_robot #to control the first robot with mouse / keyboard
 			
 
 func load_jobshop(machines, input_machines):
@@ -316,7 +333,6 @@ func load_jobshop(machines, input_machines):
 				machine.packages_templates = packages_processes_list
 				set_optional_params(machine, ["time_step"], {"time_step" : 0})
 				#set the time_step to 0 for all packages to be generated at the same time
-
 
 func load_environment(file_path : String):
 	if file_path != "":

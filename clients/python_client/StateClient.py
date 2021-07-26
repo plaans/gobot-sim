@@ -7,11 +7,8 @@ class StateClient():
 	def __init__(self):
 		self.state = {}
 		self.names_list_by_category = {}
-		
-		self.waited_attribute = None 
-		self.waited_instance_name = None 
-		self.waited_value = None 
-		self.wait_message_event = threading.Event() #will be set when the StateClient when the token is received
+
+		self.waited_conditions = []
 
 		self.wait_dynamic_update_event = threading.Event()
 
@@ -40,23 +37,22 @@ class StateClient():
 				self.state[name] = {}
 			self.state[name][attribute] = value
 
-
-			self.check_waited_message(line)
-
-
+		self.check_conditions()
 
 
 		# pprint.pprint(self.state)
 	
 
-	def check_waited_message(self, line):
-		if self.waited_attribute != None and line[0]==self.waited_attribute:
-			instance_name_condition = self.waited_instance_name == None or line[1]==self.waited_instance_name
-			value_condition = self.waited_value == None or line[2]==self.waited_value
-
-			if instance_name_condition and value_condition :
-				self.waited_attribute = None
-				self.wait_message_event.set()
+	def check_conditions(self):
+		k = 0
+		while k < len(self.waited_conditions):
+			condition = self.waited_conditions[k]
+			condition_function, event=condition
+			if condition_function(self.state):
+				event.set()
+				self.waited_conditions.remove(condition)
+			else:
+				k+=1
 
 
 	def get_data(self, key : str, name : str):
@@ -64,15 +60,13 @@ class StateClient():
 			return self.state[name][key]
 
 
-
-	def wait_for_message(self, attribute, instance_name = None, value = None, timeout = 60):
-		#waits until the StateClient receives a message containing token 
-		#for example to wait until a robot instance is declared token would be Robot.instance
-		self.wait_message_event.clear()
-		self.waited_attribute = attribute
-		self.waited_instance_name = instance_name
-		self.waited_value = value
-		return self.wait_message_event.wait(timeout)
+	def wait_condition(self, condition_function, timeout = 60):
+		#condition_function must be a function which takes as argument a dictionary (reprenting the state)
+		#and outputs a boolean with the wait ending when the function returns True 
+		wait_event = threading.Event()
+		self.waited_conditions.append((condition_function, wait_event))
+		
+		return wait_event.wait(timeout)
 		
 	def wait_next_dynamic_update(self, timeout = 60):
 		#waits until the StateClient receives a message containing token 
