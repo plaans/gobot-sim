@@ -2,7 +2,6 @@ import time
 import unittest
 import subprocess
 import os
-import pprint
 
 from ..clients.python_client.CompleteClient import CompleteClient
 
@@ -20,7 +19,6 @@ class OtherTest(unittest.TestCase):
         self.assertTrue(self.client.wait_for_server(10))
 
     def tearDown(self):
-        time.sleep(100)
         self.client.kill()
         self.sim.kill()
         self.sim.wait()
@@ -49,11 +47,12 @@ class OtherTest(unittest.TestCase):
                     is_ready_to_pick = self.client.StateClient.belt_type(self.client.StateClient.package_location(package_name)) == "output"
 
                     if is_ready_to_pick :
-                        #self.carry_to_machine(package_name, machine_name)
+                        self.carry_to_machine(package_name, output_machine)
                         jobs_progressions[package_id] +=1
 
                         #if all package are done wait for this final one to be processed by the output_machine
                         if jobs_progressions==final_progressions:
+                            self.assertTrue(self.client.StateClient.wait_condition(lambda state :  state[package_name]['Package.location'] == output_machine, timeout=100))
                             self.assertTrue(self.client.StateClient.wait_condition(lambda state : state[output_machine]['Machine.progress_rate'] == 1, timeout=100))
 
                 elif jobs_progressions[package_id] < self.nb_machines:
@@ -84,35 +83,6 @@ class OtherTest(unittest.TestCase):
             if current_time - start_time >= timeout:
                 break
             time.sleep(0.1)
-
-        # while jobs_progressions!=final_progressions:
-        #     for k in range(self.nb_machines):
-        #         #check next task for each machines except machines where all tasks have been done
-        #         if machines_progressions[k] < self.nb_jobs:
-        #             machine_order = self.all_machines_order[k]
-        #             next_task = machine_order[machines_progressions[k]]
-                    
-
-        #             package_id = next_task[0] 
-        #             package_name = self.package_name(package_id)
-        #             task_nb = next_task[1]
-
-        #             #check if this task is the next one to do for this package
-        #             is_ready_for_task = jobs_progressions[package_id] == task_nb
-        #             #check that the package is ready to pick (if it is on an output belt)
-        #             is_ready_to_pick = self.client.StateClient.belt_type(self.client.StateClient.package_location(package_name)) == "output"
-
-        #             if is_ready_for_task and is_ready_to_pick:
-        #                 machine_name = self.machine_name(k)
-        #                 self.carry_to_machine(package_name, machine_name)
-        #                 machines_progressions[k] +=1
-        #                 jobs_progressions[package_id] +=1
-
-
-        #     current_time = time.time()
-        #     if current_time - start_time >= timeout:
-        #         break
-        #     time.sleep(0.1)
         
     def package_name(self, package_id):
         return "package" + str(package_id)
@@ -146,10 +116,6 @@ class OtherTest(unittest.TestCase):
                 new_array.append(int(value))
             self.machines.append(new_array)
 
-        #pprint.pprint( "times : {}".format(self.times))
-        #pprint.pprint( "machines : {}".format(self.machines))
-
-
     def run_solver(self):
         subprocess.run(["aries/target/release/jobshop",
         os.environ["GITHUB_WORKSPACE"] + "/simu/jobshop/instances/ft06.txt", "-o", "solution.txt"], stdout=subprocess.PIPE)
@@ -166,11 +132,6 @@ class OtherTest(unittest.TestCase):
                     machine_order.append((job, task))
                 line = f.readline()   
                 self.all_machines_order.append(machine_order)
-
-
-        #print( self.all_machines_order)
-
-        
 
 
 
@@ -210,7 +171,6 @@ class OtherTest(unittest.TestCase):
         self.assertTrue(self.client.ActionClientManager.wait_result(action_id, timeout=10))
 
     def deliver_package(self, machine):
-        #takes as argument a package carried by the robot and a machine to deliver it to 
 
         belt_in = self.client.StateClient.machine_input_belt(machine)
         self.position_robot_to_belt(belt_in)
