@@ -47,12 +47,19 @@ class StateClient():
 		k = 0
 		while k < len(self.waited_conditions):
 			condition = self.waited_conditions[k]
-			condition_function, event=condition
-			if condition_function(self.state):
+			condition_function, event, _=condition
+			try:
+				if condition_function(self.state):
+					condition[2] = True
+					event.set()
+					self.waited_conditions.remove(condition)
+				else:
+					k+=1
+			except:
+				print( "Exception raised while checking for a condition")
+				condition[2] = False
 				event.set()
 				self.waited_conditions.remove(condition)
-			else:
-				k+=1
 
 
 	def get_data(self, key : str, name : str):
@@ -62,11 +69,17 @@ class StateClient():
 
 	def wait_condition(self, condition_function, timeout = 60):
 		#condition_function must be a function which takes as argument a dictionary (reprenting the state)
-		#and outputs a boolean with the wait ending when the function returns True 
+		#and outputs a boolean, with the wait ending when the function returns True 
 		wait_event = threading.Event()
-		self.waited_conditions.append((condition_function, wait_event))
+		condition = [condition_function, wait_event, True]
+		self.waited_conditions.append(condition)
 		
-		return wait_event.wait(timeout)
+		if wait_event.wait(timeout):
+			result = condition[2]
+			return result
+		else:
+			print( "Timeout while waiting for a condition")
+			return False
 		
 	def wait_next_dynamic_update(self, timeout = 60):
 		#waits until the StateClient receives a message containing token 
