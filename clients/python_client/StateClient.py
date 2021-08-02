@@ -9,6 +9,7 @@ class StateClient():
 		self.names_list_by_category = {}
 
 		self.waited_conditions = []
+		self.callback_package_ready = None
 
 		self.wait_dynamic_update_event = threading.Event()
 
@@ -35,6 +36,22 @@ class StateClient():
 			
 			if name not in self.state:
 				self.state[name] = {}
+
+			if self.callback_package_ready!=None:
+				#check if a package became ready
+				if attribute == "Package.location" and attribute in self.state[name]:
+					previous_value = self.state[name][attribute]
+					#new_value_is_output_belt = 'Belt.belt_type' in self.state[value] and self.state[value]['Belt.belt_type'] == "output"
+
+					new_value_is_output_belt = (self.belt_type(value) == "output") #will return None if not a belt
+
+					previous_value = self.package_location(name) #will return None if does not exist
+
+					if new_value_is_output_belt and value != previous_value:
+						#if package is on a output_belt and was at a different location previously it has become ready
+						self.callback_package_ready(name)
+
+
 			self.state[name][attribute] = value
 
 		self.check_conditions()
@@ -47,12 +64,19 @@ class StateClient():
 		k = 0
 		while k < len(self.waited_conditions):
 			condition = self.waited_conditions[k]
-			condition_function, event=condition
-			if condition_function(self.state):
+			condition_function, event, _=condition
+			try:
+				if condition_function(self.state):
+					condition[2] = True
+					event.set()
+					self.waited_conditions.remove(condition)
+				else:
+					k+=1
+			except:
+				print( "Exception raised while checking for a condition")
+				condition[2] = False
 				event.set()
 				self.waited_conditions.remove(condition)
-			else:
-				k+=1
 
 
 	def get_data(self, key : str, name : str):
@@ -62,17 +86,26 @@ class StateClient():
 
 	def wait_condition(self, condition_function, timeout = 60):
 		#condition_function must be a function which takes as argument a dictionary (reprenting the state)
-		#and outputs a boolean with the wait ending when the function returns True 
+		#and outputs a boolean, with the wait ending when the function returns True 
 		wait_event = threading.Event()
-		self.waited_conditions.append((condition_function, wait_event))
+		condition = [condition_function, wait_event, True]
+		self.waited_conditions.append(condition)
 		
-		return wait_event.wait(timeout)
+		if wait_event.wait(timeout):
+			result = condition[2]
+			return result
+		else:
+			print( "Timeout while waiting for a condition")
+			return False
 		
 	def wait_next_dynamic_update(self, timeout = 60):
 		#waits until the StateClient receives a message containing token 
 		#for example to wait until a robot instance is declared token would be Robot.instance
 		self.wait_dynamic_update_event.clear()
 		return self.wait_dynamic_update_event.wait(timeout)
+
+	def set_callback_package_ready(self, callback_function):
+		self.callback_package_ready = callback_function
 
 	# getter functions, that access the state and return some information
 	def robot_coordinates(self, name : str) -> List[float]:
