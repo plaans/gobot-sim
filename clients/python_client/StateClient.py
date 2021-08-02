@@ -9,6 +9,7 @@ class StateClient():
 		self.names_list_by_category = {}
 
 		self.waited_conditions = []
+		self.callback_package_ready = None
 
 		self.wait_dynamic_update_event = threading.Event()
 
@@ -35,6 +36,22 @@ class StateClient():
 			
 			if name not in self.state:
 				self.state[name] = {}
+
+			if self.callback_package_ready!=None:
+				#check if a package became ready
+				if attribute == "Package.location" and attribute in self.state[name]:
+					previous_value = self.state[name][attribute]
+					#new_value_is_output_belt = 'Belt.belt_type' in self.state[value] and self.state[value]['Belt.belt_type'] == "output"
+
+					new_value_is_output_belt = (self.belt_type(value) == "output") #will return None if not a belt
+
+					previous_value = self.package_location(name) #will return None if does not exist
+
+					if new_value_is_output_belt and value != previous_value:
+						#if package is on a output_belt and was at a different location previously it has become ready
+						self.callback_package_ready(name)
+
+
 			self.state[name][attribute] = value
 
 		self.check_conditions()
@@ -86,6 +103,9 @@ class StateClient():
 		#for example to wait until a robot instance is declared token would be Robot.instance
 		self.wait_dynamic_update_event.clear()
 		return self.wait_dynamic_update_event.wait(timeout)
+
+	def set_callback_package_ready(self, callback_function):
+		self.callback_package_ready = callback_function
 
 	# getter functions, that access the state and return some information
 	def robot_coordinates(self, name : str) -> List[float]:

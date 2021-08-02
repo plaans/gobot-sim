@@ -6,7 +6,7 @@ import os
 
 from ..clients.python_client.CompleteClient import CompleteClient
 
-class OtherTest(unittest.TestCase):
+class JobshopDemonstration():
 
     def setUp(self):
         self.client = CompleteClient("localhost",10000)
@@ -16,32 +16,48 @@ class OtherTest(unittest.TestCase):
             "--environment", os.environ["GITHUB_WORKSPACE"] + "/simu/environments/env_6_machines.json",
             "--jobshop", os.environ["GITHUB_WORKSPACE"] + "/simu/jobshop/instances/ft06.txt",
             "--robot_controller", "teleport",])
+            #"--robot_controller", "PF",])
 
-        self.assertTrue(self.client.wait_for_server(10))
+        assert self.client.wait_for_server(10)
+
+        self.stop_threads = False
+        self.threads = []
 
     def tearDown(self):
+        
+        #end remaining thread in case it was not already done
         self.stop_threads = True
         for thread in self.threads:
-            thread.join()
-
+            try:
+                thread.join()
+            except:
+                pass
+        
         self.client.kill()
         self.sim.kill()
         self.sim.wait()
 
-    def test_jobshop(self):
-        self.run_solver()
-        self.load_jobshop()
+    def run_demonstration(self):
+        self.setUp()
 
+        try:
+            self.run_solver()
+            self.load_jobshop()
+            self.apply_solution()
+            
+        finally:
+            self.tearDown()
+
+    def apply_solution(self):
+        #main loop where commands will be send to control the robots according to the solution given by the solver
         #wait until static information on robots is received (supposed to be received at same time for all robots so wait only for first robot)
-        self.assertTrue(self.client.StateClient.wait_condition(lambda state : 'robot0' in state, timeout=10))
+        assert self.client.StateClient.wait_condition(lambda state : 'robot0' in state, timeout=10)
         self.robots_list = self.client.StateClient.robots_list()
 
-        self.stop_threads = False
         self.lock = threading.Lock()   
         self.commands_to_be_done = []
         self.new_command_available = threading.Event()
 
-        self.threads = []
         for robot in self.robots_list:
             new_thread = threading.Thread(target=self.robot_thread, args=[robot])
             new_thread.daemon = True
@@ -52,16 +68,16 @@ class OtherTest(unittest.TestCase):
         self.machines_progressions = [0 for k in range(self.nb_machines)] #id of next package in list of package to be processed by this machine
 
         self.jobs_progressions = [0 for k in range(self.nb_jobs)] #for each job (which corresponds to a package in the simulation), 
-                                                             #id of the next task to be done, or a value of nb_machines if all tasks done
-                                                             # and nb_machines+1 if the package has been delivered
-        final_progressions = [self.nb_machines+1 for k in range(self.nb_jobs)] 
+                                                            #id of the next task to be done, or a value of nb_machines if all tasks done
+                                                            # and nb_machines+1 if the package has been delivered
+        self.final_progressions = [self.nb_machines+1 for k in range(self.nb_jobs)] 
         timeout = 500
         start_time= time.time()
 
         self.packages_task_in_progress = [False for k in range(self.nb_jobs)] #used to know if each package is currently waiting to have a task done
-                                                                             #which if true means in the queue of task to be done by robot there is one linked to this package
+                                                                            #which if true means in the queue of task to be done by robot there is one linked to this package
 
-        while self.jobs_progressions!=final_progressions:
+        while self.jobs_progressions!=self.final_progressions:
             for package_id in range(self.nb_jobs):
                 #check next task for each jobs except job where all tasks have been done and package have been delivered
                 if not(self.packages_task_in_progress[package_id]):
@@ -76,14 +92,9 @@ class OtherTest(unittest.TestCase):
                         if is_ready_to_pick :
                             #self.carry_to_machine(package_name, output_machine)
                             self.packages_task_in_progress[package_id] = True
-                            self.commands_to_be_done.append((package_name, output_machine))
+                            self.commands_to_be_done.append((package_id, -1))
                             self.new_command_available.set()
-
-                            #if all package are done wait for this final one to be processed by the output_machine
-                            if self.jobs_progressions==final_progressions:
-                                self.assertTrue(self.client.StateClient.wait_condition(lambda state :  state[package_name]['Package.location'] == output_machine, timeout=0))
-                                self.assertTrue(self.client.StateClient.wait_condition(lambda state : state[output_machine]['Machine.progress_rate'] == 1, timeout=0))
-
+                        
                     elif self.jobs_progressions[package_id] < self.nb_machines:
                         #case of standard task where the package needs to be delivered to the corresponding machine
                         package_name = self.package_name(package_id)
@@ -113,6 +124,10 @@ class OtherTest(unittest.TestCase):
                 break
             time.sleep(0.1)
 
+        self.stop_threads = True
+        for thread in self.threads:
+                thread.join()
+
     def robot_thread(self, robot_name):
         while not(self.stop_threads) and self.new_command_available.wait(10):
             next_command = None
@@ -138,6 +153,13 @@ class OtherTest(unittest.TestCase):
                 if machine_id!=-1:
                     self.machines_progressions[machine_id] +=1
                     self.packages_task_in_progress[package_id] = False
+                else:
+                    #case of delivery, check if was last one
+                    if self.jobs_progressions==self.final_progressions:
+                        #if all package are done wait for this final one to be processed by the output_machine
+                        assert self.client.StateClient.wait_condition(lambda state :  state[package_name]['Package.location'] == machine_name, timeout=100)
+                        assert self.client.StateClient.wait_condition(lambda state : state[machine_name]['Machine.progress_rate'] == 1, timeout=100)
+
         
     def package_name(self, package_id):
         return "package" + str(package_id)
@@ -199,18 +221,18 @@ class OtherTest(unittest.TestCase):
     def charge(self, robot):
         #makes the robot go to a charging area and wait until battery is full
         action_id = self.client.ActionClientManager.run_command(['go_charge',robot])
-        self.assertTrue(self.client.ActionClientManager.wait_result(action_id, timeout=10))
+        assert self.client.ActionClientManager.wait_result(action_id, timeout=10)
 
-        self.assertTrue(self.client.StateClient.wait_condition(lambda state : state[robot]['Robot.battery'] == 1, timeout=10))
+        assert self.client.StateClient.wait_condition(lambda state : state[robot]['Robot.battery'] == 1, timeout=10)
 
     def position_robot_to_belt(self, robot, belt):
         #takes as argument a belt
         #makes the robot go to an interact area of the belt and face the belt
         interact_area = self.client.StateClient.belt_interact_areas(belt)[0]
         action_id = self.client.ActionClientManager.run_command(['navigate_to_area',robot, interact_area])
-        self.assertTrue(self.client.ActionClientManager.wait_result(action_id, timeout=10))
+        assert self.client.ActionClientManager.wait_result(action_id, timeout=10)
         action_id = self.client.ActionClientManager.run_command(['face_belt',robot ,belt, 5])
-        self.assertTrue(self.client.ActionClientManager.wait_result(action_id, timeout=10))
+        assert self.client.ActionClientManager.wait_result(action_id, timeout=10)
 
     def carry_to_machine(self, robot, package, machine):
         if self.client.StateClient.robot_battery(robot)<0.4:
@@ -223,15 +245,16 @@ class OtherTest(unittest.TestCase):
         belt = self.client.StateClient.package_location(package)
         self.position_robot_to_belt(robot, belt)
         action_id = self.client.ActionClientManager.run_command(['pick_package',robot, package])
-        self.assertTrue(self.client.ActionClientManager.wait_result(action_id, timeout=10))
+        assert self.client.ActionClientManager.wait_result(action_id, timeout=10)
 
     def deliver_package(self, robot, machine):
 
         belt_in = self.client.StateClient.machine_input_belt(machine)
         self.position_robot_to_belt(robot, belt_in)
         action_id = self.client.ActionClientManager.run_command(['place',robot])
-        self.assertTrue(self.client.ActionClientManager.wait_result(action_id, timeout=10))
+        assert self.client.ActionClientManager.wait_result(action_id, timeout=10)
 
 
 if __name__ == '__main__':
-    unittest.main()      
+    demo = JobshopDemonstration()   
+    demo.run_demonstration()  
