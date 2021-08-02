@@ -1,16 +1,29 @@
-import time
 import unittest
+import subprocess
+import os
+
+from ..clients.python_client.CompleteClient import CompleteClient
 
 from .SimulationTestBase import SimulationTestBase
 
 class Demonstration(SimulationTestBase):
 
+    def setUp(self):
+        self.client = CompleteClient("localhost",10000)
+        
+        self.sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", " Simulation-Factory-Godot/simu/simulation.pck",
+            "--scenario", os.environ["GITHUB_WORKSPACE"] + "/simu/scenarios/new_scenario.json",
+            "--environment", os.environ["GITHUB_WORKSPACE"] + "/simu/environments/new_environment.json",
+            "--robot_controller", "teleport", "--time_scale", "3"])
+
+        self.assertTrue(self.client.wait_for_server(10))
+
     def test_demo(self):
         # demo taking care of processing and delivering every package available
 
         #wait for information on the first package to be received
-        self.client.StateClient.wait_for_message('Package.instance', timeout=10)
-        self.client.StateClient.wait_for_message('Package.location', timeout=10)
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state : 'package0' in state and  'Package.location' in state['package0'], timeout=10))
+        
         packages_list = self.client.StateClient.packages_list()
 
         #do each package one by one
@@ -50,7 +63,7 @@ class Demonstration(SimulationTestBase):
         action_id = self.client.ActionClientManager.run_command(['go_charge','robot0'])
         self.assertTrue(self.client.ActionClientManager.wait_result(action_id, timeout=10))
 
-        self.client.StateClient.wait_for_message('Robot.battery', instance_name = 'robot0', value=1, timeout=10)
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state : state['robot0']['Robot.battery'] == 1, timeout=10))
 
     def position_robot_to_belt(self, belt):
         #takes as argument a belt
@@ -72,7 +85,7 @@ class Demonstration(SimulationTestBase):
         if self.client.StateClient.instance_type(self.client.StateClient.package_location(package)) != "Belt.instance":
             machine = self.client.StateClient.package_location(package)
             belt = self.client.StateClient.machine_output_belt(machine)
-            self.client.StateClient.wait_for_message('Package.location', instance_name = package, value=belt, timeout=10)
+            self.assertTrue(self.client.StateClient.wait_condition(lambda state : state[package]['Package.location'] == belt, timeout=10))
 
         belt = self.client.StateClient.package_location(package)
         self.position_robot_to_belt(belt)
@@ -109,7 +122,7 @@ class Demonstration(SimulationTestBase):
 
         #wait for the machine to process the package
         belt_out = self.client.StateClient.machine_output_belt(machine)
-        self.client.StateClient.wait_for_message('Package.location', instance_name = package, value=belt_out, timeout=100)
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state : state[package]['Package.location'] == belt_out, timeout=100))
 
         #pick the package from the machine output belt
         self.position_robot_to_belt(belt_out)

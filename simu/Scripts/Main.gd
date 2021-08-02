@@ -6,6 +6,10 @@ onready var _WorldMap = $WorldMap
 
 var _Robot
 export (PackedScene) var RobotScene = preload("res://Scenes/Robot.tscn")
+var is_jobshop = false
+var jobshop_path
+
+var robot_controller
 
 func _ready():	
 
@@ -15,14 +19,42 @@ func _ready():
 	var rng_seed = int(get_arg(arguments,"--seed",0 ))
 	seed(rng_seed)
 	
+	var time_scale = get_arg(arguments,"--time_scale",null )
+	if time_scale!=null:
+		Engine.time_scale = float(time_scale)
+		
+	robot_controller = get_arg(arguments,"--robot_controller","PF" ) #the variable will be used when robots are initialized
+	if not (robot_controller in ["none", "PF", "teleport"]):
+		Logger.log_warning("Invalid value for robot_controller, ignoring it")
+		robot_controller = null
+	
+		
+		
 	# Uses the tilemap defined in-engine if no environment is provided
 	# Note: current environment is also defined in res://environments/new_environment.json for test purposes
 	var environment_file = get_arg(arguments,"--environment","")
 	if environment_file != "":
 		load_environment(environment_file)
 	
-	var scenario_file = get_arg(arguments,"--scenario","res://scenarios/new_scenario_with_jobshop.json" )
+	jobshop_path = get_arg(arguments,"--jobshop","" )
+	if jobshop_path != "" :
+		is_jobshop = true
+	
+	var scenario_file = get_arg(arguments,"--scenario","res://scenarios/new_scenario_with_environment.json" )
 	load_scenario(scenario_file)
+
+	
+#	if scenario_file!="" and jobshop_path!="":
+#		Logger.log_error("Arguments --scenario and --jobshop have both been specified")
+#	elif scenario_file=="" and jobshop_path=="":
+#		Logger.log_warning("Neither scenario or jobshop have been passed as argument, using a default scenario")
+#		var default_scenario="res://scenarios/new_scenario_with_jobshop.json"
+#		load_scenario(default_scenario)
+#	elif scenario_file!="":
+#		load_scenario(scenario_file)
+#	else:
+#		load_jobshop(jobshop_path)
+	
 	
 	var pickup_radius = float(get_arg(arguments,"--pickup-radius",500 ))
 	var robots_list = get_tree().get_nodes_in_group("robots")
@@ -77,6 +109,7 @@ func get_absolute_path(file_path: String)->String:
 		dir.change_dir(directory_path)
 		
 		absolute_path = dir.get_current_dir() + "/" + file_name
+		print( absolute_path)
 	
 	return absolute_path
 
@@ -199,20 +232,59 @@ func load_scenario(file_path : String):
 		else:
 			machines.append(machine)
 	
-	if scenario.has("jobshop"):
+	if is_jobshop:
 		#in that case load from the jobshop file specified
+		load_jobshop(machines, input_machines)
 		
-		#each machine has only one corresponding process
+
+	else:
+				
+		# Machines
+		setup_machines_of_type("machines", machines, scenario)
+		# InputMachines
+		if scenario.has("output_machines"):
+			setup_machines_of_type("input_machines", input_machines, scenario)
+		# OutputMachines
+		if scenario.has("input_machines"):
+			setup_machines_of_type("input_machines", input_machines, scenario)
+			
+		else:
+			# Can happen if:
+			# - it's an older scenario
+			# - the default parameters are enough
+			# - there is only one InputMachine
+			for machine in input_machines:
+				machine.packages_templates = scenario.packages
+	
+	# Robots
+	for i in range(scenario.robots.size()):
+		var new_robot = RobotScene.instance()
+		#new_robot.position = Vector2(scenario.robots[i].position[0], scenario.robots[i].position[1])
+		new_robot.position = ExportManager.meters_to_pixels(scenario.robots[i].position)
+		# Set optional parameters
+		set_optional_params(new_robot, ["max_battery", "battery_drain_rate", "battery_charge_rate"], scenario.robots[i])
+		
+		new_robot.set_controller(robot_controller)
+		
+		add_child(new_robot)
+		
+		
+		if i==0:
+			_Robot = new_robot #to control the first robot with mouse / keyboard
+			
+
+func load_jobshop(machines, input_machines):
+	#each machine has only one corresponding process
 		for k in range(len(machines)):
 			var machine = machines[k]
 			machine.processes.processes = [Process.new(k+1)]
 			
 		#load the file and parse it
-		var job_shop_file = scenario.jobshop
+		var jobshop_absolute_path = get_absolute_path(jobshop_path)
 		var file = File.new()
-		var open_error = file.open(job_shop_file, File.READ) 
+		var open_error = file.open(jobshop_absolute_path, File.READ) 
 		if open_error:
-			Logger.log_error("Error opening file %s (Error code %s)" % [job_shop_file, open_error])
+			Logger.log_error("Error opening file %s (Error code %s)" % [jobshop_absolute_path, open_error])
 			return
 		var jobshop_content = file.get_as_text()
 		var lines = jobshop_content.split("\n")
@@ -261,38 +333,6 @@ func load_scenario(file_path : String):
 				machine.packages_templates = packages_processes_list
 				set_optional_params(machine, ["time_step"], {"time_step" : 0})
 				#set the time_step to 0 for all packages to be generated at the same time
-
-	else:
-				
-		# Machines
-		setup_machines_of_type("machines", machines, scenario)
-		# InputMachines
-		if scenario.has("output_machines"):
-			setup_machines_of_type("input_machines", input_machines, scenario)
-		# OutputMachines
-		if scenario.has("input_machines"):
-			setup_machines_of_type("input_machines", input_machines, scenario)
-			
-		else:
-			# Can happen if:
-			# - it's an older scenario
-			# - the default parameters are enough
-			# - there is only one InputMachine
-			for machine in input_machines:
-				machine.packages_templates = scenario.packages
-	
-	# Robots
-	for i in range(scenario.robots.size()):
-		var new_robot = RobotScene.instance()
-		#new_robot.position = Vector2(scenario.robots[i].position[0], scenario.robots[i].position[1])
-		new_robot.position = ExportManager.meters_to_pixels(scenario.robots[i].position)
-		# Set optional parameters
-		set_optional_params(new_robot, ["max_battery", "battery_drain_rate", "battery_charge_rate"], scenario.robots[i])
-		
-		add_child(new_robot)
-		if i==0:
-			_Robot = new_robot
-
 
 func load_environment(file_path : String):
 	if file_path != "":

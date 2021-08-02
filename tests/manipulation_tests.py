@@ -6,13 +6,11 @@ from .SimulationTestBase import SimulationTestBase
 class ManipulationTests(SimulationTestBase):
 
     def test_pick(self):
-        self.client.StateClient.wait_for_message('Package.instance', timeout=10)
-
-        #get a package in the list of existing packages
-        self.target_package = self.client.StateClient.packages_list()[0]
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state : 'package0' in state, timeout=10))
+        self.target_package = 'package0'
 
         #wait until that package is on belt4 (the belt packages arrive on in the scenario and environment loaded)
-        self.client.StateClient.wait_for_message('Package.location', instance_name = self.target_package, value='belt4', timeout=10)
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state :  state['package0']['Package.location'] == 'belt4', timeout=10))
 
         belt = self.client.StateClient.package_location(self.target_package)
 
@@ -29,19 +27,17 @@ class ManipulationTests(SimulationTestBase):
         action_id = self.client.ActionClientManager.run_command(['pick','robot0'])
         self.assertTrue(self.client.ActionClientManager.wait_result(action_id, timeout=10))
 
-        self.client.StateClient.wait_for_message('Package.location', instance_name = self.target_package, value='robot0', timeout=10)
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state :  state[self.target_package]['Package.location'] == 'robot0', timeout=10))
 
         #check the package supposed to have been picked (first of the belt) has now the robot as location
         self.assertEqual(self.client.StateClient.package_location(self.target_package), 'robot0')
 
     def test_pick_package(self):
-        self.client.StateClient.wait_for_message('Package.instance', timeout=10)
-
-        #get a package in the list of existing packages
-        self.target_package = self.client.StateClient.packages_list()[0]
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state : 'package0' in state, timeout=10))
+        self.target_package = 'package0'
 
         #wait until that package is on belt4 (the belt packages arrive on in the scenario and environment loaded)
-        self.client.StateClient.wait_for_message('Package.location', instance_name = self.target_package, value='belt4', timeout=10)
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state :  state['package0']['Package.location'] == 'belt4', timeout=10))
 
         belt = self.client.StateClient.package_location(self.target_package)
 
@@ -56,7 +52,7 @@ class ManipulationTests(SimulationTestBase):
         action_id = self.client.ActionClientManager.run_command(['pick_package','robot0', self.target_package])
         self.assertTrue(self.client.ActionClientManager.wait_result(action_id, timeout=10))
 
-        time.sleep(0.5)
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state :  state[self.target_package]['Package.location'] == 'robot0', timeout=10))
 
         self.assertEqual(self.client.StateClient.package_location(self.target_package), 'robot0')
 
@@ -89,7 +85,7 @@ class ManipulationTests(SimulationTestBase):
         action_id = self.client.ActionClientManager.run_command(['place','robot0'])
         self.assertTrue(self.client.ActionClientManager.wait_result(action_id, timeout=10))
 
-        time.sleep(0.5)
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state :  state[self.target_package]['Package.location'] == machine_chosen, timeout=10))
 
         #check the package is now located in the machine it is supposed to be in
         self.assertEqual(self.client.StateClient.package_location(self.target_package), machine_chosen)

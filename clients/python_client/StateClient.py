@@ -7,11 +7,9 @@ class StateClient():
 	def __init__(self):
 		self.state = {}
 		self.names_list_by_category = {}
-		
-		self.waited_attribute = None 
-		self.waited_instance_name = None 
-		self.waited_value = None 
-		self.wait_message_event = threading.Event() #will be set when the StateClient when the token is received
+
+		self.waited_conditions = []
+		self.callback_package_ready = None
 
 		self.wait_dynamic_update_event = threading.Event()
 
@@ -38,25 +36,47 @@ class StateClient():
 			
 			if name not in self.state:
 				self.state[name] = {}
+
+			if self.callback_package_ready!=None:
+				#check if a package became ready
+				if attribute == "Package.location" and attribute in self.state[name]:
+					previous_value = self.state[name][attribute]
+					#new_value_is_output_belt = 'Belt.belt_type' in self.state[value] and self.state[value]['Belt.belt_type'] == "output"
+
+					new_value_is_output_belt = (self.belt_type(value) == "output") #will return None if not a belt
+
+					previous_value = self.package_location(name) #will return None if does not exist
+
+					if new_value_is_output_belt and value != previous_value:
+						#if package is on a output_belt and was at a different location previously it has become ready
+						self.callback_package_ready(name)
+
+
 			self.state[name][attribute] = value
 
-
-			self.check_waited_message(line)
-
-
+		self.check_conditions()
 
 
 		# pprint.pprint(self.state)
 	
 
-	def check_waited_message(self, line):
-		if self.waited_attribute != None and line[0]==self.waited_attribute:
-			instance_name_condition = self.waited_instance_name == None or line[1]==self.waited_instance_name
-			value_condition = self.waited_value == None or line[2]==self.waited_value
-
-			if instance_name_condition and value_condition :
-				self.waited_attribute = None
-				self.wait_message_event.set()
+	def check_conditions(self):
+		k = 0
+		while k < len(self.waited_conditions):
+			condition = self.waited_conditions[k]
+			condition_function, event, _=condition
+			try:
+				if condition_function(self.state):
+					condition[2] = True
+					event.set()
+					self.waited_conditions.remove(condition)
+				else:
+					k+=1
+			except:
+				print( "Exception raised while checking for a condition")
+				condition[2] = False
+				event.set()
+				self.waited_conditions.remove(condition)
 
 
 	def get_data(self, key : str, name : str):
@@ -64,21 +84,28 @@ class StateClient():
 			return self.state[name][key]
 
 
-
-	def wait_for_message(self, attribute, instance_name = None, value = None, timeout = 60):
-		#waits until the StateClient receives a message containing token 
-		#for example to wait until a robot instance is declared token would be Robot.instance
-		self.wait_message_event.clear()
-		self.waited_attribute = attribute
-		self.waited_instance_name = instance_name
-		self.waited_value = value
-		return self.wait_message_event.wait(timeout)
+	def wait_condition(self, condition_function, timeout = 60):
+		#condition_function must be a function which takes as argument a dictionary (reprenting the state)
+		#and outputs a boolean, with the wait ending when the function returns True 
+		wait_event = threading.Event()
+		condition = [condition_function, wait_event, True]
+		self.waited_conditions.append(condition)
+		
+		if wait_event.wait(timeout):
+			result = condition[2]
+			return result
+		else:
+			print( "Timeout while waiting for a condition")
+			return False
 		
 	def wait_next_dynamic_update(self, timeout = 60):
 		#waits until the StateClient receives a message containing token 
 		#for example to wait until a robot instance is declared token would be Robot.instance
 		self.wait_dynamic_update_event.clear()
 		return self.wait_dynamic_update_event.wait(timeout)
+
+	def set_callback_package_ready(self, callback_function):
+		self.callback_package_ready = callback_function
 
 	# getter functions, that access the state and return some information
 	def robot_coordinates(self, name : str) -> List[float]:
