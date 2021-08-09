@@ -20,13 +20,13 @@ class JobshopDemonstration():
 
         assert self.client.wait_for_server(10)
 
-        self.stop_threads = False
+        self.stop_threads = threading.Event()
         self.threads = []
 
     def tearDown(self):
         
         #end remaining thread in case it was not already done
-        self.stop_threads = True
+        self.stop_threads.set()
         for thread in self.threads:
             try:
                 thread.join()
@@ -55,8 +55,12 @@ class JobshopDemonstration():
         self.robots_list = self.client.StateClient.robots_list()
 
         self.lock = threading.Lock()   
+        self.packages_ready_lock = threading.Lock()    
         self.commands_to_be_done = []
         self.new_command_available = threading.Event()
+
+        self.packages_ready = []
+        self.client.StateClient.set_callback_package_ready(self.callback_package_ready)
 
         for robot in self.robots_list:
             new_thread = threading.Thread(target=self.robot_thread, args=[robot])
@@ -76,60 +80,90 @@ class JobshopDemonstration():
 
         self.packages_task_in_progress = [False for k in range(self.nb_jobs)] #used to know if each package is currently waiting to have a task done
                                                                             #which if true means in the queue of task to be done by robot there is one linked to this package
+        
+        #check inital packages created before callbakc was set
+        initial_packages = self.client.StateClient.packages_list()
+        self.packages_ready_lock.acquire()
+        for package in initial_packages:
+            if package not in self.packages_ready:
+                self.packages_ready.append(package)
+        self.packages_ready_lock.release()
+        
+        self.check_packages()
 
-        while self.jobs_progressions!=self.final_progressions:
-            for package_id in range(self.nb_jobs):
-                #check next task for each jobs except job where all tasks have been done and package have been delivered
-                if not(self.packages_task_in_progress[package_id]):
+        for k in range(200):
+            self.stop_threads.wait(1)
+        #self.stop_threads.wait(200)
 
-                    if self.jobs_progressions[package_id] == self.nb_machines:
-                        #case where all tasks have been done and the package needs to be delivered to the output_machine
-                        output_machine = self.find_output_machine()
-                        package_name = self.package_name(package_id)
-
-                        is_ready_to_pick = self.client.StateClient.belt_type(self.client.StateClient.package_location(package_name)) == "output"
-
-                        if is_ready_to_pick :
-                            #self.carry_to_machine(package_name, output_machine)
-                            self.packages_task_in_progress[package_id] = True
-                            self.commands_to_be_done.append((package_id, -1))
-                            self.new_command_available.set()
-                        
-                    elif self.jobs_progressions[package_id] < self.nb_machines:
-                        #case of standard task where the package needs to be delivered to the corresponding machine
-                        package_name = self.package_name(package_id)
-
-                        #find id of next machine the package needs to be processed by
-                        job_content = self.machines[package_id] 
-                        
-                        machine_id = job_content[self.jobs_progressions[package_id]] -1 #- 1 because in jobshop file machines number start at 1
-                        
-                        machine_order = self.all_machines_order[machine_id]
-                        machine_next_task = machine_order[self.machines_progressions[machine_id]]
-                        
-                        #check if this task is the next one for this machine in the order found by the solver
-                        is_next_one = machine_next_task == (package_id,self.jobs_progressions[package_id])
-                        #check that the package is ready to pick (if it is on an output belt)
-                        is_ready_to_pick = self.client.StateClient.belt_type(self.client.StateClient.package_location(package_name)) == "output"
-
-                        if is_next_one and is_ready_to_pick:
-                            #self.carry_to_machine(package_name, machine_name)
-                            self.packages_task_in_progress[package_id] = True
-                            self.commands_to_be_done.append((package_id, machine_id))
-                            self.new_command_available.set()
-
-
-            current_time = time.time()
-            if current_time - start_time >= timeout:
-                break
-            time.sleep(0.1)
-
-        self.stop_threads = True
+        self.stop_threads.set()
         for thread in self.threads:
                 thread.join()
 
+    def callback_package_ready(self, package_name):
+        self.packages_ready_lock.acquire()
+        self.packages_ready.append(package_name)
+        self.packages_ready_lock.release()
+
+        self.check_packages()
+
+    def check_packages(self):
+        #check all packages ready to see if their next task can be started
+        self.packages_ready_lock.acquire()
+        i = 0
+        while i<len(self.packages_ready):
+            package_name = self.packages_ready[i]
+            package_id = self.package_id(package_name)
+            #check next task for each jobs except job where all tasks have been done and package have been delivered
+            if not(self.packages_task_in_progress[package_id]):
+
+                if self.jobs_progressions[package_id] == self.nb_machines:
+                    #case where all tasks have been done and the package needs to be delivered to the output_machine
+                    output_machine = self.find_output_machine()
+                    package_name = self.package_name(package_id)
+
+                    is_ready_to_pick = self.client.StateClient.belt_type(self.client.StateClient.package_location(package_name)) == "output"
+
+                    if is_ready_to_pick :
+                        #self.carry_to_machine(package_name, output_machine)
+                        self.packages_task_in_progress[package_id] = True
+                        self.commands_to_be_done.append((package_id, -1))
+                        self.new_command_available.set()
+
+                        self.packages_ready.remove(package_name)
+                        i -= 1
+                    
+                elif self.jobs_progressions[package_id] < self.nb_machines:
+                    #case of standard task where the package needs to be delivered to the corresponding machine
+                    package_name = self.package_name(package_id)
+
+                    #find id of next machine the package needs to be processed by
+                    job_content = self.machines[package_id] 
+                    
+                    machine_id = job_content[self.jobs_progressions[package_id]] -1 #- 1 because in jobshop file machines number start at 1
+                    
+                    machine_order = self.all_machines_order[machine_id]
+                    machine_next_task = machine_order[self.machines_progressions[machine_id]]
+                    
+                    #check if this task is the next one for this machine in the order found by the solver
+                    is_next_one = machine_next_task == (package_id,self.jobs_progressions[package_id])
+                    #check that the package is ready to pick (if it is on an output belt)
+                    is_ready_to_pick = self.client.StateClient.belt_type(self.client.StateClient.package_location(package_name)) == "output"
+
+                    if is_next_one and is_ready_to_pick:
+                        #self.carry_to_machine(package_name, machine_name)
+                        self.packages_task_in_progress[package_id] = True
+                        self.commands_to_be_done.append((package_id, machine_id))
+                        self.new_command_available.set()
+
+                        self.packages_ready.remove(package_name)
+                        i -= 1
+
+            i += 1
+
+        self.packages_ready_lock.release()
+
     def robot_thread(self, robot_name):
-        while not(self.stop_threads) and self.new_command_available.wait(10):
+        while not(self.stop_threads.is_set()) and self.new_command_available.wait(10):
             next_command = None
             self.lock.acquire()
             if self.commands_to_be_done != []:
@@ -159,8 +193,13 @@ class JobshopDemonstration():
                         #if all package are done wait for this final one to be processed by the output_machine
                         assert self.client.StateClient.wait_condition(lambda state :  state[package_name]['Package.location'] == machine_name, timeout=100)
                         assert self.client.StateClient.wait_condition(lambda state : state[machine_name]['Machine.progress_rate'] == 1, timeout=100)
+                        self.stop_threads.set()
 
-        
+            self.check_packages() #check packages since the next task might have become possible to do for some packages ready
+
+    def package_id(self, package_name):
+        return int(package_name[-1])
+    
     def package_name(self, package_id):
         return "package" + str(package_id)
 

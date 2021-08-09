@@ -133,6 +133,7 @@ func _physics_process(delta):
 	if is_rotating():
 		rotation_time -= delta
 		if rotation_time <= 0.0:
+			rotate(rotation_speed * (rotation_time + delta))
 			stop_rotation()
 			# Send "do_rotation finished"
 			#Communication.command_result(robot_name, "do_rotation", "do_rotation command completed successfully")
@@ -376,6 +377,7 @@ func get_target_belt(type: int)->Node:
 	if in_interact.size() == 0:
 		return null
 	
+	_Raycast.force_raycast_update()
 	var target_object = _Raycast.get_collider()
 	if target_object and target_object.is_in_group("belts") and target_object.belt_type == type:
 		for interact_area in in_interact:

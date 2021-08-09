@@ -103,9 +103,9 @@ func do_process(delta: float):
 	_Progress.tint_progress = progress_gradient.interpolate((process_time - remaining_process_time)/process_time)
 	if finished_processing():
 		# Remove the current process from this package
-		current_package.processes.remove_process(current_package_index)
 		var package_processes = current_package.processes.get_processes()
 		Logger.log_info("Process of id %s done for package %s" % [package_processes[current_package_index].id, current_package.package_name])
+		current_package.processes.remove_process(current_package_index)
 		stop_process()
 
 func stop_process():
