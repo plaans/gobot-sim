@@ -25,8 +25,9 @@ class JobshopDemonstration():
 
     def tearDown(self):
         
-        #end remaining thread in case it was not already done
+        #end remaining threads in case it was not already done
         self.stop_threads.set()
+        self.new_command_available.set() #to stop if some robot threads where waiting for a new command to be available  
         for thread in self.threads:
             try:
                 thread.join()
@@ -57,14 +58,16 @@ class JobshopDemonstration():
         
         #setup variables
 
+        self.timeout_next_task = 200 #time each robot_thread will wait for a new package to become ready (used in wait call as timeout argument)
+        self.timeout_end_simulation = 500 #timeout argument used for waiting until the simulation subprocess ends (which corresponds to when the simulaton stops, when all packages have been delivered)
+
+
         self.machines_progressions = [0 for k in range(self.nb_machines)] #id of next package in list of package to be processed by this machine
 
         self.jobs_progressions = [0 for k in range(self.nb_jobs)] #for each job (which corresponds to a package in the simulation), 
                                                             #id of the next task to be done, or a value of nb_machines if all tasks done
                                                             # and nb_machines+1 if the package has been delivered
         self.final_progressions = [self.nb_machines+1 for k in range(self.nb_jobs)] 
-        timeout = 500
-        start_time= time.time()
 
         self.packages_task_in_progress = [False for k in range(self.nb_jobs)] #used to know if each package is currently waiting to have a task done
                                                                             #which if true means in the queue of task to be done by robot there is one linked to this package
@@ -88,7 +91,7 @@ class JobshopDemonstration():
 
         
         
-        #check inital packages created before callbakc was set
+        #check inital packages created before callback was set
         initial_packages = self.client.StateClient.packages_list()
         self.packages_ready_lock.acquire()
         for package in initial_packages:
@@ -98,11 +101,10 @@ class JobshopDemonstration():
         
         self.check_packages()
 
-        for k in range(200):
-            self.stop_threads.wait(1)
-        #self.stop_threads.wait(200)
+        self.sim.wait(self.timeout_end_simulation)
 
         self.stop_threads.set()
+        self.new_command_available.set() #to stop if some robot threads where waiting for a new command to be available
         for thread in self.threads:
                 thread.join()
 
@@ -125,13 +127,11 @@ class JobshopDemonstration():
 
                 if self.jobs_progressions[package_id] == self.nb_machines:
                     #case where all tasks have been done and the package needs to be delivered to the output_machine
-                    output_machine = self.find_output_machine()
                     package_name = self.package_name(package_id)
 
                     is_ready_to_pick = self.client.StateClient.belt_type(self.client.StateClient.package_location(package_name)) == "output"
 
                     if is_ready_to_pick :
-                        #self.carry_to_machine(package_name, output_machine)
                         self.packages_task_in_progress[package_id] = True
                         self.commands_to_be_done.append((package_id, -1))
                         self.new_command_available.set()
@@ -170,7 +170,7 @@ class JobshopDemonstration():
         self.packages_ready_lock.release()
 
     def robot_thread(self, robot_name):
-        while not(self.stop_threads.is_set()) and self.new_command_available.wait(10):
+        while self.new_command_available.wait(self.timeout_next_task) and not(self.stop_threads.is_set()):
             next_command = None
             self.lock.acquire()
             if self.commands_to_be_done != []:
@@ -194,13 +194,6 @@ class JobshopDemonstration():
                 if machine_id!=-1:
                     self.machines_progressions[machine_id] +=1
                     self.packages_task_in_progress[package_id] = False
-                else:
-                    #case of delivery, check if was last one
-                    if self.jobs_progressions==self.final_progressions:
-                        #if all package are done wait for this final one to be processed by the output_machine
-                        assert self.client.StateClient.wait_condition(lambda state :  state[package_name]['Package.location'] == machine_name, timeout=100)
-                        assert self.client.StateClient.wait_condition(lambda state : state[machine_name]['Machine.progress_rate'] == 1, timeout=100)
-                        self.stop_threads.set()
 
             self.check_packages() #check packages since the next task might have become possible to do for some packages ready
 
@@ -279,6 +272,7 @@ class JobshopDemonstration():
         assert self.client.ActionClientManager.wait_result(action_id, timeout=10)
         action_id = self.client.ActionClientManager.run_command(['face_belt',robot ,belt, 5])
         assert self.client.ActionClientManager.wait_result(action_id, timeout=10)
+        time.sleep(0.1) #to make sure the actions are completely over and applied before picking up or placing a package
 
     def carry_to_machine(self, robot, package, machine):
         if self.client.StateClient.robot_battery(robot)<0.4:

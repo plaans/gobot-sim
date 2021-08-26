@@ -27,6 +27,7 @@ func do_process(delta: float):
 	_Progress.value = (process_time - remaining_process_time)/process_time*100
 	_Progress.tint_progress = progress_gradient.interpolate((process_time - remaining_process_time)/process_time)
 	if finished_processing():
+		Logger.log_info("Package %s delivered" % [current_package.package_name])
 		stop_process()
 
 func set_process_blinking(blink: bool, speed: float = 4.0):
