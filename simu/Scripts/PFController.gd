@@ -4,13 +4,14 @@ extends Controller
 export(int, 1, 2000) var points_amount = 200 setget set_points_amount
 export(float, 0, 1000) var effect_radius = 500 setget set_effect_radius # px
 
-export(bool) var debug_draw = true setget set_debug_draw
+export(bool) var debug_draw = false setget set_debug_draw
 export(Gradient) var debug_proximity_gradient = preload("res://Assets/progress_gradient.tres")
 
 var rays: Array = []
 
 func _ready():
 	setup_rays()
+	debug_draw = false
 
 func _process(delta):
 	if debug_draw:
