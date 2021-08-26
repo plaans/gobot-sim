@@ -72,6 +72,7 @@ func _ready():
 func set_controller(robot_controller):
 	if robot_controller == "PF":
 		_Controller = get_node_or_null("PFController")
+		set_collision_mask_bit(0, true) #make collisions active if using PFController
 	elif robot_controller == "none":
 		_Controller = null
 	elif robot_controller == "teleport":
@@ -127,7 +128,8 @@ func _physics_process(delta):
 		else:
 			var collision = move_and_collide(velocity * delta)
 			if collision:
-				stop_navigate()  # Stopping the navigation also stops the movement
+				Logger.log_warning("Collision of robot %s" % robot_name)
+				# stop_navigate()  # Stopping the navigation also stops the movement
 				# Send "collision during movement"
 	
 	# Rotation
