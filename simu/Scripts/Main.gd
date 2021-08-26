@@ -11,6 +11,9 @@ var jobshop_path
 
 var robot_controller
 
+var has_started = false #to prevent from checking for end of simulation from before it has started
+
+
 func _ready():	
 
 	#values of arguments
@@ -86,6 +89,27 @@ func get_arg(args, arg_name, default):
 		return args[index+1]
 	else:
 		return default
+
+func _process(delta):
+	if has_started:
+		check_end()		
+		
+func check_end():
+	#check if all packages have been processed and if so ends the simulation
+	
+	#first check that there are no more packages to be generated
+	
+	var input_machines = get_tree().get_nodes_in_group("input_machines")
+	for machine in input_machines:
+		if machine.packages_templates!=[]:
+			return
+	
+	#then check there are no packages currently in the simulation
+	
+	var packages_list = get_tree().get_nodes_in_group("packages")
+	if packages_list.size() == 0:
+		Logger.log_info("Exit")
+		get_tree().quit()
 
 func get_absolute_path(file_path: String)->String:
 	var absolute_path: String
@@ -205,73 +229,76 @@ func load_scenario(file_path : String):
 	var scenario = get_file_content(scenario_path)
 	
 	# Loading environment before everything else
-	if scenario.has("environment"):
-		if _WorldMap.world != null:
-			Logger.log_warning("Environment in scenario has been overridden by command-line argument")
+	if scenario!= null:
+		if scenario.has("environment"):
+			if _WorldMap.world != null:
+				Logger.log_warning("Environment in scenario has been overridden by command-line argument")
+			else:
+				load_environment(scenario["environment"])
 		else:
-			load_environment(scenario["environment"])
-	else:
-		if _WorldMap.world != null:
-			Logger.log_warning("No environment field in scenario, but environment has been overridden by command-line argument")
-		else:
-			Logger.log_error("No environment field in scenario")
-			return
-	
-	# Setting up the machines
-	var all_machines = get_tree().get_nodes_in_group("machines")
-	
-	var input_machines = []
-	var output_machines = []
-	var machines = []
-	
-	for machine in all_machines:
-		if machine.is_in_group("input_machines"):
-			input_machines.append(machine)
-		elif machine.is_in_group("output_machines"):
-			output_machines.append(machine)
-		else:
-			machines.append(machine)
-	
-	if is_jobshop:
-		#in that case load from the jobshop file specified
-		load_jobshop(machines, input_machines)
+			if _WorldMap.world != null:
+				Logger.log_warning("No environment field in scenario, but environment has been overridden by command-line argument")
+			else:
+				Logger.log_error("No environment field in scenario")
+				return
 		
+		# Setting up the machines
+		var all_machines = get_tree().get_nodes_in_group("machines")
+		
+		var input_machines = []
+		var output_machines = []
+		var machines = []
+		
+		for machine in all_machines:
+			if machine.is_in_group("input_machines"):
+				input_machines.append(machine)
+			elif machine.is_in_group("output_machines"):
+				output_machines.append(machine)
+			else:
+				machines.append(machine)
+		
+		if is_jobshop:
+			#in that case load from the jobshop file specified
+			load_jobshop(machines, input_machines)
+			
 
-	else:
-				
-		# Machines
-		setup_machines_of_type("machines", machines, scenario)
-		# InputMachines
-		if scenario.has("output_machines"):
-			setup_machines_of_type("input_machines", input_machines, scenario)
-		# OutputMachines
-		if scenario.has("input_machines"):
-			setup_machines_of_type("input_machines", input_machines, scenario)
-			
 		else:
-			# Can happen if:
-			# - it's an older scenario
-			# - the default parameters are enough
-			# - there is only one InputMachine
-			for machine in input_machines:
-				machine.packages_templates = scenario.packages
-	
-	# Robots
-	for i in range(scenario.robots.size()):
-		var new_robot = RobotScene.instance()
-		#new_robot.position = Vector2(scenario.robots[i].position[0], scenario.robots[i].position[1])
-		new_robot.position = ExportManager.meters_to_pixels(scenario.robots[i].position)
-		# Set optional parameters
-		set_optional_params(new_robot, ["max_battery", "battery_drain_rate", "battery_charge_rate"], scenario.robots[i])
-		
-		new_robot.set_controller(robot_controller)
-		
-		add_child(new_robot)
-		
-		
-		if i==0:
-			_Robot = new_robot #to control the first robot with mouse / keyboard
+					
+			# Machines
+			setup_machines_of_type("machines", machines, scenario)
+			# InputMachines
+			if scenario.has("output_machines"):
+				setup_machines_of_type("input_machines", input_machines, scenario)
+			# OutputMachines
+			if scenario.has("input_machines"):
+				setup_machines_of_type("input_machines", input_machines, scenario)
+				
+			else:
+				# Can happen if:
+				# - it's an older scenario
+				# - the default parameters are enough
+				# - there is only one InputMachine
+				for machine in input_machines:
+					machine.packages_templates = scenario.packages
+				
+		# Robots
+		for i in range(scenario.robots.size()):
+			var new_robot = RobotScene.instance()
+			#new_robot.position = Vector2(scenario.robots[i].position[0], scenario.robots[i].position[1])
+			new_robot.position = ExportManager.meters_to_pixels(scenario.robots[i].position)
+			# Set optional parameters
+			set_optional_params(new_robot, ["max_battery", "battery_drain_rate", "battery_charge_rate"], scenario.robots[i])
 			
+			new_robot.set_controller(robot_controller)
+			
+			add_child(new_robot)
+			
+			
+			if i==0:
+				_Robot = new_robot #to control the first robot with mouse / keyboard
+				
+		has_started = true
+				
 
 func load_jobshop(machines, input_machines):
 	#each machine has only one corresponding process
