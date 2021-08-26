@@ -24,7 +24,6 @@ __meta__ = {
 [node name="DrawDebug" type="CheckButton" parent="VBoxContainer"]
 margin_right = 189.0
 margin_bottom = 40.0
-pressed = true
 text = "Draw debug"
 __meta__ = {
 "_edit_use_anchors_": false
@@ -34,7 +33,6 @@ __meta__ = {
 margin_top = 34.0
 margin_right = 189.0
 margin_bottom = 74.0
-pressed = true
 text = "Draw robot paths"
 __meta__ = {
 "_edit_use_anchors_": false
@@ -44,7 +42,6 @@ __meta__ = {
 margin_top = 68.0
 margin_right = 189.0
 margin_bottom = 108.0
-pressed = true
 text = "Draw controllers"
 __meta__ = {
 "_edit_use_anchors_": false

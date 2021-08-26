@@ -51,11 +51,12 @@ var _teleport = false
 
 # Debug
 export(float) var points_spacing = 3 # px
-export(bool) var debug_draw = true setget set_debug_draw
+export(bool) var debug_draw = false setget set_debug_draw
 export(Array, Color) var debug_colors = [Color.white, Color.purple, Color.white]
 
 func _ready():
 	current_battery = max_battery
+	debug_draw = false
 	
 	if !_Navigation:
 		Logger.log_error("No navigation available for %s - global motion planning will be disabled"%robot_name)
@@ -71,6 +72,7 @@ func _ready():
 func set_controller(robot_controller):
 	if robot_controller == "PF":
 		_Controller = get_node_or_null("PFController")
+		set_collision_mask_bit(0, true) #make collisions active if using PFController
 	elif robot_controller == "none":
 		_Controller = null
 	elif robot_controller == "teleport":
@@ -126,7 +128,8 @@ func _physics_process(delta):
 		else:
 			var collision = move_and_collide(velocity * delta)
 			if collision:
-				stop_navigate()  # Stopping the navigation also stops the movement
+				Logger.log_warning("Collision of robot %s" % robot_name)
+				# stop_navigate()  # Stopping the navigation also stops the movement
 				# Send "collision during movement"
 	
 	# Rotation

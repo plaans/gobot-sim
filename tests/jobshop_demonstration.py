@@ -1,6 +1,5 @@
 import threading
 import time
-import unittest
 import subprocess
 import os
 
@@ -14,7 +13,8 @@ class JobshopDemonstration():
         self.sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", " Simulation-Factory-Godot/simu/simulation.pck",
             "--scenario", os.environ["GITHUB_WORKSPACE"] + "/simu/scenarios/new_scenario_multirobots.json", 
             "--environment", os.environ["GITHUB_WORKSPACE"] + "/simu/environments/env_6_machines.json",
-            "--jobshop", os.environ["GITHUB_WORKSPACE"] + "/simu/jobshop/instances/ft06.txt",
+            "--jobshop", os.environ["GITHUB_WORKSPACE"] + "/simu/jobshop/instances/ft06.txt",           
+            "--time-scale", "1",
             "--robot_controller", "teleport",])
             #"--robot_controller", "PF",])
 
@@ -54,6 +54,24 @@ class JobshopDemonstration():
         assert self.client.StateClient.wait_condition(lambda state : 'robot0' in state, timeout=10)
         self.robots_list = self.client.StateClient.robots_list()
 
+        
+        #setup variables
+
+        self.machines_progressions = [0 for k in range(self.nb_machines)] #id of next package in list of package to be processed by this machine
+
+        self.jobs_progressions = [0 for k in range(self.nb_jobs)] #for each job (which corresponds to a package in the simulation), 
+                                                            #id of the next task to be done, or a value of nb_machines if all tasks done
+                                                            # and nb_machines+1 if the package has been delivered
+        self.final_progressions = [self.nb_machines+1 for k in range(self.nb_jobs)] 
+        timeout = 500
+        start_time= time.time()
+
+        self.packages_task_in_progress = [False for k in range(self.nb_jobs)] #used to know if each package is currently waiting to have a task done
+                                                                            #which if true means in the queue of task to be done by robot there is one linked to this package
+        
+
+        #start threads
+
         self.lock = threading.Lock()   
         self.packages_ready_lock = threading.Lock()    
         self.commands_to_be_done = []
@@ -69,17 +87,6 @@ class JobshopDemonstration():
             new_thread.start()
 
         
-        self.machines_progressions = [0 for k in range(self.nb_machines)] #id of next package in list of package to be processed by this machine
-
-        self.jobs_progressions = [0 for k in range(self.nb_jobs)] #for each job (which corresponds to a package in the simulation), 
-                                                            #id of the next task to be done, or a value of nb_machines if all tasks done
-                                                            # and nb_machines+1 if the package has been delivered
-        self.final_progressions = [self.nb_machines+1 for k in range(self.nb_jobs)] 
-        timeout = 500
-        start_time= time.time()
-
-        self.packages_task_in_progress = [False for k in range(self.nb_jobs)] #used to know if each package is currently waiting to have a task done
-                                                                            #which if true means in the queue of task to be done by robot there is one linked to this package
         
         #check inital packages created before callbakc was set
         initial_packages = self.client.StateClient.packages_list()

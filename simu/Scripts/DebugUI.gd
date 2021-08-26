@@ -1,7 +1,7 @@
 extends CanvasLayer
 
 enum Debug {ALL, PATH, CONTROLLER}
-var active_debug: Array = [true,true,true] setget set_active_debug
+var active_debug: Array = [false,false,false] setget set_active_debug
 
 func _on_DrawDebug_toggled(button_pressed):
 	active_debug[Debug.ALL] = button_pressed
