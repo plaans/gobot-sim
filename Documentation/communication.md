@@ -1,17 +1,17 @@
 # Communication interface
 
-The messages sent between the server (run by the simulation) and the client which connects use JSON format.
+This file describes how the communication is done between the server inside the simulation and the clients which connect to this server. Messages are encoded using JSON format and sent through TCP protocol. Below is a more detailed description of the messages sent for both aspects of the communication (sending the state of the simulation and sending commands).
 
-## State of the simulation
+# State of the simulation
 
 
 From the server to the client, the data about the state of the simulation is sent as a concatenation of facts with a format such as `['coordinates','robot1',[300,350]]` for example in the case of the coordinates. The message format is the same as presented before, with 'type' = 'static' or 'dynamic' and 'data' containing the concatenation of all data to sent.
 
 Below are listed the attributes and commands that can be sent.
 
-# List of attributes 
+## List of attributes 
 
-## Robot 
+### Robot 
 
 Field | Exemple of format | Description
 --- | --- | --- 
@@ -26,7 +26,7 @@ Rotation speed  | `['Robot.rotation_speed', robot_name, rotation_speed]` |  floa
 In station  | `['Robot.in_station', robot_name, in_station]` |  Bool indicating if the robot is currently in a charging station
 In interact areas  | `['Robot.in_interact_areas', robot_name, [interact_area0, interact_area1, ...]]` | Liste of names of interact areas the robot is currently in
  
-## Machine 
+### Machine 
 
 
 Field | Exemple of format | Description
@@ -43,7 +43,7 @@ Machine type | `['Machine.type', machine_name, type]` | Can be either 'input_mac
 Progress rate  | `['Machine.progress_rate', machine_name, progress_rate]` | Progress of current task between 0 and 1 
 
 
-## Package
+### Package
 
 Field | Exemple of format | Description
 --- | --- | --- 
@@ -54,7 +54,7 @@ Location | `['Package.location', package_name, location_name]` | String correspo
 Processes  | `['Package.processes_list', package_name, [[id0, duration0], [id1, duration1], ...]]` |  List of `[process_id, process_duration]` (int and float) for each process remaining to be done
 
 
-## Belt
+### Belt
 
 
 Field | Exemple of format | Description
@@ -68,7 +68,7 @@ Interact areas  | `['Belt.interact_areas', belt_name, [interact_area0, interact_
 ***Dynamic*** |  |
 List of packages  | `['Belt.packages_list', belt_name, [package0, package1, ...]]` | List of the names of the packages currently on the belt
  
-## Parking area : 
+### Parking area : 
 Field | Exemple of format | Description
 --- | --- | --- 
 ***Static*** |  |
@@ -76,7 +76,7 @@ Declaration of instance | `['Parking_area.instance', parking_area_name, 'parking
 Polygon | `['Parking_area.polygons', parking_area_name, [[x0, y0], [x1, y1], ...]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
 Cells  | `['Parking_area.cells', parking_area_name, [[x0, y0], [x1, y1], ...]]` | List of indexes of cells that compose this Parking area
 	 
-## Interact area : 
+### Interact area : 
 Field | Exemple of format | Description
 --- | --- | --- 
 ***Static*** |  |
@@ -155,7 +155,7 @@ For commands to apply to the robot, the command to send are formatted as a list 
 
 
 
-# List of commands
+## List of commands
 
 Command name | Exemple of format | Description
 --- | --- | --- 
