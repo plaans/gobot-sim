@@ -1,5 +1,7 @@
 # Simulation-Factory-Godot
 
+![Screenshot of the simulator](Documentation/simulation_image.png)
+
 This project is a robotics simulator made with Godot game engine.
 
 The scenarios modeled correspond to a general case of a factory, with packages needing to be processed by machines.  The role of robots is to move and carry packages to bring them to machines.
