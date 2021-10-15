@@ -39,11 +39,11 @@ jobs:
       - name: Run
         run: |
             cd ..
-            python3 -m unittest Simulation-Factory-Godot.tests.connection_tests
-            python3 -m unittest Simulation-Factory-Godot.tests.state_tests
-            python3 -m unittest Simulation-Factory-Godot.tests.navigation_tests
-            python3 -m unittest Simulation-Factory-Godot.tests.rotation_tests
-            python3 -m unittest Simulation-Factory-Godot.tests.manipulation_tests
-            python3 -m unittest Simulation-Factory-Godot.tests.other_tests
-            python3 -m unittest Simulation-Factory-Godot.tests.demonstration
+            python3 -m unittest gobot-sim.tests.connection_tests
+            python3 -m unittest gobot-sim.tests.state_tests
+            python3 -m unittest gobot-sim.tests.navigation_tests
+            python3 -m unittest gobot-sim.tests.rotation_tests
+            python3 -m unittest gobot-sim.tests.manipulation_tests
+            python3 -m unittest gobot-sim.tests.other_tests
+            python3 -m unittest gobot-sim.tests.demonstration
 
