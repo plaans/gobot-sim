@@ -1,14 +1,14 @@
-# Simulation-Factory-Godot
+# *Gobot-Sim*: a godot-based high-level robotic simulator
 
-![Screenshot of the simulator](Documentation/simulation_image.png)
+![Screenshot of the simulator](doc/jobshop-sim.gif)
 
-This project is a robotics simulator made with Godot game engine.
+This project is a robotics simulator made with Godot game engine, developed as LAAS-CNRS.
 
 The scenarios modeled correspond to a general case of a factory, with packages needing to be processed by machines.  The role of robots is to move and carry packages to bring them to machines.
 
-The simulator uses a high level of abstraction, without taking into account fine aspects. As examples, the environment is modeled in 2D, and the physics of robots (for example manipulation of objects) are also greatly simplified. 
+The simulator provides a high level of abstraction, allowing AI developers to abstract away the lower level aspects of robot control. For instance, the environment is modeled in 2D, the physics of robots (for example manipulation of objects) are also greatly simplified and high-level procedures are available to handle navigation in the environment.
 
-For more information on differents parts of the simulator, please see the files in the [Documentation](Documentation) folder.
+For more information on different parts of the simulator, please see the files in the [documentation](doc) folder.
 
 
 
@@ -20,7 +20,7 @@ There are several possibilities :
 - Exporting the project as a package (unique file), and run this package using the Godot game engine
 - Exporting the project as a binary
 
-In all cases, the project can be run from command line  with arguments. For more details on the step of running the project, see [Running the simulation](Documentation/run_simulation.md) file. This contains more information about the command used to run the project, as well as the arguments that can be used.
+In all cases, the project can be run from command line  with arguments. For more details on the step of running the project, see [Running the simulation](doc/run_simulation.md) file. This contains more information about the command used to run the project, as well as the arguments that can be used.
 
 
 ## How to export
@@ -42,6 +42,6 @@ This command is used in CI to export the project before running tests.
 
 ## Connecting an external program to the simulation
 
-A program can connect to the simulation, and then both receive the description of the state of the simulation and send commands to the simulation. The communication is done with a server opened inside the simulation, by using TCP protocol with messages encoded in JSON format. For more information on the messages that are transmitted, see [Communication interface](Documentation/communication.md).
+A program can connect to the simulation, and then both receive the description of the state of the simulation and send commands to the simulation. The communication is done with a server opened inside the simulation, by using TCP protocol with messages encoded in JSON format. For more information on the messages that are transmitted, see [Communication interface](doc/communication.md).
 
 A client API has been developped in Python (clients/python_client folder). It is possible to create a controller in Python using this client. In that case, simply create an instance of `CompleteClient` class. A function is then available to connect to the server. Afterwards, several functions can be used to both read the state of the simulation and send commands (and then follow the state of commands in progress). For examples of use of this Python API, see the tests implemented in tests folder.
