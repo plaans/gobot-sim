@@ -10,7 +10,7 @@ class JobshopDemonstration():
     def setUp(self):
         self.client = CompleteClient("localhost",10000)
         
-        self.sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", " Simulation-Factory-Godot/simu/simulation.pck",
+        self.sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", "gobot-sim/simu/simulation.pck",
             "--scenario", os.environ["GITHUB_WORKSPACE"] + "/simu/scenarios/new_scenario_multirobots.json", 
             "--environment", os.environ["GITHUB_WORKSPACE"] + "/simu/environments/env_6_machines.json",
             "--jobshop", os.environ["GITHUB_WORKSPACE"] + "/simu/jobshop/instances/ft06.txt",           

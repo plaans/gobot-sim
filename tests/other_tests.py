@@ -10,7 +10,7 @@ class OtherTest(unittest.TestCase):
     def setUp(self):
         self.client = CompleteClient("localhost",10000)
         
-        self.sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", " Simulation-Factory-Godot/simu/simulation.pck",
+        self.sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", "gobot-sim/simu/simulation.pck",
             "--scenario", os.environ["GITHUB_WORKSPACE"] + "/simu/scenarios/new_scenario_with_two_robots.json", #use different scenario to have multiple robots
             "--environment", os.environ["GITHUB_WORKSPACE"] + "/simu/environments/new_environment.json"])
 

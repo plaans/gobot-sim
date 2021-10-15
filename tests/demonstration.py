@@ -11,7 +11,7 @@ class Demonstration(SimulationTestBase):
     def setUp(self):
         self.client = CompleteClient("localhost",10000)
         
-        self.sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", " Simulation-Factory-Godot/simu/simulation.pck",
+        self.sim = subprocess.Popen([os.environ["GODOT_PATH"], "--main-pack", "gobot-sim/simu/simulation.pck",
             "--scenario", os.environ["GITHUB_WORKSPACE"] + "/simu/scenarios/new_scenario.json",
             "--environment", os.environ["GITHUB_WORKSPACE"] + "/simu/environments/new_environment.json",
             "--robot_controller", "teleport", "--time_scale", "3"])
