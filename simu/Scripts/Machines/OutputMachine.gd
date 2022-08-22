@@ -3,6 +3,15 @@ extends "res://Scripts/Machines/Machine.gd"
 # A type of machine that get packages out of the scene.
 # time_step is used to determine the time it take the machine to create a package,
 # but process_time is used internally. 
+func _process(delta):
+	if is_processing():
+		do_process(delta)
+	elif finished_processing():
+		var old_package = request_output()
+	else:
+		var new_package = request_input()
+		if new_package:
+			start_process()
 
 export var time_step: float = 10.0 setget set_time_step
 

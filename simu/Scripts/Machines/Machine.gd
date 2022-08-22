@@ -37,11 +37,33 @@ func _process(delta):
 		do_process(delta)
 	elif finished_processing():
 		var old_package = request_output()
-	else:
-		var new_package = request_input()
-		if new_package:
-			start_process()
+
+	#elif current_package != null:
+	#	start_process()
 			
+			
+func process(package: Node):
+	var new_package= null
+	if is_package_present(package):
+		var index: int = input_belt.find_package_index(package)
+		new_package = input_belt.remove_package(index)
+		add_child(new_package)
+		new_package.position = Vector2.ZERO
+		current_package = new_package
+		start_process()
+
+func is_package_present(package: Node) -> bool:
+
+	var ok = false
+	if input_belt and !input_belt.is_empty():
+		if input_belt.packages.has(package):
+			ok = true
+		else:
+			ok = false
+	else:
+		ok = false
+	return ok
+
 func get_name() -> String:
 	return machine_name
 
@@ -163,6 +185,8 @@ func request_input()->Node:
 		# Set current package
 		current_package = new_package
 	return new_package
+	
+
 	
 func export_static() -> Array:
 	var export_data = []

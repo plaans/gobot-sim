@@ -4,6 +4,16 @@ extends "res://Scripts/Machines/Machine.gd"
 # create_time is used to determine the time it take the machine to create a package,
 # but process_time is used internally. 
 
+func _process(delta):
+	if is_processing():
+		do_process(delta)
+	elif finished_processing():
+		var old_package = request_output()
+	else:
+		var new_package = request_input()
+		if new_package:
+			start_process()
+			
 enum Order {
 	NORMAL,
 	REVERSE,

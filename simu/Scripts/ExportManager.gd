@@ -10,6 +10,8 @@ var named_nodes_map = {} #used to know correspondance between robot names and in
 
 var robot_interfaces_map = {}
 
+var machine_interfaces_map = {}
+
 var command_id = 0 #counter used to generate command ids
 
 func register_new_node(node : Node, category : String) -> String:
@@ -27,7 +29,10 @@ func register_new_node(node : Node, category : String) -> String:
 		var new_robot_interface = RobotInterface.new(node)
 		robot_interfaces_map[new_name] = new_robot_interface
 		node.add_child(new_robot_interface)
-	
+	elif category == "machine":
+		var new_machine_interface = MachineInterface.new(node)
+		machine_interfaces_map[new_name] = new_machine_interface
+		node.add_child(new_machine_interface)
 	return new_name
 	
 func get_node_from_name(name : String):
@@ -37,9 +42,16 @@ func get_node_from_name(name : String):
 func get_robot_interface(robot_name : String):
 	if robot_interfaces_map.has(robot_name):
 		return robot_interfaces_map[robot_name]
-		
+
 func get_all_robot_interfaces() -> Array:
 	return robot_interfaces_map.values()
+		
+func get_machine_interface(machine_name : String):
+	if machine_interfaces_map.has(machine_name):
+		return machine_interfaces_map[machine_name]
+		
+func get_all_machine_interfaces() -> Array:
+	return machine_interfaces_map.values()
 		
 func set_tile_size(size : Vector2):
 	tile_size = size
