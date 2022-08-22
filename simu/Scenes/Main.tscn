@@ -20,6 +20,7 @@ script = ExtResource( 14 )
 
 [node name="TileWorldExporter" type="Node" parent="WorldMap"]
 script = ExtResource( 4 )
+export_environment = true
 target_path = "res://environments/exported_env.json"
 
 [node name="Navigation2D" type="Navigation2D" parent="." groups=[
