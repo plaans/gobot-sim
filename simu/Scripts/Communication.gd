@@ -74,7 +74,7 @@ func read_data(client):
 			if robot_interface != null:
 				robot_interface.receive_command(command_name, function_parameters, content["data"]['temp_id'])
 		elif content["type"] == "machine_command":
-			Logger.log_info("new machine command")
+			#Logger.log_info("new machine command")
 			var command_info = content["data"]["command_info"] 
 			var command_name = command_info[0]
 			var machine_name = command_info[1]

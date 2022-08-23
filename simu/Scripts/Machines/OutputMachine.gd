@@ -3,15 +3,6 @@ extends "res://Scripts/Machines/Machine.gd"
 # A type of machine that get packages out of the scene.
 # time_step is used to determine the time it take the machine to create a package,
 # but process_time is used internally. 
-func _process(delta):
-	if is_processing():
-		do_process(delta)
-	elif finished_processing():
-		var old_package = request_output()
-	else:
-		var new_package = request_input()
-		if new_package:
-			start_process()
 
 export var time_step: float = 10.0 setget set_time_step
 
@@ -29,7 +20,8 @@ func set_time_step(new_time_step: float):
 
 func start_process():
 	remaining_process_time = process_time
-	$AnimationPlayer.play("process")
+	if process_time!=0:
+		$AnimationPlayer.play("process")
 
 func do_process(delta: float):
 	remaining_process_time -= delta
@@ -47,6 +39,15 @@ func match_process(package: Node)->bool:
 	var valid_process: bool = (package_processes.size() == 0)
 	return valid_process
 
+func request_input()->Node:
+	var new_package = null
+	if input_belt and !input_belt.is_empty():
+		new_package = input_belt.remove_package(0)
+		add_child(new_package)
+		new_package.position = Vector2.ZERO
+		# Set current package
+		current_package = new_package
+	return new_package
 # Deletes the processed package
 func request_output()->Node:
 	var old_package = current_package
