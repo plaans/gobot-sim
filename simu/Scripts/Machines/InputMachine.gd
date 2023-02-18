@@ -76,6 +76,7 @@ func request_input()->Node:
 		add_child(new_package)
 		new_package.position = Vector2.ZERO
 		new_package.processes.processes = new_processes
+		new_package.static_processes = new_processes.duplicate(true)
 		
 		# Time to create the package
 		match create_time:
