@@ -77,6 +77,7 @@ config/icon="res://icon.png"
 Logger="*res://Scripts/Logger.gd"
 Communication="*res://Scripts/Communication.gd"
 ExportManager="*res://Scripts/ExportManager.gd"
+System="*res://Scripts/Globals.gd"
 
 [display]
 

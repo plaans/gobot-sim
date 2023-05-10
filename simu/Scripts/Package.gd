@@ -62,6 +62,7 @@ func export_dynamic() -> Array:
 		location = location.get_parent() #case of belt
 	export_data.append(["Package.processes_list", package_name, processes.get_processes_ids_durations()])
 	export_data.append(["Package.location", package_name, location.get_name()])
+	#export_data.append(["Package.closest_interact_area", package_name])
 #	export_data.append(["Package.processes_list", package_name, processes.get_processes_ids_durations()])
 	
 	return export_data
