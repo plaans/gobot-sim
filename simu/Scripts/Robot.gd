@@ -10,6 +10,7 @@ var robot_name : String
 var move_speed : float = 0.0 # px/s - set when using do_move
 var move_dir : Vector2 # px - should be normalized, set when using do_move
 var move_time : float = 0.0
+# Velocity in px/s
 const default_velocity: int = 50
 const default_battery_capacity = 10
 
@@ -36,6 +37,7 @@ var current_battery : float = System.default_battery_capacity
 
 var in_station : bool setget set_in_station
 var in_interact : Array = []
+var in_parking_area: Array = []
 var carried_package : Node2D
 
 var velocity : Vector2 = Vector2.ZERO # Set when doing a movement, manipulated by the controller
@@ -337,6 +339,21 @@ func find_closest_area(areas_list : Array) -> Node:
 	
 	return closest_area
 	
+#Returns the parking area or the belt with which the robot can interact 
+func get_location() -> String:
+	var interacts: Array = in_interact;
+	var parkings: Array = in_parking_area;
+	
+	if interacts.empty():
+		if !parkings.empty():
+			return parkings[0].get_name()
+	elif parkings.empty():
+		return interacts[0].get_name()
+	
+	return String("unk")
+	
+	
+	
 func get_closest_area() -> Node:
 	var areas = get_tree().get_nodes_in_group("parking_areas")
 	areas += get_tree().get_nodes_in_group("interact_areas")
@@ -448,4 +465,5 @@ func export_dynamic() -> Array:
 	export_data.append(["Robot.in_station", robot_name, in_station])
 	export_data.append(["Robot.in_interact_areas", robot_name, get_interact_areas_names()])
 	export_data.append(["Robot.closest_area", robot_name, get_closest_area().get_name()])
+	export_data.append(["Robot.location", robot_name, get_location()])
 	return export_data

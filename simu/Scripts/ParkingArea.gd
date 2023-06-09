@@ -16,10 +16,12 @@ func get_name() -> String:
 func _on_ParkingArea_body_entered(body):
 	if body.is_in_group("robots"):
 		body.set_in_station(true)
+		body.in_parking_area.append(self)
 
 func _on_ParkingArea_body_exited(body):
 	if body.is_in_group("robots"):
 		body.set_in_station(false)
+		body.in_parking_area.erase(self)
 
 func export_static() -> Array:
 	var export_data = []

@@ -9,7 +9,7 @@ extends Node
 const default_battery_charge_rate = 0.8
 const default_battery_drain_rate = 0.1
 const default_battery_drain_rate_idle = default_battery_drain_rate / 100
-const standard_velocity = 50
+const standard_velocity = 50.0
 const default_battery_capacity = 10
 const default_battery_charge_rate_percentage = default_battery_charge_rate / default_battery_capacity * 100
 const default_battery_drain_rate_percentage = default_battery_drain_rate / default_battery_capacity * 100
@@ -27,7 +27,7 @@ func export_static() -> Array:
 	export_data.append(["Globals.robot_battery_charge_rate",default_battery_charge_rate])
 	export_data.append(["Globals.robot_battery_drain_rate", default_battery_drain_rate])
 	export_data.append(["Globals.robot_battery_drain_rate_idle", default_battery_drain_rate_idle])
-	export_data.append(["Globals.robot_standard_velocity",  standard_velocity])
+	export_data.append(["Globals.robot_standard_velocity",  ExportManager.pixel_to_meter(standard_velocity)])
 	export_data.append(["Globals.robot_battery_charge_rate_percentage", default_battery_charge_rate_percentage])
 	export_data.append(["Globals.robot_battery_drain_rate_percentage", default_battery_drain_rate_percentage])
 	export_data.append(["Globals.robot_battery_drain_rate_idel_percentage", default_battery_drain_rate_idle_percentage])
