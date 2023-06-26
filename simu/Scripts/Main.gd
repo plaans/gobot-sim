@@ -269,7 +269,7 @@ func load_scenario(file_path : String):
 			setup_machines_of_type("machines", machines, scenario)
 			# InputMachines
 			if scenario.has("output_machines"):
-				setup_machines_of_type("output_machines", input_machines, scenario)
+				setup_machines_of_type("output_machines", output_machines, scenario)
 			# OutputMachines
 			if scenario.has("input_machines"):
 				setup_machines_of_type("input_machines", input_machines, scenario)
