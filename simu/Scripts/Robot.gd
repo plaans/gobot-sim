@@ -11,7 +11,7 @@ var move_speed : float = 0.0 # px/s - set when using do_move
 var move_dir : Vector2 # px - should be normalized, set when using do_move
 var move_time : float = 0.0
 # Velocity in px/s
-const default_velocity: int = 50
+const default_speed: int = 50
 const default_battery_capacity = 10
 
 # Rotating
@@ -265,7 +265,7 @@ func move_to(point: Vector2, speed: float):
 		var new_vector = point - self.global_position
 		do_move(new_vector.angle(), speed, new_vector.length() / speed)
 
-func navigate_to(point: Vector2, speed: float = default_velocity):
+func navigate_to(point: Vector2, speed: float = default_speed):
 	if _teleport:
 		position = point
 	else:
@@ -284,7 +284,7 @@ func navigate_to(point: Vector2, speed: float = default_velocity):
 		move_speed = speed
 		emit_signal("action_done")
 	
-func navigate_to_cell(tile_x, tile_y, speed: float = default_velocity):
+func navigate_to_cell(tile_x, tile_y, speed: float = default_speed):
 	var target_position = ExportManager.tiles_to_pixels([tile_x, tile_y])
 	navigate_to(target_position, speed)
 	
@@ -443,9 +443,9 @@ func get_interact_areas_names() -> Array:
 func export_static() -> Array:
 	var export_data=[]
 	# static export of drain and charge rate for the battery, as well as default displacement velocity
-	export_data.append(["Robot.recharge_rate", robot_name, battery_charge_rate])
+	export_data.append(["Robot.charge_rate", robot_name, battery_charge_rate])
 	export_data.append(["Robot.drain_rate", robot_name, battery_drain_rate])
-	export_data.append(["Robot.default_velocity", robot_name, default_velocity])
+	export_data.append(["Robot.standard_speed", robot_name, ExportManager.pixel_to_meter(default_speed)])
 	# default export: instance of the robot
 	export_data.append(["Robot.instance", robot_name, "robot"])
 	return export_data

@@ -44,6 +44,7 @@ jobs:
             python3 -m unittest gobot-sim.tests.navigation_tests
             python3 -m unittest gobot-sim.tests.rotation_tests
             python3 -m unittest gobot-sim.tests.manipulation_tests
+            python3 -m unittest gobot-sim.tests.process_test
             python3 -m unittest gobot-sim.tests.other_tests
             python3 -m unittest gobot-sim.tests.demonstration
 

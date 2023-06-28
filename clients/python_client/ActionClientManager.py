@@ -16,7 +16,11 @@ class ActionClientManager():
 			#format of command is a list containing name of command and arguments, for example ['navigate_to','robot1',50,100]
 			#the functions wait until the first response from the server, and then returns the ID attributed to the action
 			temp_id = str(uuid.uuid4())
-			data_to_send = {'type': 'robot_command', 'data' : {}}
+			data_to_send = {}
+			if "process" in command:				
+				data_to_send = {'type': 'machine_command', 'data' : {}}
+			else:
+				data_to_send = {'type': 'robot_command', 'data' : {}}
 			data_to_send['data']['command_info'] = command
 			data_to_send['data']['temp_id'] = temp_id		
 

@@ -73,11 +73,12 @@ func request_input()->Node:
 			new_processes.append(Process.new(process_array[0], process_array[1]))
 		# Create actual package
 		new_package = package_scene.instance()
-		add_child(new_package)
+
 		new_package.position = Vector2.ZERO
+		new_package.all_processes = new_processes
+		add_child(new_package)
 		new_package.processes.processes = new_processes
-		new_package.static_processes = new_processes.duplicate(true)
-		
+
 		# Time to create the package
 		match create_time:
 			Time.RANDOM:

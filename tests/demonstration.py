@@ -121,6 +121,8 @@ class Demonstration(SimulationTestBase):
         self.assertTrue(self.client.ActionClientManager.wait_result(action_id, timeout=10))
 
         #wait for the machine to process the package
+        action_id = self.client.ActionClientManager.run_command(['process', machine, package])
+        self.assertTrue(self.client.ActionClientManager.wait_result(action_id, timeout=10))
         belt_out = self.client.StateClient.machine_output_belt(machine)
         self.assertTrue(self.client.StateClient.wait_condition(lambda state : state[package]['Package.location'] == belt_out, timeout=100))
 

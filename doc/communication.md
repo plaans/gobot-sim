@@ -21,8 +21,6 @@ Robot battery charge rate | `['Globals.robot_battery_charge_rate', float]`
 Robot battery drain rate | `['Globals.robot_battery_drain_rate', float]`
 Robot battery idle drain rate | `['Globals.robot_battery_drain_rate_idle', float]`
 Robot battery standard speed (in m/s) | `['Globals.robot_standard_speed', float]`
-Robot battery charge rate (in percentage/s) | `['Globals.robot_battery_charge_rate_percentage', float]`
-Robot battery drain rate (in percentage/s) | `['Globals.robot_battery_drain_rate_idle_percentage', float]` 
 
 
 ### Robot 
@@ -33,7 +31,7 @@ Field | Exemple of format | Description
 Declaration of instance | `['Robot.instance', robot_name, 'robot]`
 Recharge rate | `['Robot.recharge_rate', robot_name, float]` | Rate of recharge of the robot's battery 
 Drain rate | `['Robot.drain_rate', robot_name, float]` | Rate of discharge of the robot's battery 
-Default speed | `['Robot.default_speed', robot_name, float]` | Default speed normalized in m/s.
+Default speed | `['Robot.standard_speed', robot_name, float]` | Default speed normalized in m/s.
 ***Dynamic*** |  |
 Coordinates | `['Robot.coordinates', robot_name, [x,y]]` | The coordinates (floats) are given in meters, with a conversion automatically done in the simulator so that one tile of the tilemap is always 1m x 1m in size.
 Tiles Coordinates | `['Robot.coordinates_tile', robot_name, [x,y]]` | Coordinates in tiles (indexes of tile the robot is currently in)
