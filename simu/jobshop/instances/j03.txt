@@ -1,0 +1,8 @@
+nb_jobs nb_machines
+2 6 0 0 0 0
+Times
+4 1 10
+3 10 2
+Machines
+3 2 1
+1 2 3
