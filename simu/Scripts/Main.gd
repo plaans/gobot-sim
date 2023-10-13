@@ -257,11 +257,15 @@ func load_scenario(file_path : String):
 				output_machines.append(machine)
 			else:
 				machines.append(machine)
+				
+		if !is_jobshop && scenario.has("jobshop"):
+			jobshop_path = scenario["jobshop"]
+			if jobshop_path != "":
+				is_jobshop = true
 		
 		if is_jobshop:
 			#in that case load from the jobshop file specified
 			load_jobshop(machines, input_machines)
-			
 
 		else:
 					

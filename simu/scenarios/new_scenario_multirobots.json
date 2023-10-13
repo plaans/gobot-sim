@@ -3,7 +3,12 @@
 		{"position":[7.8,16.5]},
 		{"position":[6.8,16.5]}
 	],
-	"environment": "res://environments/env_6_machines.json",
-	
-	
+	"packages":[
+		[[0,10],[1,5]],
+		[[0,1],[1,8],[2,6]],
+		[[2,3],[1,9]],
+		[[2,7],[0,12],
+			[5,4]]
+	],
+	"environment": "res://environments/env_6_machines.json"
 }
