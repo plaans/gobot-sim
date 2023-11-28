@@ -350,7 +350,7 @@ func get_location() -> String:
 	elif parkings.empty():
 		return interacts[0].get_name()
 	
-	return String("unk")
+	return String("unk_location")
 	
 	
 	
