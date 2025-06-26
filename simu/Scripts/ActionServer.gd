@@ -54,6 +54,8 @@ func send_result(result : bool):
 	var data_to_send = {'result':result, 'action_id':action_id}
 	var encoded_message = JSON.print({'type': 'action_result', 'data':data_to_send})
 	Communication.send_message(encoded_message)
+	command_name = null
+	action_id = -1
 	
 
 func cancel_action():

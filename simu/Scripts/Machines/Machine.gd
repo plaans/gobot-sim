@@ -6,7 +6,7 @@ export var progress_gradient: Gradient = preload("res://Assets/progress_gradient
 var input_belt: Node = null setget set_input_belt
 var output_belt: Node = null setget set_output_belt
 # Input and Output are entirely managed by belts
-
+var new_package : Node
 var current_package : Node
 var current_package_index : int = -1
 var current_display_index : int = -1
@@ -21,7 +21,14 @@ onready var processes = $ProcessesNode
 # List of processes and helper to display processes colors
 
 var machine_name : String
+var finished = false
 
+func check_finished() -> bool:
+	if finished:
+		finished = false
+		return true
+	else:
+		return false
 
 
 # Called when the node enters the scene tree for the first time.
@@ -36,12 +43,46 @@ func _process(delta):
 	if is_processing():
 		do_process(delta)
 	elif finished_processing():
+		#stop_process()
 		var old_package = request_output()
+		finished = true
 	else:
 		var new_package = request_input()
 		if new_package:
 			start_process()
+
+	#elif current_package != null:
+	#	start_process()
 			
+			
+func process(package: Node) -> bool:
+	var result = false
+	if !input_belt.is_empty() and input_belt.packages[0] == package:
+		new_package = input_belt.remove_package(0)
+		add_child(new_package)
+		new_package.position = Vector2.ZERO
+		result = true
+	return result
+#	if is_package_present(package):
+#		var index: int = input_belt.find_package_index(package)
+#		new_package = input_belt.remove_package(index)
+#		add_child(new_package)
+#		new_package.position = Vector2.ZERO
+#		current_package = new_package
+#		start_process()
+
+func is_package_present(package: Node) -> bool:
+
+	var ok = false
+	if input_belt and !input_belt.is_empty():
+		if input_belt.packages.has(package):
+			ok = true
+		else:
+			ok = false
+	else:
+		ok = false
+	return ok
+
 func get_name() -> String:
 	return machine_name
 
@@ -74,6 +115,8 @@ func match_process(package: Node)->bool:
 	return valid_process
 
 func start_process():
+	current_package= new_package
+	new_package = null
 	var package_processes = current_package.processes.get_processes()
 	current_display_index = -1
 	current_package_index = -1
@@ -93,9 +136,9 @@ func start_process():
 	else:
 		process_time = package_processes[current_package_index].duration
 		remaining_process_time = process_time
-		
-		$AnimationPlayer.play("process")
-		set_process_blinking(true)
+		if process_time!=0:
+			$AnimationPlayer.play("process")
+			set_process_blinking(true)
 
 func do_process(delta: float):
 	remaining_process_time -= delta
@@ -140,7 +183,6 @@ func is_processing()->bool:
 # Returns true if the machine finished the current process but still has a package.
 func finished_processing()->bool:
 	return !is_processing() and current_package
-
 # Requests to send the current package to the output belt, and returns the package.
 # If there is no output belt or the output belt is full, returns null.
 func request_output()->Node:
@@ -154,15 +196,10 @@ func request_output()->Node:
 
 # Requests a package to process from the input belt, and returns the package.
 # if there is no input belt or the input belt is empty, returns null.
-func request_input()->Node:
-	var new_package = null
-	if input_belt and !input_belt.is_empty():
-		new_package = input_belt.remove_package(0)
-		add_child(new_package)
-		new_package.position = Vector2.ZERO
-		# Set current package
-		current_package = new_package
+func request_input() -> Node:
 	return new_package
+	
+
 	
 func export_static() -> Array:
 	var export_data = []
@@ -194,6 +231,10 @@ func export_dynamic() -> Array:
 		progress_rate = 0
 		
 	export_data.append(["Machine.progress_rate", machine_name, progress_rate])
+#	if current_package == null:
+#		export_data.append(["Machine.package_processed", machine_name, []])
+#	else:
+#		export_data.append(["Machine.package_processed", machine_name, current_package.package_name])
 	
 	return export_data
  

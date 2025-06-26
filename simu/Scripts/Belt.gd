@@ -132,6 +132,16 @@ func remove_package(index: int = 0)->Node:
 			slot += 1
 	
 	return old_package
+	
+func find_package_index(package: Node) -> int:
+	var i = 0
+	var result = -1
+	for p in packages:
+		if p == package:
+			result = i
+			break
+		i=i+1
+	return result
 
 # Interpolate a Package's offset on the belt between its current offset and the given offset
 # Note: this is only visual and does not affect the availability of a package

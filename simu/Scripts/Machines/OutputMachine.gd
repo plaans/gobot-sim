@@ -20,7 +20,8 @@ func set_time_step(new_time_step: float):
 
 func start_process():
 	remaining_process_time = process_time
-	$AnimationPlayer.play("process")
+	if process_time!=0:
+		$AnimationPlayer.play("process")
 
 func do_process(delta: float):
 	remaining_process_time -= delta
@@ -38,6 +39,15 @@ func match_process(package: Node)->bool:
 	var valid_process: bool = (package_processes.size() == 0)
 	return valid_process
 
+func request_input()->Node:
+	var new_package = null
+	if input_belt and !input_belt.is_empty():
+		new_package = input_belt.remove_package(0)
+		add_child(new_package)
+		new_package.position = Vector2.ZERO
+		# Set current package
+		current_package = new_package
+	return new_package
 # Deletes the processed package
 func request_output()->Node:
 	var old_package = current_package

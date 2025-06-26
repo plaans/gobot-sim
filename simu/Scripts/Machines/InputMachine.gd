@@ -3,7 +3,7 @@ extends "res://Scripts/Machines/Machine.gd"
 # A type of machine that creates packages in the scene.
 # create_time is used to determine the time it take the machine to create a package,
 # but process_time is used internally. 
-
+			
 enum Order {
 	NORMAL,
 	REVERSE,
@@ -35,7 +35,8 @@ func set_time_step(new_time_step: float):
 
 func start_process():
 	remaining_process_time = process_time
-	$AnimationPlayer.play("process")
+	if process_time!=0:
+		$AnimationPlayer.play("process")
 
 func do_process(delta: float):
 	remaining_process_time -= delta
@@ -72,10 +73,12 @@ func request_input()->Node:
 			new_processes.append(Process.new(process_array[0], process_array[1]))
 		# Create actual package
 		new_package = package_scene.instance()
-		add_child(new_package)
+
 		new_package.position = Vector2.ZERO
+		new_package.all_processes = new_processes
+		add_child(new_package)
 		new_package.processes.processes = new_processes
-		
+
 		# Time to create the package
 		match create_time:
 			Time.RANDOM:

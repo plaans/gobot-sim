@@ -9,7 +9,19 @@ From the server to the client, the data about the state of the simulation is sen
 
 Below are listed the attributes and commands that can be sent.
 
-## List of attributes 
+## List of attributes
+
+### Globals
+
+Field | Exemple of format | Description
+--- | --- | --- 
+***Static*** |  |
+Robot default battery capacity | `['Globals.robot_default_battery_capacity', float]`
+Robot battery charge rate | `['Globals.robot_battery_charge_rate', float]`
+Robot battery drain rate | `['Globals.robot_battery_drain_rate', float]`
+Robot battery idle drain rate | `['Globals.robot_battery_drain_rate_idle', float]`
+Robot battery standard speed (in m/s) | `['Globals.robot_standard_speed', float]`
+
 
 ### Robot 
 
@@ -17,14 +29,19 @@ Field | Exemple of format | Description
 --- | --- | --- 
 ***Static*** |  |
 Declaration of instance | `['Robot.instance', robot_name, 'robot]`
+Recharge rate | `['Robot.recharge_rate', robot_name, float]` | Rate of recharge of the robot's battery 
+Drain rate | `['Robot.drain_rate', robot_name, float]` | Rate of discharge of the robot's battery 
+Default speed | `['Robot.standard_speed', robot_name, float]` | Default speed normalized in m/s.
 ***Dynamic*** |  |
 Coordinates | `['Robot.coordinates', robot_name, [x,y]]` | The coordinates (floats) are given in meters, with a conversion automatically done in the simulator so that one tile of the tilemap is always 1m x 1m in size.
 Tiles Coordinates | `['Robot.coordinates_tile', robot_name, [x,y]]` | Coordinates in tiles (indexes of tile the robot is currently in)
 Battery  | `['Robot.battery', robot_name, battery_proportion]` |  The value is a float between 0 and 1.
 Movement speed  | `['Robot.velocity', robot_name, [velocity_x, velocity_y]]` |  floats in meters/s
 Rotation speed  | `['Robot.rotation_speed', robot_name, rotation_speed]` |  float in rads/s
-In station  | `['Robot.in_station', robot_name, in_station]` |  Bool indicating if the robot is currently in a charging station
-In interact areas  | `['Robot.in_interact_areas', robot_name, [interact_area0, interact_area1, ...]]` | Liste of names of interact areas the robot is currently in
+In station  | `['Robot.in_station', robot_name, in_station]` |  Boolean indicating if the robot is currently in a charging station
+In interact areas  | `['Robot.in_interact_areas', robot_name, [interact_area0, interact_area1, ...]]` | List of names of interact areas the robot is currently in
+Closest Area to a robot | `['Robot.closest_area', robot_name, closest_area_name]` | Name of the closest are to the robot, either parking area or interact area
+Location of the robot | `['Robot.location', robot_name, location]` | High level view of the position of the robot: parking area or interact area.
  
 ### Machine 
 
@@ -49,9 +66,11 @@ Field | Exemple of format | Description
 --- | --- | --- 
 ***Static*** |  |
 Declaration of instance | `['Package.instance', package_name, 'package']`
+Ordered list of all processes | `[Package.all_processes, package_name, [[id0, duration0]], [id1, duration1], ...]]`
 ***Dynamic*** |  |
 Location | `['Package.location', package_name, location_name]` | String corresponding to the name of the location (robot, belt, ...)
 Processes  | `['Package.processes_list', package_name, [[id0, duration0], [id1, duration1], ...]]` |  List of `[process_id, process_duration]` (int and float) for each process remaining to be done
+
 
 
 ### Belt
@@ -84,8 +103,10 @@ Declaration of instance | `['Interact_area.instance', interact_area_name, 'inter
 Polygon | `['Interact_area.polygons', interact_area_name, [[x0, y0], [x1, y1], ...]]` | List of the polygons that compose the belt (each polygon is itself a list a points, which coordinates are given in meters)
 Cells  | `['Interact_area.cells', interact_area_name, [[x0, y0], [x1, y1], ...]]` | List of indexes of cells that compose this Interact area
 Belt  | `['Interact_area.belt', interact_area_name, belt_name]` | Name of Belt this Interact area is associated with
-	 
-## Commands sent to the simulation 
+
+
+# Commands of the platform
+## Commands to control the robots 
 
 For commands to apply to the robot, the command to send are formatted as a list which first element contains the name of the command and the elements coming afterwards are the arguments. The JSON message must also specify that the type is 'robot_command' and have a field 'temp_id'. This field contains the ID attributed to the action temporarily by the client, and the first response from the server will contain the permanent ID attributed to the action. After that, other types of message are exchanged, from the server to give information about the state of the action and from the client to cancel an action. Here is a list of the messages types concerning actions :
 
@@ -173,3 +194,15 @@ Go to closest charging area | `['go_charge', robot_name] ` | Navigate the robot 
 Do a rotation (of the given angle)  | `['do_rotation', robot_name, angle, speed]` |  Rotates the robot of the given angle (in rads) from the current rotation, at the given speed (in rads/s)
 Rotate to an angle  | `['rotate_to', robot_name, angle, speed]` |  Rotates the robot to the given angle (in rads) at the given speed (in rads/s)
 Rotate to face a belt  | `['face_belt', belt_name, speed]` |  Rotates the robot to face a given belt
+
+## Command to process a package on a machine
+To process a package on a machine, a command request must be sent to the platform. The success of the command requires that the package is on the input belt of the machine, and the machine is not processing another package.
+Here is the format of the JSON message that should be sent to process a package `package_name` on the machine `machine_name`:
+
+	{'type':'machine_command', 
+		 'data': 
+		 	{'command_info : ['process','machine_name','package_name'], 
+			 'temp_id':0
+			}
+	}
+

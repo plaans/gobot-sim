@@ -5,7 +5,7 @@
 	],
 	"machines": [
 		{"position":[14,5],"possible_processes":[0,1,2]},
-		{"position":[17,10],"possible_processes": [2,3,4,5]}
+		{"position":[16,11],"possible_processes": [2,3,4,5]}
 	],
 	"packages":[
 		[[0,10],[1,5]],
@@ -13,5 +13,6 @@
 		[[2,3],[1,9]], 
 		[[2,7],[0,12],
 		[5,4]]
-    ]
+    ],
+	"environment": "res://environments/new_environment.json"
 }

@@ -1,0 +1,9 @@
+{
+	"robots": [
+		{"position":[7.8,16.5]}
+	],
+	"environment": "res://environments/env_6_machines.json",
+	"jobshop": "res://jobshop/instances/ft06.txt",
+	
+	
+}

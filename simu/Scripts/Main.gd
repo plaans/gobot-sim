@@ -107,6 +107,7 @@ func check_end():
 	#then check there are no packages currently in the simulation
 	
 	var packages_list = get_tree().get_nodes_in_group("packages")
+	#Logger.log_info(packages_list)
 	if packages_list.size() == 0:
 		Logger.log_info("Exit")
 		get_tree().quit()
@@ -256,11 +257,15 @@ func load_scenario(file_path : String):
 				output_machines.append(machine)
 			else:
 				machines.append(machine)
+				
+		if !is_jobshop && scenario.has("jobshop"):
+			jobshop_path = scenario["jobshop"]
+			if jobshop_path != "":
+				is_jobshop = true
 		
 		if is_jobshop:
 			#in that case load from the jobshop file specified
 			load_jobshop(machines, input_machines)
-			
 
 		else:
 					
@@ -268,7 +273,7 @@ func load_scenario(file_path : String):
 			setup_machines_of_type("machines", machines, scenario)
 			# InputMachines
 			if scenario.has("output_machines"):
-				setup_machines_of_type("input_machines", input_machines, scenario)
+				setup_machines_of_type("output_machines", output_machines, scenario)
 			# OutputMachines
 			if scenario.has("input_machines"):
 				setup_machines_of_type("input_machines", input_machines, scenario)

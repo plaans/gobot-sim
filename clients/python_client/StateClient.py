@@ -20,39 +20,45 @@ class StateClient():
 			self.wait_dynamic_update_event.set()
 		data = message['data']
 		for line in data:
-			name = line[1]
-			attribute = line[0]
-			value = line[2]
+			attribute: str = line[0]
+			if "Globals" in attribute:
+				attribute=attribute.replace("Globals.", "")
+				if "Globals" not in self.state:
+					self.state["Globals"] = {}
+				self.state["Globals"][attribute] = line[1]
+			else:
+				name = line[1]
+				value = line[2]
 
-			if ".instance" in attribute:#declaration of instance
+				if ".instance" in attribute:#declaration of instance
+					if name not in self.state:
+						self.state[name] = {}
+					self.state[name]['type'] = attribute
+
+					if attribute not in self.names_list_by_category :
+						self.names_list_by_category[attribute] =[]
+					self.names_list_by_category[attribute].append(name)
+
+				
 				if name not in self.state:
 					self.state[name] = {}
-				self.state[name]['type'] = attribute
 
-				if attribute not in self.names_list_by_category :
-					self.names_list_by_category[attribute] =[]
-				self.names_list_by_category[attribute].append(name)
+				if self.callback_package_ready!=None:
+					#check if a package became ready
+					if attribute == "Package.location" and attribute in self.state[name]:
+						previous_value = self.state[name][attribute]
+						#new_value_is_output_belt = 'Belt.belt_type' in self.state[value] and self.state[value]['Belt.belt_type'] == "output"
 
-			
-			if name not in self.state:
-				self.state[name] = {}
+						new_value_is_output_belt = (self.belt_type(value) == "output") #will return None if not a belt
 
-			if self.callback_package_ready!=None:
-				#check if a package became ready
-				if attribute == "Package.location" and attribute in self.state[name]:
-					previous_value = self.state[name][attribute]
-					#new_value_is_output_belt = 'Belt.belt_type' in self.state[value] and self.state[value]['Belt.belt_type'] == "output"
+						previous_value = self.package_location(name) #will return None if does not exist
 
-					new_value_is_output_belt = (self.belt_type(value) == "output") #will return None if not a belt
-
-					previous_value = self.package_location(name) #will return None if does not exist
-
-					if new_value_is_output_belt and value != previous_value:
-						#if package is on a output_belt and was at a different location previously it has become ready
-						self.callback_package_ready(name)
+						if new_value_is_output_belt and value != previous_value:
+							#if package is on a output_belt and was at a different location previously it has become ready
+							self.callback_package_ready(name)
 
 
-			self.state[name][attribute] = value
+				self.state[name][attribute] = value
 
 		self.check_conditions()
 
@@ -108,6 +114,32 @@ class StateClient():
 		self.callback_package_ready = callback_function
 
 	# getter functions, that access the state and return some information
+
+	def globals_robot_default_battery_capacity(self) -> float:
+		return self.get_data("robot_default_battery_capacity", "Globals")
+
+	def globals_robot_battery_charge_rate(self) -> float:
+		return self.get_data("robot_battery_charge_rate", "Globals")
+	
+	def globals_robot_battery_drain_rate(self) -> float:
+		return self.get_data("robot_battery_drain_rate", "Globals")
+	
+	def globals_robot_battery_drain_rate_idle(self) -> float:
+		return self.get_data("robot_battery_drain_rate_idle", "Globals")
+	
+	def globals_robot_standard_speed(self) -> float:
+		return self.get_data("robot_standard_speed", "Globals")
+
+	
+	def robot_recharge_rate(self, name: str) -> float:
+		return self.get_data("Robot.charge_rate", name)
+	
+	def robot_drain_rate(self, name: str) -> float:
+		return self.get_data("Robot.drain_rate", name)
+	
+	def robot_standard_speed(self, name: str) -> float:
+		return self.get_data("Robot.standard_speed", name)
+
 	def robot_coordinates(self, name : str) -> List[float]:
 		return self.get_data("Robot.coordinates",name)
 
@@ -131,7 +163,13 @@ class StateClient():
 
 	def robot_in_interact_areas(self, robot_name : str) -> List[str]:
 		return self.get_data("Robot.in_interact_areas",robot_name)
+	
+	def robot_closest_area(self, robot_name: str) -> str:
+		return self.get_data("Robot.closest_area", robot_name)
 
+
+	def robot_location(self, robot_name: str) -> str:
+		return self.get_data("Robot.location", robot_name)
 
 	def machine_coordinates(self, name : str) -> List[float]:
 		return self.get_data("Machine.coordinates",name)
@@ -157,9 +195,13 @@ class StateClient():
 
 	def package_location(self, package_name : str) -> str:
 		return self.get_data("Package.location",package_name)
+	
+	def package_all_processes(self, package_name: str) -> str:
+		return self.get_data("Package.all_processes", package_name)
 
 	def package_processes_list(self, package_name : str) -> List:
 		return self.get_data("Package.processes_list", package_name)
+
 
 
 	def belt_type(self, belt_name : str) -> str:
@@ -177,12 +219,12 @@ class StateClient():
 	def belt_packages_list(self, belt_name : str) -> List[str]:
 		return self.get_data("Belt.packages_list",belt_name)
 
-
 	def parking_area_polygons(self, parking_area_name : str) -> List:
 		return self.get_data("Parking_area.polygons",parking_area_name)
 
 	def parking_area_cells(self, parking_area_name : str) -> List:
 		return self.get_data("Parking_area.cells",parking_area_name)
+
 
 
 	def interact_area_polygons(self, interact_area_name : str) -> List:
@@ -193,6 +235,7 @@ class StateClient():
 
 	def interact_area_belt(self, interact_area_name : str) -> str:
 		return self.get_data("Interact_area.belt",interact_area_name)
+
 
 
 	def get_instances_list(self, category_name : str):

@@ -10,6 +10,9 @@ var robot_name : String
 var move_speed : float = 0.0 # px/s - set when using do_move
 var move_dir : Vector2 # px - should be normalized, set when using do_move
 var move_time : float = 0.0
+# Velocity in px/s
+const default_speed: int = 50
+const default_battery_capacity = 10
 
 # Rotating
 var rotation_speed : float = 0.0 # rad/s - set when using do_rotation
@@ -26,13 +29,15 @@ export(float) var nav_running_margin = 20 # px
 export(float) var nav_end_margin = 5 # px
 
 # Battery
-export var max_battery : float = 10.0
-export var battery_drain_rate : float = 0.1
-export var battery_charge_rate : float = 0.8
-var current_battery : float = 10.0
+export var max_battery : float = System.default_battery_capacity
+export var battery_drain_rate : float = System.default_battery_drain_rate
+export var battery_drain_rate_idle: float = System.default_battery_drain_rate_idle
+export var battery_charge_rate : float = System.default_battery_charge_rate
+var current_battery : float = System.default_battery_capacity
 
 var in_station : bool setget set_in_station
 var in_interact : Array = []
+var in_parking_area: Array = []
 var carried_package : Node2D
 
 var velocity : Vector2 = Vector2.ZERO # Set when doing a movement, manipulated by the controller
@@ -79,7 +84,9 @@ func set_controller(robot_controller):
 		_teleport = true
 
 func _physics_process(delta):
+	var in_action = false
 	if navigating:
+		in_action = true
 		if real_nav_path.size() > 0 and global_position.distance_to(real_nav_path[0]) > points_spacing:
 			real_nav_path.append(global_position)
 		
@@ -106,6 +113,7 @@ func _physics_process(delta):
 	
 	# Movement
 	if is_moving():
+		in_action = true
 		# If navigating with a controller, velocity is set directly from it
 		if navigating and has_controller():
 			if _Controller.reached_target():
@@ -134,6 +142,7 @@ func _physics_process(delta):
 	
 	# Rotation
 	if is_rotating():
+		in_action = true
 		rotation_time -= delta
 		if rotation_time <= 0.0:
 			rotate(rotation_speed * (rotation_time + delta))
@@ -146,18 +155,32 @@ func _physics_process(delta):
 			#Communication.command_result(robot_name, "do_rotation", "Could not complete rotation command because battery became empty")
 		else:
 			rotate(rotation_speed * delta)
-
-func _process(delta):
-	if debug_draw:
-		update()
 	
-	if not(in_station):
+	if in_action:
 		var new_battery = max(0, current_battery - battery_drain_rate*delta)
 		if current_battery>0 and new_battery==0:
 			Logger.log_info("Battery became empty for %s" % robot_name)
 		current_battery = new_battery
 	else:
+		var new_battery = max(0, current_battery - battery_drain_rate_idle*delta)
+		if current_battery>0 and new_battery==0:
+			Logger.log_info("Battery became empty for %s" % robot_name)
+		current_battery = new_battery
+	
+func _process(delta):
+	if debug_draw:
+		update()
+	
+	if in_station:
 		current_battery = min(max_battery, current_battery + battery_charge_rate*delta)
+		
+	#if not(in_station):
+		#var new_battery = max(0, current_battery - battery_drain_rate*delta)
+		#if current_battery>0 and new_battery==0:
+		#	Logger.log_info("Battery became empty for %s" % robot_name)
+		#current_battery = new_battery
+	#else:
+	#	current_battery = min(max_battery, current_battery + battery_charge_rate*delta)
 
 	update_battery_display()
 
@@ -242,7 +265,7 @@ func move_to(point: Vector2, speed: float):
 		var new_vector = point - self.global_position
 		do_move(new_vector.angle(), speed, new_vector.length() / speed)
 
-func navigate_to(point: Vector2, speed: float = 50):
+func navigate_to(point: Vector2, speed: float = default_speed):
 	if _teleport:
 		position = point
 	else:
@@ -261,7 +284,7 @@ func navigate_to(point: Vector2, speed: float = 50):
 		move_speed = speed
 		emit_signal("action_done")
 	
-func navigate_to_cell(tile_x, tile_y, speed: float = 50):
+func navigate_to_cell(tile_x, tile_y, speed: float = default_speed):
 	var target_position = ExportManager.tiles_to_pixels([tile_x, tile_y])
 	navigate_to(target_position, speed)
 	
@@ -274,6 +297,7 @@ func go_charge():
 	var parking_areas = get_tree().get_nodes_in_group("parking_areas")
 	var destination_cell = find_closest_cell(find_closest_area(parking_areas).cells)
 	navigate_to_cell(destination_cell.x, destination_cell.y)
+	
 	
 func face_belt(node : Node2D, speed : float = 5):
 	if not(node.has_method("set_belt_type")):
@@ -314,6 +338,26 @@ func find_closest_area(areas_list : Array) -> Node:
 			closest_area = area
 	
 	return closest_area
+	
+#Returns the parking area or the belt with which the robot can interact 
+func get_location() -> String:
+	var interacts: Array = in_interact;
+	var parkings: Array = in_parking_area;
+	
+	if interacts.empty():
+		if !parkings.empty():
+			return parkings[0].get_name()
+	elif parkings.empty():
+		return interacts[0].get_name()
+	
+	return String("unk_location")
+	
+	
+	
+func get_closest_area() -> Node:
+	var areas = get_tree().get_nodes_in_group("parking_areas")
+	areas += get_tree().get_nodes_in_group("interact_areas")
+	return find_closest_area(areas)
 
 func add_package(Package : Node):
 	carried_package = Package
@@ -397,7 +441,14 @@ func get_interact_areas_names() -> Array:
 	return names_array	
 	
 func export_static() -> Array:
-	return [["Robot.instance", robot_name, "robot"]]
+	var export_data=[]
+	# static export of drain and charge rate for the battery, as well as default displacement velocity
+	export_data.append(["Robot.charge_rate", robot_name, battery_charge_rate])
+	export_data.append(["Robot.drain_rate", robot_name, battery_drain_rate])
+	export_data.append(["Robot.standard_speed", robot_name, ExportManager.pixel_to_meter(default_speed)])
+	# default export: instance of the robot
+	export_data.append(["Robot.instance", robot_name, "robot"])
+	return export_data
 	
 func export_dynamic() -> Array:
 	var export_data=[]
@@ -413,4 +464,6 @@ func export_dynamic() -> Array:
 	
 	export_data.append(["Robot.in_station", robot_name, in_station])
 	export_data.append(["Robot.in_interact_areas", robot_name, get_interact_areas_names()])
+	export_data.append(["Robot.closest_area", robot_name, get_closest_area().get_name()])
+	export_data.append(["Robot.location", robot_name, get_location()])
 	return export_data

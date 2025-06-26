@@ -73,10 +73,23 @@ func read_data(client):
 			var robot_interface = ExportManager.get_robot_interface(robot_name)
 			if robot_interface != null:
 				robot_interface.receive_command(command_name, function_parameters, content["data"]['temp_id'])
-			
+		elif content["type"] == "machine_command":
+			#Logger.log_info("new machine command")
+			var command_info = content["data"]["command_info"] 
+			var command_name = command_info[0]
+			var machine_name = command_info[1]
+			var function_parameters = command_info
+			function_parameters.remove(1)
+			function_parameters.remove(0)
+
+			var machine_interface = ExportManager.get_machine_interface(machine_name)
+			if machine_interface != null:
+				machine_interface.receive_command(command_name, function_parameters, content["data"]['temp_id'])
 		elif content["type"] == "cancel_request":
 			for robot_interface in ExportManager.get_all_robot_interfaces() :
 				robot_interface.cancel_command(content["data"]["action_id"])
+			for machine_interface in ExportManager.get_all_machine_interfaces():
+				machine_interface.cancel_command(content["data"]["action_id"])
 	
 					
 
@@ -84,9 +97,6 @@ func send_message(message):
 	for client in clients_list:
 		if client!=null and client.is_connected_to_host():
 			client.put_string(message)
-		
-	
-
 
 			
 func set_area_parameters(area, stand : Node):

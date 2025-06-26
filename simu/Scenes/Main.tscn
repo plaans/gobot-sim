@@ -22,9 +22,7 @@ script = ExtResource( 14 )
 script = ExtResource( 4 )
 target_path = "res://environments/exported_env.json"
 
-[node name="Navigation2D" type="Navigation2D" parent="." groups=[
-"navigation",
-]]
+[node name="Navigation2D" type="Navigation2D" parent="." groups=["navigation"]]
 script = ExtResource( 2 )
 
 [node name="DebugUI" parent="." instance=ExtResource( 5 )]

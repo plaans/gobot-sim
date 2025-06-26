@@ -7,6 +7,18 @@ from .SimulationTestBase import SimulationTestBase
 
 class StateTest(SimulationTestBase):
 
+    def test_globals_state(self):
+        self.assertTrue(self.client.StateClient.wait_condition(lambda state : 'Globals' in state, timeout=10))
+    
+        self.assertEqual(len(self.client.StateClient.state["Globals"]), 5)
+
+        self.assertEqual(self.client.StateClient.globals_robot_battery_charge_rate(), 0.8)
+        self.assertEqual(self.client.StateClient.globals_robot_battery_drain_rate(), 0.1)
+        self.assertEqual(self.client.StateClient.globals_robot_battery_drain_rate_idle(), 0.001)
+        self.assertEqual(self.client.StateClient.globals_robot_default_battery_capacity(), 10)
+        self.assertEqual(self.client.StateClient.globals_robot_standard_speed(), 1.5625)
+
+
     def test_package_state(self):
         self.assertTrue(self.client.StateClient.wait_condition(lambda state : 'package0' in state, timeout=10))
 
@@ -24,11 +36,14 @@ class StateTest(SimulationTestBase):
         self.assertTrue(self.client.StateClient.wait_condition(lambda state : 'package0' in state and 'Package.location' in state['package0'], timeout=10))
 
         self.assertEqual(self.client.StateClient.package_location(package), 'input_machine0')
+        self.assertEqual(self.client.StateClient.package_all_processes(package), [[0,10],[1,5]])
+        
         self.assertEqual(self.client.StateClient.package_processes_list(package), [[0,10],[1,5]])
 
     def test_robot_state(self):
         self.assertTrue(self.client.StateClient.wait_condition(lambda state : 'robot0' in state, timeout=10))
         self.client.StateClient.wait_next_dynamic_update(timeout=10)
+        self.assertEqual
 
         #check list of robots
         robot_list = self.client.StateClient.robots_list()
@@ -37,16 +52,24 @@ class StateTest(SimulationTestBase):
 
         #do checks on the first robot instance
         robot = robot_list[0]
+
+        #static test
         self.assertEqual(self.client.StateClient.instance_type(robot), 'Robot.instance')
+        self.assertEqual(self.client.StateClient.robot_recharge_rate(robot), 0.8 )
+        self.assertEqual(self.client.StateClient.robot_drain_rate(robot), 0.1)
+        self.assertEqual(self.client.StateClient.robot_standard_speed(robot), 1.5625)
 
         self.assertEqual(self.client.StateClient.robot_coordinates(robot), [7.8,16.5])
         self.assertEqual(self.client.StateClient.robot_coordinates_tile(robot), [7,16])
         self.assertEqual(self.client.StateClient.robot_rotation(robot), 0)
-        self.assertEqual(self.client.StateClient.robot_battery(robot), 1)
+        self.assertAlmostEqual(self.client.StateClient.robot_battery(robot), 1, delta=0.01)
         self.assertEqual(self.client.StateClient.robot_velocity(robot), [0,0])
         self.assertEqual(self.client.StateClient.robot_rotation_speed(robot), 0)
         self.assertEqual(self.client.StateClient.robot_in_station(robot), True)
         self.assertEqual(self.client.StateClient.robot_in_interact_areas(robot), [])
+
+        self.assertEqual(self.client.StateClient.robot_closest_area(robot), 'parking_area0')
+        self.assertEqual(self.client.StateClient.robot_location(robot),'parking_area0')
 
 
     def test_machine_state(self):

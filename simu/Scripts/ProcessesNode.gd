@@ -7,6 +7,8 @@ extends Node2D
 # | new_package.processes.processes = ...
 
 var processes: Array setget set_processes, get_processes
+
+
 # Array containing all the processes
 onready var processes_displays: Array = self.get_children()
 # Array containing all the displays for processes.
@@ -33,6 +35,7 @@ func update_processes_display():
 func set_processes(new_processes: Array):
 	processes = new_processes
 	update_processes_display()
+	
 func get_processes():
 	return processes #returns a reference so it will be editable
 	
